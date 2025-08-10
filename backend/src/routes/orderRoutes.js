@@ -19,9 +19,10 @@ router.put("/:id", (req, res) => {
   res.send(`Pedido com ID ${id} atualizado`);
 });
 
+// Atualizar parcialmente um pedido existente (ex: status)
 router.patch("/:id", (req, res) => {
   const { id } = req.params;
-  res.send(`Pedido com ID ${id} parcialmente atualizado`);
+  res.send(`Pedido com ID ${id} atualizado parcialmente`);
 });
 
 router.delete("/:id", (req, res) => {

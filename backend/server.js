@@ -4,7 +4,6 @@ import cors from "cors";
 import connectDB from "./src/config/db.js";
 import orderRoutes from "./src/routes/orderRoutes.js";
 import productRoutes from "./src/routes/productRoutes.js";
-import userRoutes from "./src/routes/userRoutes.js";
 
 dotenv.config();
 
@@ -14,6 +13,9 @@ app.use(cors());
 app.use(express.json());
 
 connectDB();
+
+app.use("/api/orders", orderRoutes);
+app.use("/api/products", productRoutes);
 
 app.get("/", (req, res) => {
   res.send("API do E-commerce rodando 🚀");
