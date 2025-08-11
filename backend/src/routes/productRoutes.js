@@ -1,5 +1,5 @@
 import express from "express";
-import authenticateToken from "../middlewares/authMiddleware";
+import authenticateToken from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -10,8 +10,8 @@ router.get("/", (req, res) => {
 
 // Criar um novo produto
 router.post("/", authenticateToken, (req, res) => {
-  const { nome, preço } = req.body;
-  const newProduct = { id: Date.now(), nome, preço };
+  const { nome, preço, description, category } = req.body;
+  const newProduct = { id: Date.now(), nome, preço, description, category };
 
   products.push(newProduct);
   res.status(201).json(newProduct);

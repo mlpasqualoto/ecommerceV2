@@ -21,14 +21,14 @@ router.get("/profile", authenticateToken, (req, res) => {
 
 // Rota para registro de um novo usuário
 router.post("/register", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, name, email, number } = req.body;
 
   if (users.find((u) => u.username === username)) {
     return res.status(400).json({ message: "Usuário já existe" });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = { id: Date.now(), username, password: hashedPassword };
+  const newUser = { id: Date.now(), username, password: hashedPassword, name, email, number };
   users.push(newUser);
 
   res.status(201).json({ message: "Usuário criado com sucesso" });
