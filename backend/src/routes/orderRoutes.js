@@ -4,6 +4,8 @@ import {
   getOrders,
   getOrderById,
   updateOrder,
+  payOrder,
+  cancelOrder,
   deleteOrder
 } from "../controllers/orderController.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
@@ -17,12 +19,18 @@ router.post("/", createOrder); // colocar a autenticação aqui
 router.get("/", getOrders); // colocar a autenticação aqui
 
 // Obter um pedido por ID
-router.get("/:id", authenticateToken, getOrderById);
+router.get("/:id", getOrderById); // colocar a autenticação aqui
 
 // Atualizar um pedido
-router.put("/:id", authenticateToken, updateOrder);
+router.put("/:id", updateOrder); // colocar a autenticação aqui
+
+// Pagar um pedido
+router.put("/:id/pay", payOrder); // colocar a autenticação aqui
+
+// Cancelar um pedido
+router.put("/:id/cancel", cancelOrder); // colocar a autenticação aqui
 
 // Deletar um pedido
-router.delete("/:id", authenticateToken, deleteOrder);
+router.delete("/:id", deleteOrder); // colocar a autenticação aqui
 
 export default router;

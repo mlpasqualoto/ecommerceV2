@@ -15,7 +15,7 @@ export const createOrder = async (req, res) => {
 export const getOrders = async (req, res) => {
     try {
         const orders = await Order.find().populate("userId", "username").populate("items.productId", "name price");
-        res.json(orders);
+        res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
     } catch (error) {
         res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
     }
@@ -24,14 +24,12 @@ export const getOrders = async (req, res) => {
 // Obter um pedido por ID
 export const getOrderById = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id)
-            .populate("userId", "username")
-            .populate("products.product", "name price");
+        const order = await Order.findById(req.params.id).populate("userId", "username").populate("items.productId", "name price");
 
         if (!order) {
             return res.status(404).json({ message: "Pedido não encontrado" });
         }
-        res.json(order);
+        res.json({ message: "Pedido encontrado com sucesso", order: order });
     } catch (error) {
         res.status(500).json({ message: "Erro ao buscar pedido", error: error.message });
     }
@@ -46,9 +44,39 @@ export const updateOrder = async (req, res) => {
             return res.status(404).json({ message: "Pedido não encontrado" });
         }
 
-        res.json(updatedOrder);
+        res.json({ message: "Pedido atualizado com sucesso", order: updatedOrder });
     } catch (error) {
         res.status(400).json({ message: "Erro ao atualizar pedido", error: error.message });
+    }
+};
+
+// Pagar um pedido
+export const payOrder = async (req, res) => {
+    try {
+        const paidOrder = await Order.findByIdAndUpdate(req.params.id, { status: "paid" }, { new: true });
+
+        if (!paidOrder) {
+            return res.status(404).json({ message: "Pedido não encontrado" });
+        }
+
+        res.json({ message: "Pedido pago com sucesso", order: paidOrder });
+    } catch (error) {
+        res.status(400).json({ message: "Erro ao pagar pedido", error: error.message });
+    }
+};
+
+// Cancelar um pedido
+export const cancelOrder = async (req, res) => {
+    try {
+        const cancelledOrder = await Order.findByIdAndUpdate(req.params.id, { status: "cancelled" }, { new: true });
+
+        if (!cancelledOrder) {
+            return res.status(404).json({ message: "Pedido não encontrado" });
+        }
+
+        res.json({ message: "Pedido cancelado com sucesso", order: cancelledOrder });
+    } catch (error) {
+        res.status(400).json({ message: "Erro ao cancelar pedido", error: error.message });
     }
 };
 
