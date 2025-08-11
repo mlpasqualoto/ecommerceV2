@@ -1,33 +1,49 @@
 import express from "express";
+import authenticateToken from "../middlewares/authMiddleware";
+
 const router = express.Router();
 
+// Obter todos os produtos (público)
 router.get("/", (req, res) => {
-  res.send("Lista de todos os produtos");
+  res.json(products);
 });
 
-router.post("/", (req, res) => {
-  res.send("Criar um novo produto");
+// Criar um novo produto
+router.post("/", authenticateToken, (req, res) => {
+  const { nome, preço } = req.body;
+  const newProduct = { id: Date.now(), nome, preço };
+
+  products.push(newProduct);
+  res.status(201).json(newProduct);
 });
 
+// Rota para obter detalhes de um produto específico
 router.get("/:id", (req, res) => {
-  const { id } = req.params;
-  res.send(`Detalhes do produto com ID: ${id}`);
+  const id = parseInt(req.params.id);
+  const produto = products.find((p) => p.id === id);
+
+  if (!produto) {
+    return res.status(404).json({ erro: "Produto não encontrado" });
+  }
+
+  res.json(produto);
 });
 
-router.put("/:id", (req, res) => {
+// Atualiza um produto existente
+router.put("/:id", authenticateToken, (req, res) => {
   const { id } = req.params;
-  res.send(`Produto com ID ${id} atualizado`);
+  const { nome, preco } = req.body;
+  res.json({
+    message: `Produto ${id} atualizado com sucesso!`,
+    produto: { id, nome, preco },
+    user: req.user,
+  });
 });
 
-// Atualizar parcialmente um produto existente (ex: preço)
-router.patch("/:id", (req, res) => {
+// Remove um produto
+router.delete("/:id", authenticateToken, (req, res) => {
   const { id } = req.params;
-  res.send(`Produto com ID ${id} atualizado parcialmente`);
-});
-
-router.delete("/:id", (req, res) => {
-  const { id } = req.params;
-  res.send(`Produto com ID ${id} removido`);
+  res.json({ message: `Produto ${id} removido com sucesso!`, user: req.user });
 });
 
 export default router;

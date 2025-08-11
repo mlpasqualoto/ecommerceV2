@@ -5,10 +5,12 @@ import authenticateToken from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
+// Rota para obter todos os usuários
 router.get("/", authenticateToken, (req, res) => {
   res.json(users.map(({ password, ...rest }) => rest));
 });
 
+// Rota para obter o perfil do usuário autenticado
 router.get("/profile", authenticateToken, (req, res) => {
   const user = users.find((u) => u.id === req.user.id);
   if (!user) {
@@ -17,6 +19,7 @@ router.get("/profile", authenticateToken, (req, res) => {
   res.json({ id: user.id, username: user.username });
 });
 
+// Rota para registro de um novo usuário
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
@@ -31,6 +34,7 @@ router.post("/register", async (req, res) => {
   res.status(201).json({ message: "Usuário criado com sucesso" });
 });
 
+// Rota para login de usuário
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
