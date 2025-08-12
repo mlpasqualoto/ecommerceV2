@@ -3,6 +3,7 @@ import {
   createOrder,
   getOrders,
   getOrderById,
+  getOrdersByStatus,
   updateOrder,
   payOrder,
   cancelOrder,
@@ -20,6 +21,9 @@ router.get("/", getOrders); // colocar a autenticação aqui
 
 // Obter um pedido por ID
 router.get("/:id", getOrderById); // colocar a autenticação aqui
+
+// Obter pedidos pelo status
+router.get("/:status/getByStatus", getOrdersByStatus); // colocar a autenticação aqui
 
 // Atualizar um pedido
 router.put("/:id", updateOrder); // colocar a autenticação aqui

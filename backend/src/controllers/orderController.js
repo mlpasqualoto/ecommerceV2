@@ -35,6 +35,30 @@ export const getOrderById = async (req, res) => {
     }
 };
 
+// Obter pedidos pelo status
+export const getOrdersByStatus = async (req, res) => {
+    try {
+        const { status } = req.params; // ou req.query, se preferir
+
+        const allowedStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ message: "Status inválido" });
+        }
+
+        const orders = await Order.find({ status })
+            .populate("userId", "username")
+            .populate("items.productId", "name price");
+        if (orders.length === 0) {
+            return res.status(404).json({ message: "Nenhum pedido encontrado com o status especificado" });
+        }
+
+        res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
+    } catch (error) {
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+    }
+};
+
+
 // Atualizar um pedido
 export const updateOrder = async (req, res) => {
     try {
