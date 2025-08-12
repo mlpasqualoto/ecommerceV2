@@ -9,7 +9,7 @@ const productSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: true,
-        min: 0, // Não permite preços negativos
+        min: 0,
     },
     description: {
         type: String,
@@ -20,21 +20,24 @@ const productSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-        required: true
+    stock: {
+        type: Number,
+        default: 0,
+        min: 0,
     },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
-        required: true
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active'
+    },
+    discount: {
+        type: Number,
+        default: 0,
+        min: 0
     }
 }, {
-    versionKey: false // remove o campo "__v" do documento
-}, {
+    versionKey: false, // remove o campo "__v" do documento
     timestamps: true // cria automaticamente createdAt e updatedAt
-}
-);
+});
 
 export default mongoose.model("Product", productSchema);

@@ -28,22 +28,10 @@ const usuarioSchema = new mongoose.Schema({
         type: Number,
         required: true,
         trim: true
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-        required: true
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
-        required: true
     }
 }, {
-    versionKey: false // remove o campo "__v" do documento
-}, {
+    versionKey: false, // remove o campo "__v" do documento
     timestamps: true // cria automaticamente createdAt e updatedAt
-}
-);
+});
 
 export default mongoose.model("User", usuarioSchema);
