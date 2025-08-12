@@ -1,49 +1,36 @@
 import express from "express";
+import {
+  createProduct,
+  getProducts,
+  getProductById,
+  updateProduct,
+  updateProductStatus,
+  deleteProduct
+} from "../controllers/productController.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// Obter todos os produtos (público)
-router.get("/", (req, res) => {
-  res.json(products);
-});
+// Criar novo produto
+router.post("/", createProduct); // colocar a autenticação aqui
 
-// Criar um novo produto
-router.post("/", authenticateToken, (req, res) => {
-  const { nome, preço, description, category } = req.body;
-  const newProduct = { id: Date.now(), nome, preço, description, category };
+/**
+ * Listar produtos com filtros
+ * Filtros disponíveis: category, brand, minPrice, maxPrice, isActive
+ * Exemplo: /products?category=Eletrônicos&minPrice=100&maxPrice=500&isActive=true
+ */
+router.get("/", getProducts);
 
-  products.push(newProduct);
-  res.status(201).json(newProduct);
-});
+// Obter produto por ID
+router.get("/:id", getProductById);
 
-// Rota para obter detalhes de um produto específico
-router.get("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const produto = products.find((p) => p.id === id);
+// Atualizar produto
+router.put("/:id", updateProduct); // colocar a autenticação aqui
 
-  if (!produto) {
-    return res.status(404).json({ erro: "Produto não encontrado" });
-  }
+// Atualizar status do produto
+router.patch("/:id/status", updateProductStatus); // colocar a autenticação aqui
 
-  res.json(produto);
-});
-
-// Atualiza um produto existente
-router.put("/:id", authenticateToken, (req, res) => {
-  const { id } = req.params;
-  const { nome, preco } = req.body;
-  res.json({
-    message: `Produto ${id} atualizado com sucesso!`,
-    produto: { id, nome, preco },
-    user: req.user,
-  });
-});
-
-// Remove um produto
-router.delete("/:id", authenticateToken, (req, res) => {
-  const { id } = req.params;
-  res.json({ message: `Produto ${id} removido com sucesso!`, user: req.user });
-});
+// Deletar produto
+router.delete("/:id/delete", deleteProduct); // colocar a autenticação aqui
 
 export default router;

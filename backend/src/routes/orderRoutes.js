@@ -29,12 +29,12 @@ router.get("/:status/getByStatus", getOrdersByStatus); // colocar a autenticaç�
 router.put("/:id", updateOrder); // colocar a autenticação aqui
 
 // Pagar um pedido
-router.put("/:id/pay", payOrder); // colocar a autenticação aqui
+router.patch("/:id/pay", payOrder); // colocar a autenticação aqui
 
 // Cancelar um pedido
-router.put("/:id/cancel", cancelOrder); // colocar a autenticação aqui
+router.patch("/:id/cancel", cancelOrder); // colocar a autenticação aqui
 
 // Deletar um pedido
-router.delete("/:id", deleteOrder); // colocar a autenticação aqui
+router.delete("/:id/delete", deleteOrder); // colocar a autenticação aqui
 
 export default router;
