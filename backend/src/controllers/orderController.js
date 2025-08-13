@@ -3,7 +3,7 @@ import Order from "../models/Order.js";
 // Criar um novo pedido
 export const createOrder = async (req, res) => {
     try {
-        const order = new Order(req.body);
+        const order = new Order({ ...req.body, userId: req.user.id });
         const savedOrder = await order.save();
         res.status(201).json({ message: "Pedido criado com sucesso", order: savedOrder });
     } catch (error) {
@@ -11,10 +11,10 @@ export const createOrder = async (req, res) => {
     }
 };
 
-// Listar todos os pedidos
+// Listar todos os pedidos do usuário
 export const getOrders = async (req, res) => {
     try {
-        const orders = await Order.find().populate("userId", "username").populate("items.productId", "name price");
+        const orders = await Order.find({ userId: req.user.id }).populate("userId", "username").populate("items.productId", "name price");
         res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
     } catch (error) {
         res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
@@ -38,14 +38,14 @@ export const getOrderById = async (req, res) => {
 // Obter pedidos pelo status
 export const getOrdersByStatus = async (req, res) => {
     try {
-        const { status } = req.params; // ou req.query, se preferir
+        const { status } = req.params;
 
         const allowedStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
         if (!allowedStatuses.includes(status)) {
             return res.status(400).json({ message: "Status inválido" });
         }
 
-        const orders = await Order.find({ status })
+        const orders = await Order.find({ status, userId: req.user.id })
             .populate("userId", "username")
             .populate("items.productId", "name price");
         if (orders.length === 0) {

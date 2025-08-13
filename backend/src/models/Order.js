@@ -1,11 +1,6 @@
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
-    userName: {
-        type: String,
-        required: true,
-        trim: true
-    },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

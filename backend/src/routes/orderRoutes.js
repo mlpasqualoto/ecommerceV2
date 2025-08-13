@@ -16,7 +16,7 @@ const router = express.Router();
 // Criar um novo pedido
 router.post("/", createOrder); // colocar a autenticação aqui
 
-// Listar todos os pedidos
+// Listar todos os pedidos do usuário
 router.get("/", getOrders); // colocar a autenticação aqui
 
 // Obter um pedido por ID
