@@ -83,13 +83,26 @@ export const updateUser = async (req, res) => {
     try {
         const { userName, name, email, number } = req.body;
 
-        // Verifica se já existe username ou email
-        const existingUser = await User.findOne({ $or: [{ userName }, { email }] });
-        if (existingUser) return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
+        // Verifica se já existe username ou email em outro usuário
+        const existingUser = await User.findOne({
+            $or: [{ userName }, { email }],
+            _id: { $ne: req.user.id } // ignora o próprio usuário
+        });
 
-        const updatedUser = await User.findByIdAndUpdate(req.user.id, { userName, name, email, number }, { new: true, select: "-password" });
+        if (existingUser) {
+            return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
+        }
 
-        if (!updatedUser) return res.status(404).json({ message: "Usuário não encontrado" });
+        // Atualiza somente os campos enviados (evita sobrescrever com undefined)
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user.id,
+            { userName, name, email, number },
+            { new: true, select: "-password" }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "Usuário não encontrado" });
+        }
 
         res.json({ message: "Dados atualizados com sucesso", user: updatedUser });
     } catch (err) {
