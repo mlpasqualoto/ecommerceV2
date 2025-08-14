@@ -14,27 +14,27 @@ import authenticateToken from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 // Criar um novo pedido
-router.post("/", createOrder); // colocar a autenticação aqui
+router.post("/", authenticateToken, createOrder); // colocar a autenticação aqui
 
 // Listar todos os pedidos do usuário
-router.get("/", getOrders); // colocar a autenticação aqui
+router.get("/", authenticateToken, getOrders); // colocar a autenticação aqui
 
 // Obter um pedido por ID
-router.get("/:id", getOrderById); // colocar a autenticação aqui
+router.get("/:id", authenticateToken, getOrderById); // colocar a autenticação aqui
 
 // Obter pedidos pelo status
-router.get("/:status/getByStatus", getOrdersByStatus); // colocar a autenticação aqui
+router.get("/:status/getByStatus", authenticateToken, getOrdersByStatus); // colocar a autenticação aqui
 
 // Atualizar um pedido
-router.put("/:id", updateOrder); // colocar a autenticação aqui
+router.put("/:id", authenticateToken, updateOrder); // colocar a autenticação aqui
 
 // Pagar um pedido
-router.patch("/:id/pay", payOrder); // colocar a autenticação aqui
+router.patch("/:id/pay", authenticateToken, payOrder); // colocar a autenticação aqui
 
 // Cancelar um pedido
-router.patch("/:id/cancel", cancelOrder); // colocar a autenticação aqui
+router.patch("/:id/cancel", authenticateToken, cancelOrder); // colocar a autenticação aqui
 
 // Deletar um pedido
-router.delete("/:id/delete", deleteOrder); // colocar a autenticação aqui
+router.delete("/:id/delete", authenticateToken, deleteOrder); // colocar a autenticação aqui
 
 export default router;

@@ -6,6 +6,11 @@ const orderSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    userName: {
+        type: String,
+        required: true,
+        trim: true
+    },
     items: [
         {
             productId: {
@@ -13,9 +18,21 @@ const orderSchema = new mongoose.Schema({
                 ref: "Product",
                 required: true
             },
-            name: { type: String, required: true, trim: true },
-            quantity: { type: Number, required: true, min: 1 },
-            price: { type: Number, required: true, min: 0 }
+            name: {
+                type: String,
+                required: true,
+                trim: true
+            },
+            quantity: { 
+                type: Number, 
+                required: true, 
+                min: 1 
+            },
+            price: {
+                type: Number,
+                required: true,
+                min: 0
+            }
         }
     ],
     totalAmount: {

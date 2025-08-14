@@ -8,8 +8,6 @@ import {
   updatePassword,
   deleteUser
 } from "../controllers/userController.js"
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
 import authenticateToken from "../middlewares/authMiddleware.js";
 
 const router = express.Router();

@@ -1,11 +1,53 @@
 import Order from "../models/Order.js";
+import User from "../models/User.js";
+import Product from "../models/Product.js";
 
 // Criar um novo pedido
 export const createOrder = async (req, res) => {
     try {
-        const order = new Order({ ...req.body, userId: req.user.id });
+        // Pega o ID do usuário autenticado (via token)
+        const userId = req.user.id;
+
+        // Busca o usuário no banco para pegar o userName
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        // Monta os items preenchendo name e price do produto
+        const items = await Promise.all(
+            req.body.items.map(async (item) => {
+                const product = await Product.findById(item.productId);
+                if (!product) {
+                    throw new Error(`Produto com ID ${item.productId} não encontrado`);
+                }
+                return {
+                    productId: product._id,
+                    name: product.name,
+                    quantity: item.quantity,
+                    price: product.price
+                };
+            })
+        );
+
+        // Calcula o total
+        const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+        // Cria e salva o pedido
+        const order = new Order({
+            userId: user._id,
+            userName: user.userName, // salva no banco também
+            items,
+            totalAmount,
+            status: "pending"
+        });
+
         const savedOrder = await order.save();
-        res.status(201).json({ message: "Pedido criado com sucesso", order: savedOrder });
+
+        res.status(201).json({
+            message: "Pedido criado com sucesso",
+            order: savedOrder
+        });
     } catch (error) {
         res.status(400).json({ message: "Erro ao criar pedido", error: error.message });
     }
@@ -14,7 +56,7 @@ export const createOrder = async (req, res) => {
 // Listar todos os pedidos do usuário
 export const getOrders = async (req, res) => {
     try {
-        const orders = await Order.find({ userId: req.user.id }).populate("userId", "username").populate("items.productId", "name price");
+        const orders = await Order.find({ userId: req.user.id });
         res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
     } catch (error) {
         res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
@@ -24,7 +66,7 @@ export const getOrders = async (req, res) => {
 // Obter um pedido por ID
 export const getOrderById = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id).populate("userId", "username").populate("items.productId", "name price");
+        const order = await Order.findById(req.params.id);
 
         if (!order) {
             return res.status(404).json({ message: "Pedido não encontrado" });
@@ -45,9 +87,7 @@ export const getOrdersByStatus = async (req, res) => {
             return res.status(400).json({ message: "Status inválido" });
         }
 
-        const orders = await Order.find({ status, userId: req.user.id })
-            .populate("userId", "username")
-            .populate("items.productId", "name price");
+        const orders = await Order.find({ status, userId: req.user.id });
         if (orders.length === 0) {
             return res.status(404).json({ message: "Nenhum pedido encontrado com o status especificado" });
         }

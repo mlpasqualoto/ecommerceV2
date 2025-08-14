@@ -1,4 +1,6 @@
 import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 // Obter todos os usuários
 export const getUsers = async (req, res) => {
