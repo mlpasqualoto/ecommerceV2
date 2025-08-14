@@ -8,11 +8,12 @@ import {
   deleteProduct
 } from "../controllers/productController.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
+import authorizeRole from "../middlewares/authRoleMiddleware.js";
 
 const router = express.Router();
 
 // Criar novo produto
-router.post("/", createProduct); // colocar a autenticação aqui
+router.post("/create", authenticateToken, authorizeRole("admin"), createProduct);
 
 /**
  * Listar produtos com filtros
@@ -25,12 +26,12 @@ router.get("/", getProducts);
 router.get("/:id", getProductById);
 
 // Atualizar produto
-router.put("/:id", updateProduct); // colocar a autenticação aqui
+router.put("/:id/update", authenticateToken, authorizeRole("admin"), updateProduct);
 
 // Atualizar status do produto
-router.patch("/:id/status", updateProductStatus); // colocar a autenticação aqui
+router.patch("/:id/status", authenticateToken, authorizeRole("admin"), updateProductStatus);
 
 // Deletar produto
-router.delete("/:id/delete", deleteProduct); // colocar a autenticação aqui
+router.delete("/:id/delete", authenticateToken, authorizeRole("admin"), deleteProduct);
 
 export default router;

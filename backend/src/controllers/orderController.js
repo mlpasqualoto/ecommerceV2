@@ -2,7 +2,7 @@ import Order from "../models/Order.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 
-// Criar um novo pedido
+// Criar um novo pedido (user)
 export const createOrder = async (req, res) => {
     try {
         // Pega o ID do usuário autenticado (via token)
@@ -53,7 +53,7 @@ export const createOrder = async (req, res) => {
     }
 };
 
-// Listar todos os pedidos do usuário
+// Listar todos os pedidos do usuário (user)
 export const getOrders = async (req, res) => {
     try {
         const orders = await Order.find({ userId: req.user.id });
@@ -63,7 +63,7 @@ export const getOrders = async (req, res) => {
     }
 };
 
-// Obter um pedido por ID
+// Obter um pedido por ID (admin ou user)
 export const getOrderById = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
@@ -71,13 +71,19 @@ export const getOrderById = async (req, res) => {
         if (!order) {
             return res.status(404).json({ message: "Pedido não encontrado" });
         }
+
+        // Se não for admin e o pedido não for do usuário logado, bloqueia
+        if (req.user.role !== "admin" && order.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Acesso negado" });
+        }
+
         res.json({ message: "Pedido encontrado com sucesso", order: order });
     } catch (error) {
         res.status(500).json({ message: "Erro ao buscar pedido", error: error.message });
     }
 };
 
-// Obter pedidos pelo status
+// Obter pedidos pelo status (user)
 export const getOrdersByStatus = async (req, res) => {
     try {
         const { status } = req.params;
@@ -98,8 +104,29 @@ export const getOrdersByStatus = async (req, res) => {
     }
 };
 
+// Obter pedidos por status (somente admin - todos os pedidos)
+export const getAllOrdersByStatus = async (req, res) => {
+    try {
+        const { status } = req.params;
 
-// Atualizar um pedido
+        const allowedStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ message: "Status inválido" });
+        }
+
+        // Busca todos os pedidos com o status informado
+        const orders = await Order.find({ status });
+        if (orders.length === 0) {
+            return res.status(404).json({ message: "Nenhum pedido encontrado com o status especificado" });
+        }
+
+        res.json({ message: "Pedidos encontrados com sucesso", orders });
+    } catch (error) {
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+    }
+};
+
+// Atualizar um pedido (somente admin)
 export const updateOrder = async (req, res) => {
     try {
         const updatedOrder = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -114,7 +141,7 @@ export const updateOrder = async (req, res) => {
     }
 };
 
-// Pagar um pedido
+// Pagar um pedido (somente admin)
 export const payOrder = async (req, res) => {
     try {
         const paidOrder = await Order.findByIdAndUpdate(req.params.id, { status: "paid" }, { new: true });
@@ -129,22 +156,29 @@ export const payOrder = async (req, res) => {
     }
 };
 
-// Cancelar um pedido
+// Cancelar um pedido (admin ou user)
 export const cancelOrder = async (req, res) => {
     try {
-        const cancelledOrder = await Order.findByIdAndUpdate(req.params.id, { status: "cancelled" }, { new: true });
+        const order = await Order.findById(req.params.id);
 
-        if (!cancelledOrder) {
+        if (!order) {
             return res.status(404).json({ message: "Pedido não encontrado" });
         }
 
-        res.json({ message: "Pedido cancelado com sucesso", order: cancelledOrder });
+        if (req.user.role !== "admin" && order.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Acesso negado" });
+        }
+
+        order.status = "cancelled";
+        await order.save();
+
+        res.json({ message: "Pedido cancelado com sucesso", order: order });
     } catch (error) {
         res.status(400).json({ message: "Erro ao cancelar pedido", error: error.message });
     }
 };
 
-// Deletar um pedido
+// Deletar um pedido (somente admin)
 export const deleteOrder = async (req, res) => {
     try {
         const deletedOrder = await Order.findByIdAndDelete(req.params.id);

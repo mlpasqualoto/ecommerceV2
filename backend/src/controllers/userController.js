@@ -29,7 +29,7 @@ export const getUserProfile = async (req, res) => {
 // Criação de um novo usuário
 export const createUser = async (req, res) => {
     try {
-        const { userName, password, name, email, number } = req.body;
+        const { userName, password, name, email, number, role } = req.body;
 
         // Verifica se já existe username ou email
         const existingUser = await User.findOne({ $or: [{ userName }, { email }] });
@@ -43,7 +43,8 @@ export const createUser = async (req, res) => {
             password: hashedPassword,
             name,
             email,
-            number
+            number,
+            role
         });
 
         const savedNewUser = await newUser.save();
@@ -122,7 +123,7 @@ export const updatePassword = async (req, res) => {
 // Deletar usuário
 export const deleteUser = async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.user.id);
+        const user = await User.findByIdAndDelete(req.params.id);
         if (!user) return res.status(404).json({ message: "Usuário não encontrado" });
 
         res.json({ message: "Usuário deletado com sucesso" });

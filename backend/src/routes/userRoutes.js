@@ -9,11 +9,12 @@ import {
   deleteUser
 } from "../controllers/userController.js"
 import authenticateToken from "../middlewares/authMiddleware.js";
+import authorizeRole from "../middlewares/authRoleMiddleware.js";
 
 const router = express.Router();
 
 // Rota para obter todos os usuários
-router.get("/", authenticateToken, getUsers);
+router.get("/", authenticateToken, authorizeRole("admin"), getUsers);
 
 // Rota para obter o perfil do usuário autenticado
 router.get("/profile", authenticateToken, getUserProfile);
@@ -31,6 +32,6 @@ router.put("/update", authenticateToken, updateUser);
 router.put("/update-password", authenticateToken, updatePassword);
 
 // Rota para deletar usuário
-router.delete("/delete", authenticateToken, deleteUser);
+router.delete("/:id/delete", authenticateToken, authorizeRole("admin"), deleteUser);
 
 export default router;

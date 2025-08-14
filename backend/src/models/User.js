@@ -28,6 +28,11 @@ const usuarioSchema = new mongoose.Schema({
         type: Number,
         required: true,
         trim: true
+    },
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user"
     }
 }, {
     versionKey: false, // remove o campo "__v" do documento
