@@ -25,10 +25,10 @@ router.get("/", authenticateToken, getOrders);
 router.get("/:id", authenticateToken, getOrderById);
 
 // Obter pedidos pelo status (user)
-router.get("/:status/getByStatus", authenticateToken, getOrdersByStatus);
+router.get("/:status/get-by-status", authenticateToken, getOrdersByStatus);
 
 // Obter pedidos pelo status (somente admin - todos os pedidos)
-router.get("/:status/getAllByStatus", authenticateToken, authorizeRole("admin"), getAllOrdersByStatus);
+router.get("/:status/get-all-by-status", authenticateToken, authorizeRole("admin"), getAllOrdersByStatus);
 
 // Atualizar um pedido
 router.put("/:id/update", authenticateToken, authorizeRole("admin"), updateOrder);
