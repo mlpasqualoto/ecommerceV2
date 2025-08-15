@@ -72,6 +72,14 @@ export const loginUser = async (req, res) => {
             { expiresIn: "1h" }
         );
 
+        // Envia o token como cookie HTTP-only
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 3600000 // 1 hora
+        });
+
         res.json({ message: "Login realizado com sucesso", token: token });
     } catch (err) {
         res.status(500).json({ message: "Erro ao fazer login", error: err.message });

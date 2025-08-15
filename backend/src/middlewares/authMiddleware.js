@@ -2,8 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = req.cookies?.token;
 
   if (!token) {
     return res.status(403).json({ message: "Token não fornecido" });
