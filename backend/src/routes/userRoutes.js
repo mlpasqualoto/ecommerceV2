@@ -2,6 +2,7 @@ import express from "express";
 import {
   getUsers,
   getUserProfile,
+  getCurrentUser,
   createUser,
   loginUser,
   updateUser,
@@ -18,6 +19,9 @@ router.get("/", authenticateToken, authorizeRole("admin"), getUsers);
 
 // Rota para obter o perfil do usuário autenticado
 router.get("/profile", authenticateToken, getUserProfile);
+
+// Rota para pegar os dados do usuário logado
+router.get("/me", authenticateToken, getCurrentUser);
 
 // Rota para registro de um novo usuário
 router.post("/register", createUser);

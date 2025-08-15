@@ -13,21 +13,40 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5500/api/users/login", {
+      // 1️⃣ Faz login
+      const loginRes = await fetch("http://localhost:5500/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ESSENCIAL para cookies HTTP-only
+        credentials: "include", // para receber cookie HTTP-only
         body: JSON.stringify({ userName, password }),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
+      if (!loginRes.ok) {
+        const data = await loginRes.json();
         setError(data.message || "Erro ao fazer login");
         return;
       }
 
-      // Login OK → redireciona
+      // 2️⃣ Verifica role após login
+      const meRes = await fetch("http://localhost:5500/api/users/me", {
+        credentials: "include",
+      });
+
+      if (!meRes.ok) {
+        setError("Erro ao verificar permissões");
+        return;
+      }
+
+      const userData = await meRes.json();
+
+      if (userData.role !== "admin") {
+        setError("Você não tem permissão para acessar esta área");
+        return;
+      }
+
+      // ✅ Admin → vai para área restrita
       router.push("/admin");
+
     } catch (err) {
       setError("Erro de conexão com o servidor");
     }

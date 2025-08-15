@@ -11,7 +11,24 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://192.168.25.110:3000" // seu IP da rede
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permite requisições sem "origin" (como apps mobile ou Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 

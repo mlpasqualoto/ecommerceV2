@@ -26,6 +26,23 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
+// Rota para obter informações do usuário logado
+export const getCurrentUser = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Não autenticado" });
+        }
+
+        res.json({
+            id: req.user.id,
+            userName: req.user.userName,
+            role: req.user.role
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Erro ao obter usuário", error: err.message });
+    }
+};
+
 // Criação de um novo usuário
 export const createUser = async (req, res) => {
     try {
