@@ -31,12 +31,13 @@ export const createOrder = async (req, res) => {
         );
 
         // Calcula o total
-        const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0).toFixed(2);
 
         // Cria e salva o pedido
         const order = new Order({
             userId: user._id,
-            userName: user.userName, // salva no banco também
+            userName: user.userName, // salva no banco també
+            name: user.name,
             items,
             totalAmount,
             status: "pending"
