@@ -4,13 +4,14 @@ import {
   getUserProfile,
   getCurrentUser,
   createUser,
+  createUserByAdmin,
   loginUser,
   updateUser,
   updatePassword,
   deleteUser
 } from "../controllers/userController.js"
 import authenticateToken from "../middlewares/authMiddleware.js";
-import authorizeRole from "../middlewares/authRoleMiddleware.js";
+import { authorizeRole } from "../middlewares/authRoleMiddleware.js";
 
 const router = express.Router();
 
@@ -23,8 +24,11 @@ router.get("/profile", authenticateToken, getUserProfile);
 // Rota para pegar os dados do usuário logado
 router.get("/me", authenticateToken, getCurrentUser);
 
-// Rota para registro de um novo usuário
+// Rota pública para registro de um novo usuário
 router.post("/register", createUser);
+
+// Rota protegida para criação de usuário por admin
+router.post("/admin/register", authenticateToken, authorizeRole("admin"), createUserByAdmin);
 
 // Rota para login de usuário
 router.post("/login", loginUser);

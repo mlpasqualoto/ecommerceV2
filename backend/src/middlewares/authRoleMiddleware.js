@@ -11,5 +11,3 @@ export const authorizeRole = (requiredRole) => {
         next();
     };
 };
-
-export default authorizeRole;

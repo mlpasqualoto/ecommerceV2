@@ -8,7 +8,7 @@ import {
   deleteProduct
 } from "../controllers/productController.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
-import authorizeRole from "../middlewares/authRoleMiddleware.js";
+import { authorizeRole } from "../middlewares/authRoleMiddleware.js";
 
 const router = express.Router();
 

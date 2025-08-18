@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import { generateToken, hashPassword, comparePassword } from "../config/auth.js";
-import authorizeRole from "../middlewares/authRoleMiddleware.js";
+import authenticateToken from "../middlewares/authMiddleware.js";
 
 // Obter todos os usuários
 export const getUsers = async (req, res) => {
@@ -43,19 +43,14 @@ export const getCurrentUser = async (req, res) => {
     }
 };
 
-// Criação de um novo usuário
+// Criação de usuário público (sempre role: "user")
 export const createUser = async (req, res) => {
     try {
-        const { userName, password, name, email, number, role } = req.body;
+        const { userName, password, name, email, number } = req.body;
 
         // Verifica se já existe username ou email
         const existingUser = await User.findOne({ $or: [{ userName }, { email }] });
         if (existingUser) return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
-
-        // Lógica específica para criação de admin
-        if (role === "admin") {
-            authorizeRole("admin")(req, res, () => { }); // Chama o middleware para verificar se o usuário atual é admin
-        }
 
         // Criptografa a senha
         const hashedPassword = await hashPassword(password);
@@ -66,7 +61,40 @@ export const createUser = async (req, res) => {
             name,
             email,
             number,
-            role
+            role: "user"
+        });
+
+        const savedNewUser = await newUser.save();
+        res.status(201).json({ message: "Usuário criado com sucesso", user: savedNewUser });
+    } catch (err) {
+        res.status(400).json({ message: "Erro ao criar usuário", error: err.message });
+    }
+};
+
+// Criação de usuário protegida (somente admin pode criar outro admin)
+export const createUserByAdmin = async (req, res) => {
+    try {
+        const { userName, password, name, email, number, role } = req.body;
+
+        // 🔒 só admins podem criar admins
+        if (role === "admin" && req.user.role !== "admin") {
+            return res.status(403).json({ message: "Somente administradores podem criar outros administradores" });
+        }
+
+        // Verifica se já existe username ou email
+        const existingUser = await User.findOne({ $or: [{ userName }, { email }] });
+        if (existingUser) return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
+
+        // Criptografa a senha
+        const hashedPassword = await hashPassword(password);
+
+        const newUser = new User({
+            userName,
+            password: hashedPassword,
+            name,
+            email,
+            number,
+            role: role
         });
 
         const savedNewUser = await newUser.save();
