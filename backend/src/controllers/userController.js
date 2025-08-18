@@ -1,6 +1,5 @@
 import User from "../models/User.js";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import { generateToken, hashPassword, comparePassword } from "../config/auth.js";
 
 // Obter todos os usuários
 export const getUsers = async (req, res) => {
@@ -53,7 +52,7 @@ export const createUser = async (req, res) => {
         if (existingUser) return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
 
         // Criptografa a senha
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await hashPassword(password);
 
         const newUser = new User({
             userName,
@@ -78,16 +77,12 @@ export const loginUser = async (req, res) => {
 
         // Busca usuário pelo userName
         const user = await User.findOne({ userName });
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        if (!user || !(await comparePassword(password, user.password))) {
             return res.status(401).json({ message: "Credenciais inválidas" });
         }
 
         // Gera token
-        const token = jwt.sign(
-            { id: user._id, userName: user.userName },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" }
-        );
+        const token = generateToken(user);
 
         // Envia o token como cookie HTTP-only
         res.cookie("token", token, {
@@ -144,11 +139,11 @@ export const updatePassword = async (req, res) => {
         if (!user) return res.status(404).json({ message: "Usuário não encontrado" });
 
         // Verifica se a senha atual está correta
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        const isMatch = await comparePassword(currentPassword, user.password);
         if (!isMatch) return res.status(400).json({ message: "Senha atual incorreta" });
 
         // Atualiza a senha
-        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        const hashedNewPassword = await hashPassword(newPassword);
         user.password = hashedNewPassword;
         await user.save();
 
