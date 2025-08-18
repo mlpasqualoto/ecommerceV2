@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import { generateToken, hashPassword, comparePassword } from "../config/auth.js";
+import authorizeRole from "../middlewares/authRoleMiddleware.js";
 
 // Obter todos os usuários
 export const getUsers = async (req, res) => {
@@ -50,6 +51,11 @@ export const createUser = async (req, res) => {
         // Verifica se já existe username ou email
         const existingUser = await User.findOne({ $or: [{ userName }, { email }] });
         if (existingUser) return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
+
+        // Lógica específica para criação de admin
+        if (role === "admin") {
+            authorizeRole("admin")(req, res, () => { }); // Chama o middleware para verificar se o usuário atual é admin
+        }
 
         // Criptografa a senha
         const hashedPassword = await hashPassword(password);
