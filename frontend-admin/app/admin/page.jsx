@@ -7,6 +7,7 @@ export default function AdminHome() {
   const [editOrder, setEditOrder] = useState(null); // pedido em edição
   const [editForm, setEditForm] = useState({ productId: '', quantity: '', status: '', totalAmount: '' });
   const [newOrder, setNewOrder] = useState({ productId: "", quantity: "" });
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("paid"); // estado do filtro
@@ -229,6 +230,52 @@ export default function AdminHome() {
         </div>
       )}
 
+      {/* Modal de criação de pedido */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg min-w-[300px]">
+            <h2 className="text-xl font-bold mb-4">Criar Pedido</h2>
+            <form onSubmit={handleCreateOrder}>
+              <div className="mb-2">
+                <label className="block font-semibold mb-1">Produto ID:</label>
+                <input
+                  type="text"
+                  name="productId"
+                  value={newOrder.productId}
+                  onChange={handleNewOrderChange}
+                  className="border p-2 rounded w-full"
+                  required
+                />
+              </div>
+              <div className="mb-2">
+                <label className="block font-semibold mb-1">Quantidade:</label>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={newOrder.quantity}
+                  onChange={handleNewOrderChange}
+                  className="border p-2 rounded w-full"
+                  min="1"
+                  required
+                />
+              </div>
+              <div className="flex justify-end mt-4">
+                <button
+                  type="button"
+                  className="mr-2 p-2 bg-gray-400 text-white rounded"
+                  onClick={() => setIsCreateModalOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="p-2 bg-blue-500 text-white rounded">
+                  Criar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Filtro de status e por ID */}
       <div className="mb-4">
         <label htmlFor="status" className="mr-2 font-semibold">
@@ -265,38 +312,14 @@ export default function AdminHome() {
         </form>
       </div>
 
-      {/* Criar novo pedido */}
+      {/* Botão modal de criação de pedido */}
       <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Criar novo pedido</h2>
-        <form onSubmit={handleCreateOrder} className="border p-4 rounded">
-          <div className="mb-2">
-            <label className="block font-semibold mb-1">Produto ID:</label>
-            <input
-              type="text"
-              name="productId"
-              value={newOrder.productId}
-              onChange={handleNewOrderChange}
-              className="border p-2 rounded w-full"
-              required
-            />
-          </div>
-          <div className="mb-2">
-            <label className="block font-semibold mb-1">Quantidade:</label>
-            <input
-              type="number"
-              name="quantity"
-              value={newOrder.quantity}
-              onChange={handleNewOrderChange}
-              className="border p-2 rounded w-full"
-              min="1"
-              required
-            />
-          </div>
-          <div className="flex justify-end mt-4">
-            <button type="reset" className="mr-2 p-2 bg-gray-400 text-white rounded">Cancelar</button>
-            <button type="submit" className="p-2 bg-blue-500 text-white rounded">Criar</button>
-          </div>
-        </form>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="p-2 bg-green-600 text-white rounded"
+        >
+          Adicionar Pedido
+        </button>
       </div>
 
       {/* Tabela */}
