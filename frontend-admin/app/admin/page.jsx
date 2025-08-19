@@ -1,16 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fetchOrders, fetchOrderById, fetchCreateOrder, fetchUpdateOrder, fetchPayOrder, fetchCancelOrder, fetchDeleteOrder } from "../../lib/api.js";
+import { fetchOrders, fetchOrderById, fetchCreateOrder, fetchUpdateOrder, fetchPayOrder, fetchCancelOrder, fetchDeleteOrder } from "../lib/api.js";
 import { useRouter } from "next/navigation";
 
 export default function AdminHome() {
-  const [editOrder, setEditOrder] = useState(null); // pedido em edição
+  const [editOrder, setEditOrder] = useState(null);
   const [editForm, setEditForm] = useState({ productId: '', quantity: '', status: '', totalAmount: '' });
   const [newOrder, setNewOrder] = useState({ productId: "", quantity: "" });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("paid"); // estado do filtro
+  const [statusFilter, setStatusFilter] = useState("paid");
   const router = useRouter();
 
   // Abre modal e preenche dados do pedido
@@ -67,7 +67,7 @@ export default function AdminHome() {
     };
 
     loadOrders();
-  }, [statusFilter, router]); // recarrega sempre que o filtro mudar
+  }, [statusFilter, router]);
 
   const handleFilterById = async (e) => {
     e.preventDefault();
@@ -107,11 +107,9 @@ export default function AdminHome() {
       return;
     }
 
-    // adiciona o novo pedido à lista
     setOrders((prevOrders) => [...prevOrders, data.order]);
-
-    // limpa form
     setNewOrder({ productId: "", quantity: "" });
+    setIsCreateModalOpen(false);
   };
 
   const handleNewOrderChange = (e) => {
@@ -161,46 +159,216 @@ export default function AdminHome() {
     setOrders((prevOrders) => prevOrders.filter((order) => order._id !== orderId));
   };
 
-  if (loading) return <p>Carregando...</p>;
+  const getStatusColor = (status) => {
+    const colors = {
+      paid: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+      pending: "bg-amber-50 text-amber-700 border border-amber-200",
+      shipped: "bg-blue-50 text-blue-700 border border-blue-200",
+      delivered: "bg-green-50 text-green-700 border border-green-200",
+      cancelled: "bg-red-50 text-red-700 border border-red-200"
+    };
+    return colors[status] || "bg-slate-50 text-slate-700 border border-slate-200";
+  };
+
+  const getStatusText = (status) => {
+    const texts = {
+      paid: "Pago",
+      pending: "Pendente",
+      shipped: "Enviado",
+      delivered: "Entregue",
+      cancelled: "Cancelado"
+    };
+    return texts[status] || status;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
+          </div>
+          <div className="text-slate-600 font-medium">Carregando pedidos...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Pedidos</h1>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header Principal */}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-[1400px] mx-auto px-8 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gerenciamento de Pedidos</h1>
+              <p className="mt-2 text-slate-600 max-w-2xl">
+                Controle completo sobre todos os pedidos do seu e-commerce. Visualize, edite e gerencie o status de cada transação.
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="text-right">
+                <div className="text-2xl font-bold text-slate-900">{orders.length}</div>
+                <div className="text-sm text-slate-500">pedidos listados</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Modal de edição de pedido */}
-      {editOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg min-w-[300px]">
-            <h2 className="text-xl font-bold mb-4">Editar Pedido</h2>
-            <form onSubmit={handleEditSubmit}>
-              <div className="mb-2">
-                <label className="block font-semibold mb-1">Produto ID:</label>
-                <input
-                  name="productId"
-                  type="text"
-                  value={editForm.productId}
-                  readOnly
-                  className="border p-2 rounded w-full mb-2 bg-gray-100"
-                />
+      <div className="max-w-[1550px] mx-auto px-8 py-8">
+
+        {/* Modal de Edição */}
+        {editOrder && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+              <div className="px-8 py-6 border-b border-slate-200">
+                <h2 className="text-xl font-semibold text-slate-900">Editar Pedido</h2>
+                <p className="text-sm text-slate-600 mt-1">ID: {editOrder._id}</p>
               </div>
-              <div className="mb-2">
-                <label className="block font-semibold mb-1">Quantidade:</label>
-                <input
-                  name="quantity"
-                  type="number"
-                  value={editForm.quantity}
-                  onChange={handleEditFormChange}
-                  className="border p-2 rounded w-full mb-2"
-                  min="1"
-                />
+
+              <form onSubmit={handleEditSubmit} className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">Produto ID</label>
+                  <input
+                    name="productId"
+                    type="text"
+                    value={editForm.productId}
+                    readOnly
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 font-mono text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">Quantidade</label>
+                  <input
+                    name="quantity"
+                    type="number"
+                    value={editForm.quantity}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">Status</label>
+                  <select
+                    name="status"
+                    value={editForm.status}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white text-slate-900"
+                  >
+                    <option value="paid">Pago</option>
+                    <option value="pending">Pendente</option>
+                    <option value="shipped">Enviado</option>
+                    <option value="delivered">Entregue</option>
+                    <option value="cancelled">Cancelado</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">Total (R$)</label>
+                  <input
+                    type="number"
+                    name="totalAmount"
+                    value={editForm.totalAmount}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6">
+                  <button
+                    type="button"
+                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    onClick={closeEditModal}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-lg"
+                  >
+                    Salvar Alterações
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Criação */}
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+              <div className="px-8 py-6 border-b border-slate-200">
+                <h2 className="text-xl font-semibold text-slate-900">Criar Novo Pedido</h2>
+                <p className="text-sm text-slate-600 mt-1">Adicione um novo pedido ao sistema</p>
               </div>
-              <div className="mb-2">
-                <label className="block font-semibold mb-1">Status:</label>
+
+              <form onSubmit={handleCreateOrder} className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">Produto ID</label>
+                  <input
+                    type="text"
+                    name="productId"
+                    value={newOrder.productId}
+                    onChange={handleNewOrderChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    placeholder="Digite o ID do produto"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">Quantidade</label>
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={newOrder.quantity}
+                    onChange={handleNewOrderChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                    placeholder="Quantidade de itens"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6">
+                  <button
+                    type="button"
+                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    onClick={() => setIsCreateModalOpen(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-lg"
+                  >
+                    Criar Pedido
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Barra de Controles */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+
+              {/* Filtro por Status */}
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Filtrar por Status:</label>
                 <select
-                  name="status"
-                  value={editForm.status}
-                  onChange={handleEditFormChange}
-                  className="border p-2 rounded w-full"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-medium min-w-[140px] text-slate-900"
                 >
                   <option value="paid">Pago</option>
                   <option value="pending">Pendente</option>
@@ -209,176 +377,200 @@ export default function AdminHome() {
                   <option value="cancelled">Cancelado</option>
                 </select>
               </div>
-              <div className="mb-2">
-                <label className="block font-semibold mb-1">Total:</label>
-                <input
-                  type="number"
-                  name="totalAmount"
-                  value={editForm.totalAmount}
-                  onChange={handleEditFormChange}
-                  className="border p-2 rounded w-full"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div className="flex justify-end mt-4">
-                <button type="button" className="mr-2 p-2 bg-gray-400 text-white rounded" onClick={closeEditModal}>Cancelar</button>
-                <button type="submit" className="p-2 bg-blue-500 text-white rounded">Salvar</button>
-              </div>
-            </form>
+
+              {/* Busca por ID */}
+              <form onSubmit={handleFilterById} className="flex items-center gap-3">
+                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Buscar por ID:</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="orderId"
+                    className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900"
+                    placeholder="ID do pedido..."
+                  />
+                  <button
+                    type="submit"
+                    className="cursor-pointer px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all"
+                  >
+                    Buscar
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Botão Novo Pedido */}
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Novo Pedido
+            </button>
           </div>
         </div>
-      )}
 
-      {/* Modal de criação de pedido */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg min-w-[300px]">
-            <h2 className="text-xl font-bold mb-4">Criar Pedido</h2>
-            <form onSubmit={handleCreateOrder}>
-              <div className="mb-2">
-                <label className="block font-semibold mb-1">Produto ID:</label>
-                <input
-                  type="text"
-                  name="productId"
-                  value={newOrder.productId}
-                  onChange={handleNewOrderChange}
-                  className="border p-2 rounded w-full"
-                  required
-                />
-              </div>
-              <div className="mb-2">
-                <label className="block font-semibold mb-1">Quantidade:</label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={newOrder.quantity}
-                  onChange={handleNewOrderChange}
-                  className="border p-2 rounded w-full"
-                  min="1"
-                  required
-                />
-              </div>
-              <div className="flex justify-end mt-4">
-                <button
-                  type="button"
-                  className="mr-2 p-2 bg-gray-400 text-white rounded"
-                  onClick={() => setIsCreateModalOpen(false)}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="p-2 bg-blue-500 text-white rounded">
-                  Criar
-                </button>
-              </div>
-            </form>
+        {/* Tabela de Pedidos */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">ID do Pedido</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Data & Hora</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Produto</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Qtd</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Preço Unit.</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Cliente</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Total</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {orders.length > 0 ? orders.map((order, idx) => (
+                  order ? (
+                    <tr key={order._id || idx} className="hover:bg-slate-50 transition-colors group">
+                      <td className="px-6 py-5">
+                        <div className="font-mono text-sm text-slate-900 font-semibold">
+                          #{order._id}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5">
+                        <div className="text-sm font-semibold text-slate-900">
+                          {new Date(order.createdAt).toLocaleString("pt-BR", {
+                            timeZone: "America/Sao_Paulo",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "2-digit",
+                          })}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {new Date(order.createdAt).toLocaleString("pt-BR", {
+                            timeZone: "America/Sao_Paulo",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5">
+                        <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
+                          {order.items[0].name}
+                        </div>
+                        <div className="text-xs text-slate-500 font-mono">
+                          {order.items[0].productId}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5 text-center">
+                        <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
+                          {order.items[0].quantity}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-5">
+                        <div className="text-sm font-semibold text-slate-900">
+                          R$ {Number(order.items[0].price).toFixed(2)}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5">
+                        <div className="text-sm font-semibold text-slate-900 max-w-[150px] truncate">
+                          {order.name}
+                        </div>
+                        <div className="text-xs text-slate-500 font-mono">
+                          {order.userId}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5 text-center">
+                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                          {getStatusText(order.status)}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-5 text-right">
+                        <div className="text-sm font-bold text-slate-900">
+                          R$ {Number(order.totalAmount).toFixed(2)}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
+                            onClick={() => openEditModal(order)}
+                            title="Editar pedido"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+
+                          <button
+                            className="cursor-pointer p-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all"
+                            onClick={() => handlePayOrder(order._id)}
+                            title="Marcar como pago"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-credit-card" viewBox="0 0 16 16">
+                              <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z" />
+                              <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                            </svg>
+                          </button>
+
+                          <button
+                            className="cursor-pointer p-2 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-all"
+                            onClick={() => handleCancelOrder(order._id)}
+                            title="Cancelar pedido"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+
+                          <button
+                            className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
+                            onClick={() => handleDeleteOrder(order._id)}
+                            title="Deletar pedido"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null
+                )) : (
+                  <tr>
+                    <td colSpan="9" className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center space-y-4">
+                        <svg className="w-16 h-16 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                        <div className="text-slate-500">
+                          <div className="text-lg font-semibold mb-2">Nenhum pedido encontrado</div>
+                          <div className="text-sm max-w-sm mx-auto leading-relaxed">
+                            Não há pedidos com os filtros selecionados. Tente ajustar os critérios de busca ou criar um novo pedido.
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
 
-      {/* Filtro de status e por ID */}
-      <div className="mb-4">
-        <label htmlFor="status" className="mr-2 font-semibold">
-          Filtrar por status:
-        </label>
-        <select
-          id="status"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border p-2 rounded"
-        >
-          <option value="paid">Pago</option>
-          <option value="pending">Pendente</option>
-          <option value="shipped">Enviado</option>
-          <option value="delivered">Entregue</option>
-          <option value="cancelled">Cancelado</option>
-        </select>
-
-        {/* Formulário para filtrar por ID */}
-        <form onSubmit={handleFilterById} className="inline">
-          <label htmlFor="orderId" className="ml-4 font-semibold">
-            Filtrar por ID:
-          </label>
-          <input
-            type="text"
-            id="orderId"
-            name="orderId"
-            className="border p-2 rounded ml-2"
-            placeholder="Digite o ID do pedido"
-          />
-          <button type="submit" className="ml-2 p-2 bg-blue-500 text-white rounded">
-            Filtrar
-          </button>
-        </form>
+        {/* Footer com informações extras */}
+        <div className="mt-8 text-center text-sm text-slate-500">
+          <p>Painel de Administração • Total de {orders.length} pedidos listados</p>
+        </div>
       </div>
-
-      {/* Botão modal de criação de pedido */}
-      <div className="mb-4">
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="p-2 bg-green-600 text-white rounded"
-        >
-          Adicionar Pedido
-        </button>
-      </div>
-
-      {/* Tabela */}
-      <table className="bg-white shadow rounded w-full">
-        <thead>
-          <tr>
-            <th className="p-2">Order ID</th>
-            <th className="p-2">Order Data</th>
-            <th className="p-2">Produto ID</th>
-            <th className="p-2">Produto</th>
-            <th className="p-2">Quantidade</th>
-            <th className="p-2">Preço Unitário</th>
-            <th className="p-2">Comprador ID</th>
-            <th className="p-2">Comprador</th>
-            <th className="p-2">Status</th>
-            <th className="p-2">Total</th>
-            <th className="p-2">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.length > 0 ? orders.map((order, idx) => (
-            order ? (
-              <tr key={order._id || idx} className="border-t">
-                <td className="p-2">{order._id}</td>
-                <td className="p-2">
-                  {new Date(order.createdAt).toLocaleString("pt-BR", {
-                    timeZone: "America/Sao_Paulo",
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </td>
-                <td className="p-2">{order.items[0].productId}</td>
-                <td className="p-2">{order.items[0].name}</td>
-                <td className="p-2">{order.items[0].quantity}</td>
-                <td className="p-2">{order.items[0].price}</td>
-                <td className="p-2">{order.userId}</td>
-                <td className="p-2">{order.name}</td>
-                <td className="p-2">{order.status}</td>
-                <td className="p-2">R$ {order.totalAmount}</td>
-                <td className="p-2">
-                  <button className="p-1 bg-yellow-500 text-white rounded" onClick={() => openEditModal(order)}>Editar</button>
-                  <button className="p-1 bg-green-500 text-white rounded ml-1" onClick={() => handlePayOrder(order._id)}>Pagar</button>
-                  <button className="p-1 bg-red-500 text-white rounded ml-1" onClick={() => handleCancelOrder(order._id)}>Cancelar</button>
-                  <button className="p-1 bg-red-500 text-white rounded ml-1" onClick={() => handleDeleteOrder(order._id)}>Deletar</button>
-                </td>
-              </tr>
-            ) : null
-          )) : (
-            <tr>
-              <td colSpan="11" className="p-4 text-center text-gray-500">
-                Nenhum pedido encontrado
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
     </div>
   );
 }

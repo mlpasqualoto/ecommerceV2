@@ -7,6 +7,13 @@ export async function fetchOrders(status) {
   return res.json();
 }
 
+export async function fetchProducts(status) {
+  const res = await fetch(`${API_URL}/api/products?status=${status}`, {
+    credentials: "include" // envia o cookie junto
+  });
+  return res.json();
+}
+
 export async function fetchOrderById(orderId) {
   const res = await fetch(`${API_URL}/api/orders/${orderId}`, {
     credentials: "include" // envia o cookie junto
@@ -28,6 +35,18 @@ export async function fetchCreateOrder(orderData) {
 
 export async function fetchUpdateOrder(orderId, updatedData) {
   const res = await fetch(`${API_URL}/api/orders/${orderId}/update`, {
+    method: "PUT",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(updatedData)
+  });
+  return res.json();
+}
+
+export async function fetchUpdateProduct(productId, updatedData) {
+  const res = await fetch(`${API_URL}/api/products/${productId}/update`, {
     method: "PUT",
     credentials: "include",
     headers: {

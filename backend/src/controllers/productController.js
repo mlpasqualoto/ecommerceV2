@@ -14,18 +14,18 @@ export const createProduct = async (req, res) => {
 
 /**
  * Listar produtos com filtros
- * Filtros disponíveis: category, brand, minPrice, maxPrice, isActive
- * Exemplo: /products?category=Eletrônicos&minPrice=100&maxPrice=500&isActive=true
+ * Filtros disponíveis: category, brand, minPrice, maxPrice, status
+ * Exemplo: /products?category=Eletrônicos&minPrice=100&maxPrice=500&status=active
  */
 export const getProducts = async (req, res) => {
     try {
-        const { category, brand, minPrice, maxPrice, isActive } = req.query;
+        const { category, brand, minPrice, maxPrice, status } = req.query;
 
         const filter = {};
 
         if (category) filter.category = category;
         if (brand) filter.brand = brand;
-        if (isActive !== undefined) filter.isActive = isActive === "true";
+        if (status) filter.status = status;
         if (minPrice || maxPrice) {
             filter.price = {};
             if (minPrice) filter.price.$gte = Number(minPrice);
