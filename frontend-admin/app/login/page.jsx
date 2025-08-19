@@ -53,18 +53,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-4">Login Admin</h1>
-        <form onSubmit={handleLogin}>
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-200 via-indigo-200 to-purple-200">
+      <div className="bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-96">
+        <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-6">
+          Painel Administrativo
+        </h1>
+        <form onSubmit={handleLogin} className="space-y-4">
           <input
-            className="border p-2 w-full mb-3"
+            className="border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-400 p-3 w-full rounded-lg outline-none transition"
             placeholder="Usuário"
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
           />
           <input
-            className="border p-2 w-full mb-3"
+            className="border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-400 p-3 w-full rounded-lg outline-none transition"
             type="password"
             placeholder="Senha"
             value={password}
@@ -72,12 +74,18 @@ export default function LoginPage() {
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded w-full"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg w-full font-semibold shadow-md transition"
           >
             Entrar
           </button>
         </form>
-        {error && <p className="text-red-500 mt-3">{error}</p>}
+        <div className="p-6 bg-red-500 text-white rounded-xl">
+          Tailwind funcionando!
+        </div>
+
+        {error && (
+          <p className="text-red-500 mt-4 text-center font-medium">{error}</p>
+        )}
       </div>
     </div>
   );
