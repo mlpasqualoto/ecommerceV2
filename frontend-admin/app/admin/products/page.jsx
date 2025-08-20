@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fetchProducts, fetchUpdateProduct, fetchProductById, fetchCreateProduct, fetchStatusProduct, fetchDeleteProduct } from "@/app/lib/api.js"
+import { formatCurrencyBRL } from "@/app/utils/utils.js";
 import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
@@ -10,6 +11,7 @@ export default function ProductsPage() {
     const [editForm, setEditForm] = useState({ name: '', price: '', description: '', category: '', stock: '', status: '', discount: '' });
     const [newProduct, setNewProduct] = useState({ name: '', price: '', description: '', category: '', stock: '', status: '', discount: '' });
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [expandedProduct, setExpandedProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -23,6 +25,11 @@ export default function ProductsPage() {
     const closeEditModal = () => {
         setEditProduct(null);
         setEditForm({ name: '', price: '', description: '', category: '', stock: '', status: '', discount: '' });
+    };
+
+    // Toggle detalhes do produto
+    const toggleProductDetails = (productId) => {
+        setExpandedProduct(expandedProduct === productId ? null : productId);
     };
 
     // Atualiza campos do formulário
@@ -152,12 +159,11 @@ export default function ProductsPage() {
     const handleDeleteProduct = async (ProductId) => {
         const data = await fetchDeleteProduct(ProductId);
         if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
-          router.push("/login");
-          return;
+            router.push("/login");
+            return;
         }
         setProducts((prevProducts) => prevProducts.filter((product) => product._id !== ProductId));
     };
-    
 
     const getStatusColor = (status) => {
         const colors = {
@@ -216,7 +222,7 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            <div className="max-w-[1800px] mx-auto px-8 py-8">
+            <div className="max-w-[1400px] mx-auto px-8 py-8">
 
                 {/* Modal de Edição */}
                 {editProduct && (
@@ -287,7 +293,6 @@ export default function ProductsPage() {
                                         min="1"
                                     />
                                 </div>
-
 
                                 <div className="space-y-2">
                                     <label className="block text-sm font-semibold text-slate-700">Status</label>
@@ -443,7 +448,7 @@ export default function ProductsPage() {
                                         placeholder="Digite o desconto do produto (se houver)"
                                     />
                                 </div>
-                              
+
                                 <div className="flex justify-end space-x-3 pt-6">
                                     <button
                                         type="button"
@@ -518,166 +523,246 @@ export default function ProductsPage() {
                     </div>
                 </div>
 
-                {/* Tabela de Produtos */}
+                {/* Tabela de Produtos Otimizada */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-slate-50 border-b border-slate-200">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">ID do Produto</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Data & Hora</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Produto</th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Descrição</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Categoria</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Estoque</th>
                                     <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Preço</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Estoque</th>
+                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
+                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Detalhes</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {products.length > 0 ? products.map((product, idx) => (
                                     product ? (
-                                        <tr key={product._id || idx} className="hover:bg-slate-50 transition-colors group">
-                                            <td className="px-6 py-5">
-                                                <div className="font-mono text-sm text-slate-900 font-semibold">
-                                                    #{product._id}
-                                                </div>
-                                            </td>
+                                        <>
+                                            {/* Linha Principal */}
+                                            <tr key={product._id || idx} className="hover:bg-slate-50 transition-colors group">
+                                                <td className="px-6 py-5">
+                                                    <div className="flex flex-col">
+                                                        <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
+                                                            {product.name}
+                                                        </div>
+                                                        <div className="text-xs text-slate-500 font-mono">
+                                                            #{product._id}
+                                                        </div>
+                                                    </div>
+                                                </td>
 
-                                            <td className="px-6 py-5">
-                                                <div className="text-sm font-semibold text-slate-900">
-                                                    {new Date(product.createdAt).toLocaleString("pt-BR", {
-                                                        timeZone: "America/Sao_Paulo",
-                                                        day: "2-digit",
-                                                        month: "2-digit",
-                                                        year: "2-digit",
-                                                    })}
-                                                </div>
-                                                <div className="text-xs text-slate-500">
-                                                    {new Date(product.createdAt).toLocaleString("pt-BR", {
-                                                        timeZone: "America/Sao_Paulo",
-                                                        hour: "2-digit",
-                                                        minute: "2-digit",
-                                                    })}
-                                                </div>
-                                            </td>
+                                                <td className="px-6 py-5 text-center">
+                                                    <div className="text-sm font-semibold text-slate-900">
+                                                        {formatCurrencyBRL(product.price)}
+                                                    </div>
+                                                </td>
 
-                                            <td className="px-6 py-5">
-                                                <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
-                                                    {product.name}
-                                                </div>
-                                            </td>
+                                                <td className="px-6 py-5 text-center">
+                                                    <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
+                                                        {product.stock}
+                                                    </span>
+                                                </td>
 
-                                            <td className="px-6 py-5">
-                                                <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
-                                                    {product.description}
-                                                </div>
-                                            </td>
+                                                <td className="px-6 py-5 text-center">
+                                                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
+                                                        {getStatusText(product.status)}
+                                                    </span>
+                                                </td>
 
-                                            <td className="px-6 py-5">
-                                                <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
-                                                    {product.category}
-                                                </div>
-                                            </td>
+                                                <td className="px-6 py-5">
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        <button
+                                                            className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
+                                                            onClick={() => openEditModal(product)}
+                                                            title="Editar produto"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                            </svg>
+                                                        </button>
 
-                                            <td className="px-6 py-5 text-center">
-                                                <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
-                                                    {product.stock}
-                                                </span>
-                                            </td>
+                                                        <button
+                                                            className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
+                                                            onClick={() => handleDeleteProduct(product._id)}
+                                                            title="Deletar produto"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
 
-                                            <td className="px-6 py-5">
-                                                <div className="text-sm font-semibold text-slate-900">
-                                                    R$ {Number(product.price).toFixed(2)}
-                                                </div>
-                                            </td>
-
-                                            <td className="px-6 py-5 text-center">
-                                                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                                                    {getStatusText(product.status)}
-                                                </span>
-                                            </td>
-
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center justify-center gap-2">
+                                                <td className="px-6 py-5 text-center">
                                                     <button
-                                                        className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
-                                                        onClick={() => openEditModal(product)}
-                                                        title="Editar produto"
+                                                        className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all"
+                                                        onClick={() => toggleProductDetails(product._id)}
+                                                        title={expandedProduct === product._id ? "Ocultar detalhes" : "Ver detalhes"}
                                                     >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        <svg
+                                                            className={`w-4 h-4 transition-transform ${expandedProduct === product._id ? 'rotate-180' : ''}`}
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                                                         </svg>
                                                     </button>
+                                                </td>
+                                            </tr>
 
-                                                    <button
-                                                        className="cursor-pointer p-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all"
-                                                        onClick={() => handleStatusProduct(product._id, "active")}
-                                                        title="Ativar produto"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-check" viewBox="0 0 16 16">
-                                                            <path fill-rule="evenodd" d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
-                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
-                                                        </svg>                                                    
-                                                    </button>
+                                            {/* Linha de Detalhes Expandida */}
+                                            {expandedProduct === product._id && (
+                                                <tr className="bg-slate-50">
+                                                    <td colSpan="6" className="px-6 py-6">
+                                                        <div className="bg-white rounded-xl p-6 border border-slate-200">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                                {/* Informações Básicas */}
+                                                                <div className="space-y-4">
+                                                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                                                        Informações do Produto
+                                                                    </h4>
+                                                                    <div className="space-y-3">
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">ID</label>
+                                                                            <p className="text-sm font-mono text-slate-900">{product._id}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Nome</label>
+                                                                            <p className="text-sm text-slate-900 font-medium">{product.name}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Categoria</label>
+                                                                            <p className="text-sm text-slate-900">{product.category}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
 
-                                                    <button
-                                                        className="cursor-pointer p-2 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-all"
-                                                        onClick={() => handleStatusProduct(product._id, "inactive")}
-                                                        title="Inativar produto"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-dash" viewBox="0 0 16 16">
-                                                            <path fill-rule="evenodd" d="M5.5 10a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5"/>
-                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
-                                                        </svg>
-                                                    </button>
+                                                                {/* Descrição e Preços */}
+                                                                <div className="space-y-4">
+                                                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                                                        Descrição e Preços
+                                                                    </h4>
+                                                                    <div className="space-y-3">
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Descrição</label>
+                                                                            <p className="text-sm text-slate-900">{product.description}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Preço</label>
+                                                                            <p className="text-sm text-slate-900 font-semibold">{formatCurrencyBRL(product.price)}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Desconto</label>
+                                                                            <p className="text-sm text-slate-900">{formatCurrencyBRL(product.discount || 0)}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
 
-                                                    <button
-                                                        className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
-                                                        onClick={() => handleStatusProduct(product._id, "out_of_stock")}
-                                                        title="Tirar de estoque"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-x" viewBox="0 0 16 16">
-                                                            <path fill-rule="evenodd" d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708"/>
-                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
-                                                        </svg>                                                    
-                                                    </button>
+                                                                {/* Status e Data */}
+                                                                <div className="space-y-4">
+                                                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                                                        Status e Datas
+                                                                    </h4>
+                                                                    <div className="space-y-3">
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Status Atual</label>
+                                                                            <div className="mt-1">
+                                                                                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
+                                                                                    {getStatusText(product.status)}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Estoque</label>
+                                                                            <p className="text-sm text-slate-900 font-semibold">{product.stock} unidades</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Criado em</label>
+                                                                            <p className="text-sm text-slate-900">
+                                                                                {new Date(product.createdAt).toLocaleDateString("pt-BR", {
+                                                                                    day: "2-digit",
+                                                                                    month: "2-digit",
+                                                                                    year: "numeric",
+                                                                                    hour: "2-digit",
+                                                                                    minute: "2-digit",
+                                                                                })}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
 
-                                                    <button
-                                                        className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
-                                                        onClick={() => handleStatusProduct(product._id, "archived")}
-                                                        title="Arquivar produto"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-archive" viewBox="0 0 16 16">
-                                                            <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
-                                                        </svg>                                                    
-                                                    </button>
+                                                            {/* Ações Rápidas */}
+                                                            <div className="mt-6 pt-6 border-t border-slate-200">
+                                                                <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide mb-4">
+                                                                    Ações Rápidas de Status
+                                                                </h4>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    <button
+                                                                        className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                                                        onClick={() => handleStatusProduct(product._id, "active")}
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                                                            <path fillRule="evenodd" d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0" />
+                                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                                                        </svg>
+                                                                        Ativar
+                                                                    </button>
 
-                                                    <button
-                                                        className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
-                                                        onClick={() => handleDeleteProduct(product._id)}
-                                                        title="Deletar produto"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                                    <button
+                                                                        className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                                                        onClick={() => handleStatusProduct(product._id, "inactive")}
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                                                            <path fillRule="evenodd" d="M5.5 10a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5" />
+                                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                                                        </svg>
+                                                                        Inativar
+                                                                    </button>
+
+                                                                    <button
+                                                                        className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                                                        onClick={() => handleStatusProduct(product._id, "out_of_stock")}
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                                                            <path fillRule="evenodd" d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708" />
+                                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                                                        </svg>
+                                                                        Sem Estoque
+                                                                    </button>
+
+                                                                    <button
+                                                                        className="cursor-pointer px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                                                        onClick={() => handleStatusProduct(product._id, "archived")}
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                                                            <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                                                                        </svg>
+                                                                        Arquivar
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </>
                                     ) : null
                                 )) : (
                                     <tr>
-                                        <td colSpan="9" className="px-6 py-16 text-center">
+                                        <td colSpan="6" className="px-6 py-16 text-center">
                                             <div className="flex flex-col items-center space-y-4">
                                                 <svg className="w-16 h-16 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                                 </svg>
                                                 <div className="text-slate-500">
-                                                    <div className="text-lg font-semibold mb-2">Nenhum pedido encontrado</div>
+                                                    <div className="text-lg font-semibold mb-2">Nenhum produto encontrado</div>
                                                     <div className="text-sm max-w-sm mx-auto leading-relaxed">
-                                                        Não há pedidos com os filtros selecionados. Tente ajustar os critérios de busca ou criar um novo pedido.
+                                                        Não há produtos com os filtros selecionados. Tente ajustar os critérios de busca ou criar um novo produto.
                                                     </div>
                                                 </div>
                                             </div>

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fetchOrders, fetchOrderById, fetchCreateOrder, fetchUpdateOrder, fetchPayOrder, fetchCancelOrder, fetchDeleteOrder } from "../lib/api.js";
+import { fetchOrders, fetchOrderById, fetchCreateOrder, fetchUpdateOrder, fetchPayOrder, fetchShipOrder, fetchCancelOrder, fetchDeleteOrder } from "../lib/api.js";
+import { formatCurrencyBRL } from "../utils/utils.js";
 import { useRouter } from "next/navigation";
 
 export default function AdminHome() {
@@ -11,7 +12,13 @@ export default function AdminHome() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("paid");
+  const [expandedOrder, setExpandedOrder] = useState(null);
   const router = useRouter();
+
+  // Toggle detalhes do pedido
+  const toggleOrderDetails = (orderId) => {
+    setExpandedOrder(expandedOrder === orderId ? null : orderId);
+  };
 
   // Abre modal e preenche dados do pedido
   const openEditModal = (order) => {
@@ -139,6 +146,17 @@ export default function AdminHome() {
     );
   };
 
+  const handleShipOrder = async (orderId) => {
+    const data = await fetchShipOrder(orderId);
+    if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
+      router.push("/login");
+      return;
+    }
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => (order._id === orderId ? { ...order, ...data.order } : order))
+    );
+  };
+
   const handleCancelOrder = async (orderId) => {
     const data = await fetchCancelOrder(orderId);
     if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
@@ -216,7 +234,7 @@ export default function AdminHome() {
         </div>
       </div>
 
-      <div className="max-w-[1800px] mx-auto px-8 py-8">
+      <div className="max-w-[1400px] mx-auto px-8 py-8">
 
         {/* Modal de Edição */}
         {editOrder && (
@@ -417,136 +435,265 @@ export default function AdminHome() {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">ID do Pedido</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Data & Hora</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Produto</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Produtos</th>
                   <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Qtd</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Preço Unit.</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Cliente</th>
                   <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Total</th>
                   <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Detalhes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {orders.length > 0 ? orders.map((order, idx) => (
                   order ? (
-                    <tr key={order._id || idx} className="hover:bg-slate-50 transition-colors group">
-                      <td className="px-6 py-5">
-                        <div className="font-mono text-sm text-slate-900 font-semibold">
-                          #{order._id}
-                        </div>
-                      </td>
+                    <>
+                      {/* Linha Principal */}
+                      <tr key={order._id || idx} className="hover:bg-slate-50 transition-colors group">
+                        <td className="px-6 py-5">
+                          <div className="text-sm font-semibold text-slate-900">
+                            {new Date(order.createdAt).toLocaleString("pt-BR", {
+                              timeZone: "America/Sao_Paulo",
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "2-digit",
+                            })}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {new Date(order.createdAt).toLocaleString("pt-BR", {
+                              timeZone: "America/Sao_Paulo",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                        </td>
 
-                      <td className="px-6 py-5">
-                        <div className="text-sm font-semibold text-slate-900">
-                          {new Date(order.createdAt).toLocaleString("pt-BR", {
-                            timeZone: "America/Sao_Paulo",
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "2-digit",
-                          })}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {new Date(order.createdAt).toLocaleString("pt-BR", {
-                            timeZone: "America/Sao_Paulo",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
-                      </td>
+                        <td className="px-6 py-5">
+                          {order.items.map((item, idx) => (
+                            <div key={idx} className="mb-1">
+                              <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
+                                {item.name}
+                              </div>
+                              <div className="text-xs text-slate-500 font-mono">
+                                {item.productId} • Qtd: {item.quantity}
+                              </div>
+                            </div>
+                          ))}
+                        </td>
 
-                      <td className="px-6 py-5">
-                        <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
-                          {order.items[0].name}
-                        </div>
-                        <div className="text-xs text-slate-500 font-mono">
-                          {order.items[0].productId}
-                        </div>
-                      </td>
+                        <td className="px-6 py-5 text-center">
+                          <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
+                            {order.totalQuantity}
+                          </span>
+                        </td>
 
-                      <td className="px-6 py-5 text-center">
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
-                          {order.items[0].quantity}
-                        </span>
-                      </td>
+                        <td className="px-6 py-5">
+                          <div className="text-sm font-semibold text-slate-900 max-w-[150px] truncate">
+                            {order.name}
+                          </div>
+                          <div className="text-xs text-slate-500 font-mono">
+                            {order.userId}
+                          </div>
+                        </td>
 
-                      <td className="px-6 py-5">
-                        <div className="text-sm font-semibold text-slate-900">
-                          R$ {Number(order.items[0].price).toFixed(2)}
-                        </div>
-                      </td>
+                        <td className="px-6 py-5 text-center">
+                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                            {getStatusText(order.status)}
+                          </span>
+                        </td>
 
-                      <td className="px-6 py-5">
-                        <div className="text-sm font-semibold text-slate-900 max-w-[150px] truncate">
-                          {order.name}
-                        </div>
-                        <div className="text-xs text-slate-500 font-mono">
-                          {order.userId}
-                        </div>
-                      </td>
+                        <td className="px-6 py-5 text-right">
+                          <div className="text-sm font-bold text-slate-900">
+                            {formatCurrencyBRL(order.totalAmount)}
+                          </div>
+                        </td>
 
-                      <td className="px-6 py-5 text-center">
-                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                          {getStatusText(order.status)}
-                        </span>
-                      </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
+                              onClick={() => openEditModal(order)}
+                              title="Editar pedido"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
 
-                      <td className="px-6 py-5 text-right">
-                        <div className="text-sm font-bold text-slate-900">
-                          R$ {Number(order.totalAmount).toFixed(2)}
-                        </div>
-                      </td>
+                            <button
+                              className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
+                              onClick={() => handleDeleteOrder(order._id)}
+                              title="Deletar pedido"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
 
-                      <td className="px-6 py-5">
-                        <div className="flex items-center justify-center gap-2">
+                        <td className="px-6 py-5 text-center">
                           <button
-                            className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
-                            onClick={() => openEditModal(order)}
-                            title="Editar pedido"
+                            className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all"
+                            onClick={() => toggleOrderDetails(order._id)}
+                            title={expandedOrder === order._id ? "Ocultar detalhes" : "Ver detalhes"}
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            <svg
+                              className={`w-4 h-4 transition-transform ${expandedOrder === order._id ? 'rotate-180' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
+                        </td>
+                      </tr>
 
-                          <button
-                            className="cursor-pointer p-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all"
-                            onClick={() => handlePayOrder(order._id)}
-                            title="Marcar como pago"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-credit-card" viewBox="0 0 16 16">
-                              <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z" />
-                              <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
-                            </svg>
-                          </button>
+                      {/* Linha de Detalhes Expandida */}
+                      {expandedOrder === order._id && (
+                        <tr className="bg-slate-50">
+                          <td colSpan="10" className="px-6 py-6">
+                            <div className="bg-white rounded-xl p-6 border border-slate-200">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {/* Informações do Pedido */}
+                                <div className="space-y-4">
+                                  <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                    Informações do Pedido
+                                  </h4>
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">ID do Pedido</label>
+                                      <p className="text-sm font-mono text-slate-900">#{order._id}</p>
+                                    </div>
+                                    {/* parou aqui */}
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Produtos</label>
+                                      <ul className="text-sm text-slate-900 space-y-1">
+                                        {order.items.map((item, idx) => (
+                                          <li key={idx}>
+                                            {item.name} — {item.quantity}x ({formatCurrencyBRL(item.price)})
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </div>
 
-                          <button
-                            className="cursor-pointer p-2 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-all"
-                            onClick={() => handleCancelOrder(order._id)}
-                            title="Cancelar pedido"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                                {/* Total, Pagamento e Endereço */}
+                                <div className="space-y-4">
+                                  <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                    Total, Pagamento e Endereço
+                                  </h4>
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Total a pagar</label>
+                                      <p className="text-sm text-slate-900 font-semibold">{formatCurrencyBRL(order.totalAmount)}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Forma de pagamento</label>
+                                      <p className="text-sm text-slate-900 font-semibold">{/* forma de pagamento */}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Endereço de entrega</label>
+                                      <p className="text-sm text-slate-900 font-semibold">{/* endereço de entrega */}</p>
+                                    </div>
+                                  </div>
+                                </div>
 
-                          <button
-                            className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
-                            onClick={() => handleDeleteOrder(order._id)}
-                            title="Deletar pedido"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                                {/* Status e Data */}
+                                <div className="space-y-4">
+                                  <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                    Status e Datas
+                                  </h4>
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Status Atual</label>
+                                      <div className="mt-1">
+                                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                                          {getStatusText(order.status)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Criado em</label>
+                                      <p className="text-sm text-slate-900">
+                                        {new Date(order.createdAt).toLocaleDateString("pt-BR", {
+                                          day: "2-digit",
+                                          month: "2-digit",
+                                          year: "numeric",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Pago em</label>
+                                      <p className="text-sm text-slate-900">
+                                        {new Date({/* data de pagamento */ }).toLocaleDateString("pt-BR", {
+                                          day: "2-digit",
+                                          month: "2-digit",
+                                          year: "numeric",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Ações Rápidas */}
+                              <div className="mt-6 pt-6 border-t border-slate-200">
+                                <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide mb-4">
+                                  Ações Rápidas de Status
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                    onClick={() => handlePayOrder(order._id)}
+                                    title="Marcar como pago"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-credit-card" viewBox="0 0 16 16">
+                                      <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z" />
+                                      <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                    </svg>
+                                    Pagar
+                                  </button>
+
+                                  <button
+                                    className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                    onClick={() => handleShipOrder(order._id)}
+                                    title="Enviar pedido"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-truck" viewBox="0 0 16 16">
+                                      <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                                    </svg>
+                                    Enviar
+                                  </button>
+
+                                  <button
+                                    className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                    onClick={() => handleCancelOrder(order._id)}
+                                    title="Cancelar pedido"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   ) : null
                 )) : (
                   <tr>
-                    <td colSpan="9" className="px-6 py-16 text-center">
+                    <td colSpan="6" className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center space-y-4">
                         <svg className="w-16 h-16 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -573,4 +720,4 @@ export default function AdminHome() {
       </div>
     </div>
   );
-}
+}                                    

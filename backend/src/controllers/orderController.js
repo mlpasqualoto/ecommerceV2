@@ -1,6 +1,7 @@
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
+import { isValidDate } from "../utils/utils.js";
 
 // Criar um novo pedido (user)
 export const createOrder = async (req, res) => {
@@ -32,6 +33,7 @@ export const createOrder = async (req, res) => {
 
         // Calcula o total
         const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0).toFixed(2);
+        const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
 
         // Cria e salva o pedido
         const order = new Order({
@@ -40,6 +42,7 @@ export const createOrder = async (req, res) => {
             name: user.name,
             items,
             totalAmount,
+            totalQuantity,
             status: "pending"
         });
 
@@ -127,6 +130,49 @@ export const getAllOrdersByStatus = async (req, res) => {
     }
 };
 
+// Obter pedidos por data (user)
+export const getOrdersByDate = async (req, res) => {
+    try {
+        const { date } = req.params;
+
+        // Valida a data
+        if (!isValidDate(date)) {
+            return res.status(400).json({ message: "Data inválida" });
+        }
+
+        const orders = await Order.find({ userId: req.user.id, createdAt: { $gte: new Date(date), $lt: new Date(date + "T23:59:59") } });
+        if (orders.length === 0) {
+            return res.status(404).json({ message: "Nenhum pedido encontrado com a data especificada" });
+        }
+
+        res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
+    } catch (error) {
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+    }
+};
+
+// Obter pedidos por data (somente admin - todos os pedidos)
+export const getAllOrdersByDate = async (req, res) => {
+    try {
+        const { date } = req.params;
+
+        // Valida a data
+        if (!isValidDate(date)) {
+            return res.status(400).json({ message: "Data inválida" });
+        }
+
+        // Busca todos os pedidos com a data informada
+        const orders = await Order.find({ createdAt: { $gte: new Date(date), $lt: new Date(date + "T23:59:59") } });
+        if (orders.length === 0) {
+            return res.status(404).json({ message: "Nenhum pedido encontrado com a data especificada" });
+        }
+
+        res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
+    } catch (error) {
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+    }
+};
+
 // Atualizar um pedido (somente admin)
 export const updateOrder = async (req, res) => {
     try {
@@ -154,6 +200,21 @@ export const payOrder = async (req, res) => {
         res.json({ message: "Pedido pago com sucesso", order: paidOrder });
     } catch (error) {
         res.status(400).json({ message: "Erro ao pagar pedido", error: error.message });
+    }
+};
+
+// Enviar um pedido (somente admin)
+export const shipOrder = async (req, res) => {
+    try {
+        const shippedOrder = await Order.findByIdAndUpdate(req.params.id, { status: "shipped" }, { new: true });
+
+        if (!shippedOrder) {
+            return res.status(404).json({ message: "Pedido não encontrado" });
+        }
+
+        res.json({ message: "Pedido enviado com sucesso", order: shippedOrder });
+    } catch (error) {
+        res.status(400).json({ message: "Erro ao enviar pedido", error: error.message });
     }
 };
 

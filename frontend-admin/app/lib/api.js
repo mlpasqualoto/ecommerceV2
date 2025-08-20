@@ -96,6 +96,14 @@ export async function fetchPayOrder(orderId) {
   return res.json();
 }
 
+export async function fetchShipOrder(orderId) {
+  const res = await fetch(`${API_URL}/api/orders/${orderId}/ship`, {
+    method: "PATCH",
+    credentials: "include"
+  });
+  return res.json();
+}
+
 export async function fetchCancelOrder(orderId) {
   const res = await fetch(`${API_URL}/api/orders/${orderId}/cancel`, {
     method: "PATCH",

@@ -28,10 +28,10 @@ const orderSchema = new mongoose.Schema({
                 required: true,
                 trim: true
             },
-            quantity: { 
-                type: Number, 
-                required: true, 
-                min: 1 
+            quantity: {
+                type: Number,
+                required: true,
+                min: 1
             },
             price: {
                 type: Number,
@@ -44,6 +44,11 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0
+    },
+    totalQuantity: {
+        type: Number,
+        required: true,
+        min: 1
     },
     status: {
         type: String,
