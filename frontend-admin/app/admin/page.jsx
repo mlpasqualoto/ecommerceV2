@@ -216,7 +216,7 @@ export default function AdminHome() {
         </div>
       </div>
 
-      <div className="max-w-[1550px] mx-auto px-8 py-8">
+      <div className="max-w-[1800px] mx-auto px-8 py-8">
 
         {/* Modal de Edição */}
         {editOrder && (
@@ -515,7 +515,7 @@ export default function AdminHome() {
                             onClick={() => handlePayOrder(order._id)}
                             title="Marcar como pago"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-credit-card" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-credit-card" viewBox="0 0 16 16">
                               <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z" />
                               <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
                             </svg>

@@ -21,6 +21,13 @@ export async function fetchOrderById(orderId) {
   return res.json();
 }
 
+export async function fetchProductById(productId) {
+  const res = await fetch(`${API_URL}/api/products/${productId}`, {
+    credentials: "include" // envia o cookie junto
+  });
+  return res.json();
+}
+
 export async function fetchCreateOrder(orderData) {
   const res = await fetch(`${API_URL}/api/orders/create`, {
     method: "POST",
@@ -29,6 +36,18 @@ export async function fetchCreateOrder(orderData) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(orderData)
+  });
+  return res.json();
+}
+
+export async function fetchCreateProduct(productData) {
+  const res = await fetch(`${API_URL}/api/products/create`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(productData)
   });
   return res.json();
 }
@@ -57,6 +76,18 @@ export async function fetchUpdateProduct(productId, updatedData) {
   return res.json();
 }
 
+export async function fetchStatusProduct(productId, status) {
+  const res = await fetch(`${API_URL}/api/products/${productId}/status`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(status)
+  });
+  return res.json();
+}
+
 export async function fetchPayOrder(orderId) {
   const res = await fetch(`${API_URL}/api/orders/${orderId}/pay`, {
     method: "PATCH",
@@ -75,6 +106,14 @@ export async function fetchCancelOrder(orderId) {
 
 export async function fetchDeleteOrder(orderId) {
   const res = await fetch(`${API_URL}/api/orders/${orderId}/delete`, {
+    method: "DELETE",
+    credentials: "include"
+  });
+  return res.json();
+}
+
+export async function fetchDeleteProduct(productId) {
+  const res = await fetch(`${API_URL}/api/products/${productId}/delete`, {
     method: "DELETE",
     credentials: "include"
   });

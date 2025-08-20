@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fetchProducts, fetchUpdateProduct } from "@/app/lib/api.js"
+import { fetchProducts, fetchUpdateProduct, fetchProductById, fetchCreateProduct, fetchStatusProduct, fetchDeleteProduct } from "@/app/lib/api.js"
 import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
@@ -35,7 +35,7 @@ export default function ProductsPage() {
     const handleEditSubmit = async (e) => {
         e.preventDefault();
         if (!editProduct) return;
-        await handleUpdateProduct(editProduct.id, {
+        await handleUpdateProduct(editProduct._id, {
             name: editForm.name,
             price: Number(editForm.price),
             description: editForm.description,
@@ -84,6 +84,20 @@ export default function ProductsPage() {
         loadProducts();
     }, [statusFilter, router]);
 
+    const handleFilterById = async (e) => {
+        e.preventDefault();
+        const productId = e.target.productId.value;
+        if (!productId) return;
+
+        const data = await fetchProductById(productId);
+        if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
+            router.push("/login");
+            return;
+        }
+
+        setProducts([data.product]);
+    };
+
     const handleCreateProduct = async (e) => {
         e.preventDefault();
 
@@ -120,13 +134,38 @@ export default function ProductsPage() {
         setNewProduct((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handleStatusProduct = async (productId, status) => {
+        const newStatus = {
+            status: status
+        };
+
+        const data = await fetchStatusProduct(productId, newStatus);
+        if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
+            router.push("/login");
+            return;
+        }
+        setProducts((prevProducts) =>
+            prevProducts.map((prod) => (prod._id === productId ? { ...prod, status: data.product.status } : prod))
+        );
+    };
+
+    const handleDeleteProduct = async (ProductId) => {
+        const data = await fetchDeleteProduct(ProductId);
+        if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
+          router.push("/login");
+          return;
+        }
+        setProducts((prevProducts) => prevProducts.filter((product) => product._id !== ProductId));
+    };
+    
+
     const getStatusColor = (status) => {
         const colors = {
             active: "bg-emerald-50 text-emerald-700 border border-emerald-200",
             inactive: "bg-amber-50 text-amber-700 border border-amber-200",
             out_of_stock: "bg-blue-50 text-blue-700 border border-blue-200",
-            archived: "bg-green-50 text-green-700 border border-green-200",
-            draft: "bg-red-50 text-red-700 border border-red-200"
+            archived: "bg-red-50 text-red-700 border border-red-200",
+            draft: "bg-cyan-50 text-cyan-700 border border-cyan-200"
         };
         return colors[status] || "bg-slate-50 text-slate-700 border border-slate-200";
     };
@@ -149,7 +188,7 @@ export default function ProductsPage() {
                     <div className="relative">
                         <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
                     </div>
-                    <div className="text-slate-600 font-medium">Carregando pedidos...</div>
+                    <div className="text-slate-600 font-medium">Carregando produtos...</div>
                 </div>
             </div>
         );
@@ -177,7 +216,7 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            <div className="max-w-[1550px] mx-auto px-8 py-8">
+            <div className="max-w-[1800px] mx-auto px-8 py-8">
 
                 {/* Modal de Edição */}
                 {editProduct && (
@@ -310,32 +349,101 @@ export default function ProductsPage() {
 
                             <form onSubmit={handleCreateProduct} className="p-8 space-y-6">
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Produto ID</label>
+                                    <label className="block text-sm font-semibold text-slate-700">Nome do Produto</label>
                                     <input
                                         type="text"
-                                        name="productId"
-                                        value={newProduct.productId}
+                                        name="name"
+                                        value={newProduct.name}
                                         onChange={handleNewProductChange}
                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        placeholder="Digite o ID do produto"
+                                        placeholder="Digite o nome do produto"
                                         required
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Quantidade</label>
+                                    <label className="block text-sm font-semibold text-slate-700">Preço</label>
                                     <input
-                                        type="number"
-                                        name="quantity"
-                                        value={newProduct.quantity}
+                                        type="text"
+                                        name="price"
+                                        value={newProduct.price}
                                         onChange={handleNewProductChange}
                                         className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
                                         min="1"
-                                        placeholder="Quantidade de itens"
+                                        placeholder="Digite o preço do produto"
                                         required
                                     />
                                 </div>
 
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-semibold text-slate-700">Descrição</label>
+                                    <input
+                                        type="text"
+                                        name="description"
+                                        value={newProduct.description}
+                                        onChange={handleNewProductChange}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                                        min="1"
+                                        placeholder="Digite a descrição do produto"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-semibold text-slate-700">Categoria</label>
+                                    <input
+                                        type="text"
+                                        name="category"
+                                        value={newProduct.category}
+                                        onChange={handleNewProductChange}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                                        min="1"
+                                        placeholder="Digite a categoria do produto"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-semibold text-slate-700">Estoque</label>
+                                    <input
+                                        type="text"
+                                        name="stock"
+                                        value={newProduct.stock}
+                                        onChange={handleNewProductChange}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                                        min="1"
+                                        placeholder="Digite a quantidade em estoque"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-semibold text-slate-700">Status</label>
+                                    <input
+                                        type="text"
+                                        name="status"
+                                        value={newProduct.status}
+                                        onChange={handleNewProductChange}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                                        min="1"
+                                        placeholder="Digite o status do produto"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-semibold text-slate-700">Desconto</label>
+                                    <input
+                                        type="text"
+                                        name="discount"
+                                        value={newProduct.discount}
+                                        onChange={handleNewProductChange}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                                        min="1"
+                                        placeholder="Digite o desconto do produto (se houver)"
+                                    />
+                                </div>
+                              
                                 <div className="flex justify-end space-x-3 pt-6">
                                     <button
                                         type="button"
@@ -369,11 +477,11 @@ export default function ProductsPage() {
                                     onChange={(e) => setStatusFilter(e.target.value)}
                                     className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-medium min-w-[140px] text-slate-900"
                                 >
-                                    <option value="paid">Pago</option>
-                                    <option value="pending">Pendente</option>
-                                    <option value="shipped">Enviado</option>
-                                    <option value="delivered">Entregue</option>
-                                    <option value="cancelled">Cancelado</option>
+                                    <option value="active">Ativo</option>
+                                    <option value="inactive">Inativo</option>
+                                    <option value="out_of_stock">Fora de estoque</option>
+                                    <option value="archived">Arquivado</option>
+                                    <option value="draft">Rascunho</option>
                                 </select>
                             </div>
 
@@ -383,9 +491,9 @@ export default function ProductsPage() {
                                 <div className="flex gap-2">
                                     <input
                                         type="text"
-                                        name="orderId"
+                                        name="productId"
                                         className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900"
-                                        placeholder="ID do pedido..."
+                                        placeholder="ID do produto..."
                                     />
                                     <button
                                         type="submit"
@@ -397,7 +505,7 @@ export default function ProductsPage() {
                             </form>
                         </div>
 
-                        {/* Botão Novo Pedido */}
+                        {/* Botão Novo Produto */}
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
                             className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
@@ -405,25 +513,25 @@ export default function ProductsPage() {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            Novo Pedido
+                            Novo Produto
                         </button>
                     </div>
                 </div>
 
-                {/* Tabela de Pedidos */}
+                {/* Tabela de Produtos */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-slate-50 border-b border-slate-200">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">ID do Pedido</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">ID do Produto</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Data & Hora</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Produto</th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Qtd</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Preço Unit.</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Cliente</th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Total</th>
+                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Descrição</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Categoria</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Estoque</th>
+                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Preço</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
                                 </tr>
                             </thead>
@@ -505,29 +613,51 @@ export default function ProductsPage() {
 
                                                     <button
                                                         className="cursor-pointer p-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all"
-                                                        onClick={() => handlePayOrder(order._id)}
-                                                        title="Marcar como pago"
+                                                        onClick={() => handleStatusProduct(product._id, "active")}
+                                                        title="Ativar produto"
                                                     >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-credit-card" viewBox="0 0 16 16">
-                                                            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z" />
-                                                            <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
-                                                        </svg>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-check" viewBox="0 0 16 16">
+                                                            <path fill-rule="evenodd" d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+                                                        </svg>                                                    
                                                     </button>
 
                                                     <button
                                                         className="cursor-pointer p-2 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-all"
-                                                        onClick={() => handleCancelOrder(order._id)}
-                                                        title="Cancelar pedido"
+                                                        onClick={() => handleStatusProduct(product._id, "inactive")}
+                                                        title="Inativar produto"
                                                     >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-dash" viewBox="0 0 16 16">
+                                                            <path fill-rule="evenodd" d="M5.5 10a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5"/>
+                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
                                                         </svg>
                                                     </button>
 
                                                     <button
+                                                        className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
+                                                        onClick={() => handleStatusProduct(product._id, "out_of_stock")}
+                                                        title="Tirar de estoque"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-x" viewBox="0 0 16 16">
+                                                            <path fill-rule="evenodd" d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708"/>
+                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+                                                        </svg>                                                    
+                                                    </button>
+
+                                                    <button
                                                         className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
-                                                        onClick={() => handleDeleteOrder(order._id)}
-                                                        title="Deletar pedido"
+                                                        onClick={() => handleStatusProduct(product._id, "archived")}
+                                                        title="Arquivar produto"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-archive" viewBox="0 0 16 16">
+                                                            <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+                                                        </svg>                                                    
+                                                    </button>
+
+                                                    <button
+                                                        className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
+                                                        onClick={() => handleDeleteProduct(product._id)}
+                                                        title="Deletar produto"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
