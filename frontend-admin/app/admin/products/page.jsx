@@ -1,783 +1,1083 @@
 "use client";
-import { useEffect, useState } from "react";
-import { fetchProducts, fetchUpdateProduct, fetchProductById, fetchCreateProduct, fetchStatusProduct, fetchDeleteProduct } from "@/app/lib/api.js"
+import { Fragment, useEffect, useState } from "react";
+import {
+  fetchProducts,
+  fetchUpdateProduct,
+  fetchProductById,
+  fetchCreateProduct,
+  fetchStatusProduct,
+  fetchDeleteProduct,
+} from "@/app/lib/api.js";
 import { formatCurrencyBRL } from "@/app/utils/utils.js";
 import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
-    const [statusFilter, setStatusFilter] = useState("active");
-    const [products, setProducts] = useState([]);
-    const [editProduct, setEditProduct] = useState(null);
-    const [editForm, setEditForm] = useState({ name: '', price: '', description: '', category: '', stock: '', status: '', discount: '' });
-    const [newProduct, setNewProduct] = useState({ name: '', price: '', description: '', category: '', stock: '', status: '', discount: '' });
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [expandedProduct, setExpandedProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
+  const [statusFilter, setStatusFilter] = useState("active");
+  const [products, setProducts] = useState([]);
+  const [editProduct, setEditProduct] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    price: "",
+    description: "",
+    category: "",
+    stock: "",
+    status: "",
+    discount: "",
+  });
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    price: "",
+    description: "",
+    category: "",
+    stock: "",
+    status: "",
+    discount: "",
+  });
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [expandedProduct, setExpandedProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-    // Abre modal e preenche dados do produto
-    const openEditModal = (product) => {
-        setEditProduct(product);
-        setEditForm({ name: product.name, price: product.price, description: product.description, category: product.category, stock: product.stock, status: product.status, discount: product.discount });
-    };
+  // Abre modal e preenche dados do produto
+  const openEditModal = (product) => {
+    setEditProduct(product);
+    setEditForm({
+      name: product.name,
+      price: product.price,
+      description: product.description,
+      category: product.category,
+      stock: product.stock,
+      status: product.status,
+      discount: product.discount,
+    });
+  };
 
-    // Fecha modal
-    const closeEditModal = () => {
-        setEditProduct(null);
-        setEditForm({ name: '', price: '', description: '', category: '', stock: '', status: '', discount: '' });
-    };
+  // Fecha modal
+  const closeEditModal = () => {
+    setEditProduct(null);
+    setEditForm({
+      name: "",
+      price: "",
+      description: "",
+      category: "",
+      stock: "",
+      status: "",
+      discount: "",
+    });
+  };
 
-    // Toggle detalhes do produto
-    const toggleProductDetails = (productId) => {
-        setExpandedProduct(expandedProduct === productId ? null : productId);
-    };
+  // Toggle detalhes do produto
+  const toggleProductDetails = (productId) => {
+    setExpandedProduct(expandedProduct === productId ? null : productId);
+  };
 
-    // Atualiza campos do formulário
-    const handleEditFormChange = (e) => {
-        const { name, value } = e.target;
-        setEditForm((prev) => ({ ...prev, [name]: value }));
-    };
+  // Atualiza campos do formulário
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-    // Envia atualização
-    const handleEditSubmit = async (e) => {
-        e.preventDefault();
-        if (!editProduct) return;
-        await handleUpdateProduct(editProduct._id, {
-            name: editForm.name,
-            price: Number(editForm.price),
-            description: editForm.description,
-            category: editForm.category,
-            stock: Number(editForm.stock),
-            status: editForm.status,
-            discount: Number(editForm.discount),
-        });
-        closeEditModal();
-    };
+  // Envia atualização
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editProduct) return;
+    await handleUpdateProduct(editProduct._id, {
+      name: editForm.name,
+      price: Number(editForm.price),
+      description: editForm.description,
+      category: editForm.category,
+      stock: Number(editForm.stock),
+      status: editForm.status,
+      discount: Number(editForm.discount),
+    });
+    closeEditModal();
+  };
 
-    // Atualiza produto
-    const handleUpdateProduct = async (productId, updatedData) => {
-        const data = await fetchUpdateProduct(productId, updatedData);
-        if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
-            router.push("/login");
-            return;
-        }
-        setProducts((prevProducts) =>
-            prevProducts.map((product) => (product.id === productId ? { ...product, ...updatedData } : product))
-        );
-    };
+  // Atualiza produto
+  const handleUpdateProduct = async (productId, updatedData) => {
+    const data = await fetchUpdateProduct(productId, updatedData);
+    if (
+      data?.message?.toLowerCase().includes("não autenticado") ||
+      data?.error === "Unauthorized"
+    ) {
+      router.push("/login");
+      return;
+    }
+    setProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === productId ? { ...product, ...updatedData } : product
+      )
+    );
+  };
 
-    useEffect(() => {
-        const loadProducts = async () => {
-            setLoading(true);
-            try {
-                const data = await fetchProducts(statusFilter);
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchProducts(statusFilter);
 
-                if (
-                    data?.message?.toLowerCase().includes("não autenticado") ||
-                    data?.error === "Unauthorized"
-                ) {
-                    router.push("/login");
-                    return;
-                }
-
-                setProducts(data.products || []);
-            } catch (err) {
-                console.error("Erro ao buscar produtos:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadProducts();
-    }, [statusFilter, router]);
-
-    const handleFilterById = async (e) => {
-        e.preventDefault();
-        const productId = e.target.productId.value;
-        if (!productId) return;
-
-        const data = await fetchProductById(productId);
-        if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
-            router.push("/login");
-            return;
-        }
-
-        setProducts([data.product]);
-    };
-
-    const handleCreateProduct = async (e) => {
-        e.preventDefault();
-
-        const newProductData = {
-            name: newProduct.name,
-            price: Number(newProduct.price),
-            description: newProduct.description,
-            category: newProduct.category,
-            stock: Number(newProduct.stock),
-            status: newProduct.status,
-            discount: Number(newProduct.discount),
-        };
-
-        const data = await fetchCreateProduct(newProductData);
-        console.log(data);
-
-        if (!data.product) {
-            console.error("Produto não foi criado corretamente:", data);
-            return;
+        if (
+          data?.message?.toLowerCase().includes("não autenticado") ||
+          data?.error === "Unauthorized"
+        ) {
+          router.push("/login");
+          return;
         }
 
-        if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
-            router.push("/login");
-            return;
-        }
-
-        setProducts((prevProducts) => [...prevProducts, data.product]);
-        setNewProduct({ name: "", price: "", description: "", category: "", stock: "", status: "", discount: "" });
-        setIsCreateModalOpen(false);
+        setProducts(data.products || []);
+      } catch (err) {
+        console.error("Erro ao buscar produtos:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handleNewProductChange = (e) => {
-        const { name, value } = e.target;
-        setNewProduct((prev) => ({ ...prev, [name]: value }));
-    };
+    loadProducts();
+  }, [statusFilter, router]);
 
-    const handleStatusProduct = async (productId, status) => {
-        const newStatus = {
-            status: status
-        };
+  const handleFilterById = async (e) => {
+    e.preventDefault();
+    const productId = e.target.productId.value;
+    if (!productId) return;
 
-        const data = await fetchStatusProduct(productId, newStatus);
-        if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
-            router.push("/login");
-            return;
-        }
-        setProducts((prevProducts) =>
-            prevProducts.map((prod) => (prod._id === productId ? { ...prod, status: data.product.status } : prod))
-        );
-    };
-
-    const handleDeleteProduct = async (ProductId) => {
-        const data = await fetchDeleteProduct(ProductId);
-        if (data?.message?.toLowerCase().includes("não autenticado") || data?.error === "Unauthorized") {
-            router.push("/login");
-            return;
-        }
-        setProducts((prevProducts) => prevProducts.filter((product) => product._id !== ProductId));
-    };
-
-    const getStatusColor = (status) => {
-        const colors = {
-            active: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-            inactive: "bg-amber-50 text-amber-700 border border-amber-200",
-            out_of_stock: "bg-blue-50 text-blue-700 border border-blue-200",
-            archived: "bg-red-50 text-red-700 border border-red-200",
-            draft: "bg-cyan-50 text-cyan-700 border border-cyan-200"
-        };
-        return colors[status] || "bg-slate-50 text-slate-700 border border-slate-200";
-    };
-
-    const getStatusText = (status) => {
-        const texts = {
-            active: "Ativo",
-            inactive: "Inativo",
-            out_of_stock: "Fora de Estoque",
-            archived: "Arquivado",
-            draft: "Rascunho"
-        };
-        return texts[status] || status;
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="flex flex-col items-center space-y-4">
-                    <div className="relative">
-                        <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
-                    </div>
-                    <div className="text-slate-600 font-medium">Carregando produtos...</div>
-                </div>
-            </div>
-        );
+    const data = await fetchProductById(productId);
+    if (
+      data?.message?.toLowerCase().includes("não autenticado") ||
+      data?.error === "Unauthorized"
+    ) {
+      router.push("/login");
+      return;
     }
 
-    return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Header Principal */}
-            <div className="bg-white border-b border-slate-200 shadow-sm">
-                <div className="max-w-[1400px] mx-auto px-8 py-8">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gerenciamento de Produtos</h1>
-                            <p className="mt-2 text-slate-600 max-w-2xl">
-                                Controle completo sobre todos os produtos do seu e-commerce. Visualize, edite e gerencie o status de cada produto.
-                            </p>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <div className="text-right">
-                                <div className="text-2xl font-bold text-slate-900">{products.length}</div>
-                                <div className="text-sm text-slate-500">produtos listados</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    if (!data.product) {
+      setProducts([]);
+    } else {
+      setProducts([data.product]);
+    }
+  };
 
-            <div className="max-w-[1500px] mx-auto px-8 py-8">
+  const handleCreateProduct = async (e) => {
+    e.preventDefault();
 
-                {/* Modal de Edição */}
-                {editProduct && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
-                            <div className="px-8 py-6 border-b border-slate-200">
-                                <h2 className="text-xl font-semibold text-slate-900">Editar Produto</h2>
-                                <p className="text-sm text-slate-600 mt-1">ID: {editProduct._id}</p>
-                            </div>
+    const newProductData = {
+      name: newProduct.name,
+      price: Number(newProduct.price),
+      description: newProduct.description,
+      category: newProduct.category,
+      stock: Number(newProduct.stock),
+      status: newProduct.status,
+      discount: Number(newProduct.discount),
+    };
 
-                            <form onSubmit={handleEditSubmit} className="p-8 space-y-6">
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Nome</label>
-                                    <input
-                                        name="name"
-                                        type="text"
-                                        value={editForm.name}
-                                        onChange={handleEditFormChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                    />
-                                </div>
+    const data = await fetchCreateProduct(newProductData);
+    console.log(data);
 
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Preço</label>
-                                    <input
-                                        name="price"
-                                        type="text"
-                                        value={editForm.price}
-                                        onChange={handleEditFormChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                    />
-                                </div>
+    if (!data.product) {
+      console.error("Produto não foi criado corretamente:", data);
+      return;
+    }
 
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Descrição</label>
-                                    <input
-                                        name="description"
-                                        type="text"
-                                        value={editForm.description}
-                                        onChange={handleEditFormChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                    />
-                                </div>
+    if (
+      data?.message?.toLowerCase().includes("não autenticado") ||
+      data?.error === "Unauthorized"
+    ) {
+      router.push("/login");
+      return;
+    }
 
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Categoria</label>
-                                    <input
-                                        name="category"
-                                        type="text"
-                                        value={editForm.category}
-                                        onChange={handleEditFormChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                    />
-                                </div>
+    setProducts((prevProducts) => [...prevProducts, data.product]);
+    setNewProduct({
+      name: "",
+      price: "",
+      description: "",
+      category: "",
+      stock: "",
+      status: "",
+      discount: "",
+    });
+    setIsCreateModalOpen(false);
+  };
 
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Estoque</label>
-                                    <input
-                                        name="stock"
-                                        type="text"
-                                        value={editForm.stock}
-                                        onChange={handleEditFormChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                    />
-                                </div>
+  const handleNewProductChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct((prev) => ({ ...prev, [name]: value }));
+  };
 
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Status</label>
-                                    <select
-                                        name="status"
-                                        value={editForm.status}
-                                        onChange={handleEditFormChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white text-slate-900"
-                                    >
-                                        <option value="active">Ativo</option>
-                                        <option value="inactive">Inativo</option>
-                                        <option value="out_of_stock">Fora de estoque</option>
-                                        <option value="archived">Arquivado</option>
-                                        <option value="draft">Rascunho</option>
-                                    </select>
-                                </div>
+  const handleStatusProduct = async (productId, status) => {
+    const newStatus = {
+      status: status,
+    };
 
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Desconto (R$)</label>
-                                    <input
-                                        type="number"
-                                        name="discount"
-                                        value={editForm.discount}
-                                        onChange={handleEditFormChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="0"
-                                        step="0.01"
-                                    />
-                                </div>
-
-                                <div className="flex justify-end space-x-3 pt-6">
-                                    <button
-                                        type="button"
-                                        className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
-                                        onClick={closeEditModal}
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-lg"
-                                    >
-                                        Salvar Alterações
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Modal de Criação */}
-                {isCreateModalOpen && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
-                            <div className="px-8 py-6 border-b border-slate-200">
-                                <h2 className="text-xl font-semibold text-slate-900">Criar Novo Produto</h2>
-                                <p className="text-sm text-slate-600 mt-1">Adicione um novo produto ao sistema</p>
-                            </div>
-
-                            <form onSubmit={handleCreateProduct} className="p-8 space-y-6">
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Nome do Produto</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={newProduct.name}
-                                        onChange={handleNewProductChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        placeholder="Digite o nome do produto"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Preço</label>
-                                    <input
-                                        type="text"
-                                        name="price"
-                                        value={newProduct.price}
-                                        onChange={handleNewProductChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                        placeholder="Digite o preço do produto"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Descrição</label>
-                                    <input
-                                        type="text"
-                                        name="description"
-                                        value={newProduct.description}
-                                        onChange={handleNewProductChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                        placeholder="Digite a descrição do produto"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Categoria</label>
-                                    <input
-                                        type="text"
-                                        name="category"
-                                        value={newProduct.category}
-                                        onChange={handleNewProductChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                        placeholder="Digite a categoria do produto"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Estoque</label>
-                                    <input
-                                        type="text"
-                                        name="stock"
-                                        value={newProduct.stock}
-                                        onChange={handleNewProductChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                        placeholder="Digite a quantidade em estoque"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Status</label>
-                                    <input
-                                        type="text"
-                                        name="status"
-                                        value={newProduct.status}
-                                        onChange={handleNewProductChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                        placeholder="Digite o status do produto"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Desconto</label>
-                                    <input
-                                        type="text"
-                                        name="discount"
-                                        value={newProduct.discount}
-                                        onChange={handleNewProductChange}
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                                        min="1"
-                                        placeholder="Digite o desconto do produto (se houver)"
-                                    />
-                                </div>
-
-                                <div className="flex justify-end space-x-3 pt-6">
-                                    <button
-                                        type="button"
-                                        className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
-                                        onClick={() => setIsCreateModalOpen(false)}
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-lg"
-                                    >
-                                        Criar Produto
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Barra de Controles */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-                    <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-                            {/* Busca por ID */}
-                            <form onSubmit={handleFilterById} className="flex items-center gap-3">
-                                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Buscar por ID:</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        name="productId"
-                                        className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900"
-                                        placeholder="ID do produto..."
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="cursor-pointer px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all"
-                                    >
-                                        Buscar
-                                    </button>
-                                </div>
-                            </form>
-
-                            {/* Filtro por Status */}
-                            <div className="flex items-center gap-3">
-                                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Filtrar por Status:</label>
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-medium min-w-[140px] text-slate-900"
-                                >
-                                    <option value="active">Ativo</option>
-                                    <option value="inactive">Inativo</option>
-                                    <option value="out_of_stock">Fora de estoque</option>
-                                    <option value="archived">Arquivado</option>
-                                    <option value="draft">Rascunho</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Botão Novo Produto */}
-                        <button
-                            onClick={() => setIsCreateModalOpen(true)}
-                            className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            Novo Produto
-                        </button>
-                    </div>
-                </div>
-
-                {/* Tabela de Produtos Otimizada */}
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Produto</th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Preço</th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Estoque</th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
-                                    <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Detalhes</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {products.length > 0 ? products.map((product, idx) => (
-                                    product ? (
-                                        <>
-                                            {/* Linha Principal */}
-                                            <tr key={product._id || idx} className="hover:bg-slate-50 transition-colors group">
-                                                <td className="px-6 py-5">
-                                                    <div className="flex flex-col">
-                                                        <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
-                                                            {product.name}
-                                                        </div>
-                                                        <div className="text-xs text-slate-500 font-mono">
-                                                            #{product._id}
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                <td className="px-6 py-5 text-center">
-                                                    <div className="text-sm font-semibold text-slate-900">
-                                                        {formatCurrencyBRL(product.price)}
-                                                    </div>
-                                                </td>
-
-                                                <td className="px-6 py-5 text-center">
-                                                    <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
-                                                        {product.stock}
-                                                    </span>
-                                                </td>
-
-                                                <td className="px-6 py-5 text-center">
-                                                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                                                        {getStatusText(product.status)}
-                                                    </span>
-                                                </td>
-
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center justify-center gap-1">
-                                                        <button
-                                                            className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
-                                                            onClick={() => openEditModal(product)}
-                                                            title="Editar produto"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                            </svg>
-                                                        </button>
-
-                                                        <button
-                                                            className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
-                                                            onClick={() => handleDeleteProduct(product._id)}
-                                                            title="Deletar produto"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                </td>
-
-                                                <td className="px-6 py-5 text-center">
-                                                    <button
-                                                        className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all"
-                                                        onClick={() => toggleProductDetails(product._id)}
-                                                        title={expandedProduct === product._id ? "Ocultar detalhes" : "Ver detalhes"}
-                                                    >
-                                                        <svg
-                                                            className={`w-4 h-4 transition-transform ${expandedProduct === product._id ? 'rotate-180' : ''}`}
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                                        </svg>
-                                                    </button>
-                                                </td>
-                                            </tr>
-
-                                            {/* Linha de Detalhes Expandida */}
-                                            {expandedProduct === product._id && (
-                                                <tr className="bg-slate-50">
-                                                    <td colSpan="6" className="px-6 py-6">
-                                                        <div className="bg-white rounded-xl p-6 border border-slate-200">
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                                                {/* Informações Básicas */}
-                                                                <div className="space-y-4">
-                                                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
-                                                                        Informações do Produto
-                                                                    </h4>
-                                                                    <div className="space-y-3">
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">ID</label>
-                                                                            <p className="text-sm font-mono text-slate-900">{product._id}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Nome</label>
-                                                                            <p className="text-sm text-slate-900 font-medium">{product.name}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Categoria</label>
-                                                                            <p className="text-sm text-slate-900">{product.category}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Descrição e Preços */}
-                                                                <div className="space-y-4">
-                                                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
-                                                                        Descrição e Preços
-                                                                    </h4>
-                                                                    <div className="space-y-3">
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Descrição</label>
-                                                                            <p className="text-sm text-slate-900">{product.description}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Preço</label>
-                                                                            <p className="text-sm text-slate-900 font-semibold">{formatCurrencyBRL(product.price)}</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Desconto</label>
-                                                                            <p className="text-sm text-slate-900">{formatCurrencyBRL(product.discount || 0)}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Status e Data */}
-                                                                <div className="space-y-4">
-                                                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
-                                                                        Status e Datas
-                                                                    </h4>
-                                                                    <div className="space-y-3">
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Status Atual</label>
-                                                                            <div className="mt-1">
-                                                                                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                                                                                    {getStatusText(product.status)}
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Estoque</label>
-                                                                            <p className="text-sm text-slate-900 font-semibold">{product.stock} unidades</p>
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Criado em</label>
-                                                                            <p className="text-sm text-slate-900">
-                                                                                {new Date(product.createdAt).toLocaleDateString("pt-BR", {
-                                                                                    day: "2-digit",
-                                                                                    month: "2-digit",
-                                                                                    year: "numeric",
-                                                                                    hour: "2-digit",
-                                                                                    minute: "2-digit",
-                                                                                })}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Ações Rápidas */}
-                                                            <div className="mt-6 pt-6 border-t border-slate-200">
-                                                                <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide mb-4">
-                                                                    Ações Rápidas de Status
-                                                                </h4>
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    <button
-                                                                        className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
-                                                                        onClick={() => handleStatusProduct(product._id, "active")}
-                                                                    >
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                                                            <path fillRule="evenodd" d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0" />
-                                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
-                                                                        </svg>
-                                                                        Ativar
-                                                                    </button>
-
-                                                                    <button
-                                                                        className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
-                                                                        onClick={() => handleStatusProduct(product._id, "inactive")}
-                                                                    >
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                                                            <path fillRule="evenodd" d="M5.5 10a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5" />
-                                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
-                                                                        </svg>
-                                                                        Inativar
-                                                                    </button>
-
-                                                                    <button
-                                                                        className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
-                                                                        onClick={() => handleStatusProduct(product._id, "out_of_stock")}
-                                                                    >
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                                                            <path fillRule="evenodd" d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708" />
-                                                                            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
-                                                                        </svg>
-                                                                        Sem Estoque
-                                                                    </button>
-
-                                                                    <button
-                                                                        className="cursor-pointer px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
-                                                                        onClick={() => handleStatusProduct(product._id, "archived")}
-                                                                    >
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                                                            <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
-                                                                        </svg>
-                                                                        Arquivar
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </>
-                                    ) : null
-                                )) : (
-                                    <tr>
-                                        <td colSpan="6" className="px-6 py-16 text-center">
-                                            <div className="flex flex-col items-center space-y-4">
-                                                <svg className="w-16 h-16 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                                </svg>
-                                                <div className="text-slate-500">
-                                                    <div className="text-lg font-semibold mb-2">Nenhum produto encontrado</div>
-                                                    <div className="text-sm max-w-sm mx-auto leading-relaxed">
-                                                        Não há produtos com os filtros selecionados. Tente ajustar os critérios de busca ou criar um novo produto.
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Footer com informações extras */}
-                <div className="mt-8 text-center text-sm text-slate-500">
-                    <p>Painel de Administração • Total de {products.length} produtos listados</p>
-                </div>
-            </div>
-        </div>
+    const data = await fetchStatusProduct(productId, newStatus);
+    if (
+      data?.message?.toLowerCase().includes("não autenticado") ||
+      data?.error === "Unauthorized"
+    ) {
+      router.push("/login");
+      return;
+    }
+    setProducts((prevProducts) =>
+      prevProducts.map((prod) =>
+        prod._id === productId ? { ...prod, status: data.product.status } : prod
+      )
     );
+  };
+
+  const handleDeleteProduct = async (ProductId) => {
+    const data = await fetchDeleteProduct(ProductId);
+    if (
+      data?.message?.toLowerCase().includes("não autenticado") ||
+      data?.error === "Unauthorized"
+    ) {
+      router.push("/login");
+      return;
+    }
+    setProducts((prevProducts) =>
+      prevProducts.filter((product) => product._id !== ProductId)
+    );
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      active: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+      inactive: "bg-amber-50 text-amber-700 border border-amber-200",
+      out_of_stock: "bg-blue-50 text-blue-700 border border-blue-200",
+      archived: "bg-red-50 text-red-700 border border-red-200",
+      draft: "bg-cyan-50 text-cyan-700 border border-cyan-200",
+    };
+    return (
+      colors[status] || "bg-slate-50 text-slate-700 border border-slate-200"
+    );
+  };
+
+  const getStatusText = (status) => {
+    const texts = {
+      active: "Ativo",
+      inactive: "Inativo",
+      out_of_stock: "Fora de Estoque",
+      archived: "Arquivado",
+      draft: "Rascunho",
+    };
+    return texts[status] || status;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
+          </div>
+          <div className="text-slate-600 font-medium">
+            Carregando produtos...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header Principal */}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-[1400px] mx-auto px-8 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                Gerenciamento de Produtos
+              </h1>
+              <p className="mt-2 text-slate-600 max-w-2xl">
+                Controle completo sobre todos os produtos do seu e-commerce.
+                Visualize, edite e gerencie o status de cada produto.
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="text-right">
+                <div className="text-2xl font-bold text-slate-900">
+                  {products.length}
+                </div>
+                <div className="text-sm text-slate-500">produtos listados</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-[1500px] mx-auto px-8 py-8">
+        {/* Modal de Edição */}
+        {editProduct && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+              <div className="px-8 py-6 border-b border-slate-200">
+                <h2 className="text-xl font-semibold text-slate-900">
+                  Editar Produto
+                </h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  ID: {editProduct._id}
+                </p>
+              </div>
+
+              <form onSubmit={handleEditSubmit} className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Nome
+                  </label>
+                  <input
+                    name="name"
+                    type="text"
+                    value={editForm.name}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Preço
+                  </label>
+                  <input
+                    name="price"
+                    type="text"
+                    value={editForm.price}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Descrição
+                  </label>
+                  <input
+                    name="description"
+                    type="text"
+                    value={editForm.description}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Categoria
+                  </label>
+                  <input
+                    name="category"
+                    type="text"
+                    value={editForm.category}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Estoque
+                  </label>
+                  <input
+                    name="stock"
+                    type="text"
+                    value={editForm.stock}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Status
+                  </label>
+                  <select
+                    name="status"
+                    value={editForm.status}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white text-slate-900"
+                  >
+                    <option value="active">Ativo</option>
+                    <option value="inactive">Inativo</option>
+                    <option value="out_of_stock">Fora de estoque</option>
+                    <option value="archived">Arquivado</option>
+                    <option value="draft">Rascunho</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Desconto (R$)
+                  </label>
+                  <input
+                    type="number"
+                    name="discount"
+                    value={editForm.discount}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6">
+                  <button
+                    type="button"
+                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    onClick={closeEditModal}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-lg"
+                  >
+                    Salvar Alterações
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Criação */}
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+              <div className="px-8 py-6 border-b border-slate-200">
+                <h2 className="text-xl font-semibold text-slate-900">
+                  Criar Novo Produto
+                </h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  Adicione um novo produto ao sistema
+                </p>
+              </div>
+
+              <form onSubmit={handleCreateProduct} className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Nome do Produto
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={newProduct.name}
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    placeholder="Digite o nome do produto"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Preço
+                  </label>
+                  <input
+                    type="text"
+                    name="price"
+                    value={newProduct.price}
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                    placeholder="Digite o preço do produto"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Descrição
+                  </label>
+                  <input
+                    type="text"
+                    name="description"
+                    value={newProduct.description}
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                    placeholder="Digite a descrição do produto"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Categoria
+                  </label>
+                  <input
+                    type="text"
+                    name="category"
+                    value={newProduct.category}
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                    placeholder="Digite a categoria do produto"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Estoque
+                  </label>
+                  <input
+                    type="text"
+                    name="stock"
+                    value={newProduct.stock}
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                    placeholder="Digite a quantidade em estoque"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Status
+                  </label>
+                  <input
+                    type="text"
+                    name="status"
+                    value={newProduct.status}
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                    placeholder="Digite o status do produto"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Desconto
+                  </label>
+                  <input
+                    type="text"
+                    name="discount"
+                    value={newProduct.discount}
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    min="1"
+                    placeholder="Digite o desconto do produto (se houver)"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6">
+                  <button
+                    type="button"
+                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    onClick={() => setIsCreateModalOpen(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-lg"
+                  >
+                    Criar Produto
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Barra de Controles */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+              {/* Busca por ID */}
+              <form
+                onSubmit={handleFilterById}
+                className="flex items-center gap-3"
+              >
+                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+                  Buscar por ID:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="productId"
+                    className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900"
+                    placeholder="ID do produto..."
+                  />
+                  <button
+                    type="submit"
+                    className="cursor-pointer px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all"
+                  >
+                    Buscar
+                  </button>
+                </div>
+              </form>
+
+              {/* Filtro por Status */}
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+                  Filtrar por Status:
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-medium min-w-[140px] text-slate-900"
+                >
+                  <option value="active">Ativo</option>
+                  <option value="inactive">Inativo</option>
+                  <option value="out_of_stock">Fora de estoque</option>
+                  <option value="archived">Arquivado</option>
+                  <option value="draft">Rascunho</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Botão Novo Produto */}
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              Novo Produto
+            </button>
+          </div>
+        </div>
+
+        {/* Tabela de Produtos Otimizada */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Produto
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Preço
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Estoque
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Ações
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Detalhes
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {products.length > 0 ? (
+                  products.map((product, idx) =>
+                    product ? (
+                      <Fragment key={product._id || idx}>
+                        {/* Linha Principal */}
+                        <tr
+                          key={product._id || idx}
+                          className="hover:bg-slate-50 transition-colors group"
+                        >
+                          <td className="px-6 py-5">
+                            <div className="flex flex-col">
+                              <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
+                                {product.name}
+                              </div>
+                              <div className="text-xs text-slate-500 font-mono">
+                                #{product._id}
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-5 text-center">
+                            <div className="text-sm font-semibold text-slate-900">
+                              {formatCurrencyBRL(product.price)}
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-5 text-center">
+                            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
+                              {product.stock}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-5 text-center">
+                            <span
+                              className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                                product.status
+                              )}`}
+                            >
+                              {getStatusText(product.status)}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-5">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
+                                onClick={() => openEditModal(product)}
+                                title="Editar produto"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                              </button>
+
+                              <button
+                                className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
+                                onClick={() => handleDeleteProduct(product._id)}
+                                title="Deletar produto"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-5 text-center">
+                            <button
+                              className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all"
+                              onClick={() => toggleProductDetails(product._id)}
+                              title={
+                                expandedProduct === product._id
+                                  ? "Ocultar detalhes"
+                                  : "Ver detalhes"
+                              }
+                            >
+                              <svg
+                                className={`w-4 h-4 transition-transform ${
+                                  expandedProduct === product._id
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+
+                        {/* Linha de Detalhes Expandida */}
+                        {expandedProduct === product._id && (
+                          <tr
+                            key={`${product._id}-details`}
+                            className="bg-slate-50"
+                          >
+                            <td colSpan="6" className="px-6 py-6">
+                              <div className="bg-white rounded-xl p-6 border border-slate-200">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                  {/* Informações Básicas */}
+                                  <div className="space-y-4">
+                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                      Informações do Produto
+                                    </h4>
+                                    <div className="space-y-3">
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          ID
+                                        </label>
+                                        <p className="text-sm font-mono text-slate-900">
+                                          {product._id}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Nome
+                                        </label>
+                                        <p className="text-sm text-slate-900 font-medium">
+                                          {product.name}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Categoria
+                                        </label>
+                                        <p className="text-sm text-slate-900">
+                                          {product.category}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Descrição e Preços */}
+                                  <div className="space-y-4">
+                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                      Descrição e Preços
+                                    </h4>
+                                    <div className="space-y-3">
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Descrição
+                                        </label>
+                                        <p className="text-sm text-slate-900">
+                                          {product.description}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Preço
+                                        </label>
+                                        <p className="text-sm text-slate-900 font-semibold">
+                                          {formatCurrencyBRL(product.price)}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Desconto
+                                        </label>
+                                        <p className="text-sm text-slate-900">
+                                          {formatCurrencyBRL(
+                                            product.discount || 0
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Status e Data */}
+                                  <div className="space-y-4">
+                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                      Status e Datas
+                                    </h4>
+                                    <div className="space-y-3">
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Status Atual
+                                        </label>
+                                        <div className="mt-1">
+                                          <span
+                                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                                              product.status
+                                            )}`}
+                                          >
+                                            {getStatusText(product.status)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Estoque
+                                        </label>
+                                        <p className="text-sm text-slate-900 font-semibold">
+                                          {product.stock} unidades
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Criado em
+                                        </label>
+                                        <p className="text-sm text-slate-900">
+                                          {new Date(
+                                            product.createdAt
+                                          ).toLocaleDateString("pt-BR", {
+                                            day: "2-digit",
+                                            month: "2-digit",
+                                            year: "numeric",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Ações Rápidas */}
+                                <div className="mt-6 pt-6 border-t border-slate-200">
+                                  <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide mb-4">
+                                    Ações Rápidas de Status
+                                  </h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    <button
+                                      className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      onClick={() =>
+                                        handleStatusProduct(
+                                          product._id,
+                                          "active"
+                                        )
+                                      }
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        fill="currentColor"
+                                        viewBox="0 0 16 16"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0"
+                                        />
+                                        <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                      </svg>
+                                      Ativar
+                                    </button>
+
+                                    <button
+                                      className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      onClick={() =>
+                                        handleStatusProduct(
+                                          product._id,
+                                          "inactive"
+                                        )
+                                      }
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        fill="currentColor"
+                                        viewBox="0 0 16 16"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M5.5 10a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5"
+                                        />
+                                        <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                      </svg>
+                                      Inativar
+                                    </button>
+
+                                    <button
+                                      className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      onClick={() =>
+                                        handleStatusProduct(
+                                          product._id,
+                                          "out_of_stock"
+                                        )
+                                      }
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        fill="currentColor"
+                                        viewBox="0 0 16 16"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708"
+                                        />
+                                        <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                      </svg>
+                                      Sem Estoque
+                                    </button>
+
+                                    <button
+                                      className="cursor-pointer px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      onClick={() =>
+                                        handleStatusProduct(
+                                          product._id,
+                                          "archived"
+                                        )
+                                      }
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        fill="currentColor"
+                                        viewBox="0 0 16 16"
+                                      >
+                                        <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                                      </svg>
+                                      Arquivar
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    ) : null
+                  )
+                ) : (
+                  <tr key="no-products">
+                    <td colSpan="6" className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center space-y-4">
+                        <svg
+                          className="w-16 h-16 text-slate-300"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1"
+                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                          />
+                        </svg>
+                        <div className="text-slate-500">
+                          <div className="text-lg font-semibold mb-2">
+                            Nenhum produto encontrado
+                          </div>
+                          <div className="text-sm max-w-sm mx-auto leading-relaxed">
+                            Não há produtos com os filtros selecionados. Tente
+                            ajustar os critérios de busca ou criar um novo
+                            produto.
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Footer com informações extras */}
+        <div className="mt-8 text-center text-sm text-slate-500">
+          <p>
+            Painel de Administração • Total de {products.length} produtos
+            listados
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
