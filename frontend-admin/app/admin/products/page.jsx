@@ -222,7 +222,7 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            <div className="max-w-[1400px] mx-auto px-8 py-8">
+            <div className="max-w-[1500px] mx-auto px-8 py-8">
 
                 {/* Modal de Edição */}
                 {editProduct && (
@@ -473,23 +473,6 @@ export default function ProductsPage() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
                     <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
                         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-
-                            {/* Filtro por Status */}
-                            <div className="flex items-center gap-3">
-                                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Filtrar por Status:</label>
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-medium min-w-[140px] text-slate-900"
-                                >
-                                    <option value="active">Ativo</option>
-                                    <option value="inactive">Inativo</option>
-                                    <option value="out_of_stock">Fora de estoque</option>
-                                    <option value="archived">Arquivado</option>
-                                    <option value="draft">Rascunho</option>
-                                </select>
-                            </div>
-
                             {/* Busca por ID */}
                             <form onSubmit={handleFilterById} className="flex items-center gap-3">
                                 <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Buscar por ID:</label>
@@ -508,6 +491,22 @@ export default function ProductsPage() {
                                     </button>
                                 </div>
                             </form>
+
+                            {/* Filtro por Status */}
+                            <div className="flex items-center gap-3">
+                                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Filtrar por Status:</label>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-medium min-w-[140px] text-slate-900"
+                                >
+                                    <option value="active">Ativo</option>
+                                    <option value="inactive">Inativo</option>
+                                    <option value="out_of_stock">Fora de estoque</option>
+                                    <option value="archived">Arquivado</option>
+                                    <option value="draft">Rascunho</option>
+                                </select>
+                            </div>
                         </div>
 
                         {/* Botão Novo Produto */}

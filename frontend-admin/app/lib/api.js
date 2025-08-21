@@ -21,6 +21,13 @@ export async function fetchOrderById(orderId) {
   return res.json();
 }
 
+export async function fetchOrderByDate(date) {
+  const res = await fetch(`${API_URL}/api/orders/${date}/get-all-by-date`, {
+    credentials: "include" // envia o cookie junto
+  });
+  return res.json();
+}
+
 export async function fetchProductById(productId) {
   const res = await fetch(`${API_URL}/api/products/${productId}`, {
     credentials: "include" // envia o cookie junto
