@@ -90,6 +90,7 @@ export default function AdminHome() {
         console.error("Erro ao buscar pedidos:", err);
       } finally {
         setLoading(false);
+        toggleOrderDetails();
       }
     };
 
@@ -132,6 +133,7 @@ export default function AdminHome() {
         setOrders([]);
       } else {
         setOrders(data.orders);
+        toggleOrderDetails();
       }
     }
   };
@@ -278,15 +280,9 @@ export default function AdminHome() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="relative">
-            <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
-          </div>
-          <div className="text-slate-600 font-medium">
-            Carregando pedidos...
-          </div>
-        </div>
+      <div className="fixed top-0 left-0 w-screen h-dvh bg-white/90 flex items-center justify-center z-[9999] text-[#1a73e8] text-xl">
+        <i className="fa-solid fa-spinner animate-spin mr-3 text-3xl"></i>
+        Carregando pedidos...
       </div>
     );
   }
@@ -605,15 +601,11 @@ export default function AdminHome() {
                         >
                           <td className="px-6 py-5">
                             <div className="text-sm font-semibold text-slate-900">
-                              {new Date(order.createdAt).toLocaleString(
-                                "pt-BR",
-                                {
-                                  timeZone: "America/Sao_Paulo",
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "2-digit",
-                                }
-                              )}
+                              {new Date(order.createdAt).toLocaleDateString("pt-BR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "2-digit",
+                              })}
                             </div>
                             <div className="text-xs text-slate-500">
                               {new Date(order.createdAt).toLocaleString(
@@ -726,11 +718,10 @@ export default function AdminHome() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform ${
-                                  expandedOrder === order._id
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
+                                className={`w-4 h-4 transition-transform ${expandedOrder === order._id
+                                  ? "rotate-180"
+                                  : ""
+                                  }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -769,7 +760,6 @@ export default function AdminHome() {
                                           #{order._id}
                                         </p>
                                       </div>
-                                      {/* parou aqui */}
                                       <div>
                                         <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                                           Produtos
@@ -910,7 +900,7 @@ export default function AdminHome() {
                                         width="16"
                                         height="16"
                                         fill="currentColor"
-                                        class="bi bi-truck"
+                                        className="bi bi-truck"
                                         viewBox="0 0 16 16"
                                       >
                                         <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />

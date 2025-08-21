@@ -129,6 +129,7 @@ export default function ProductsPage() {
         console.error("Erro ao buscar produtos:", err);
       } finally {
         setLoading(false);
+        toggleProductDetails();
       }
     };
 
@@ -263,15 +264,9 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="relative">
-            <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin"></div>
-          </div>
-          <div className="text-slate-600 font-medium">
-            Carregando produtos...
-          </div>
-        </div>
+      <div className="fixed top-0 left-0 w-screen h-dvh bg-white/90 flex items-center justify-center z-[9999] text-[#1a73e8] text-xl">
+        <i className="fa-solid fa-spinner animate-spin mr-3 text-3xl"></i>
+        Carregando produtos...
       </div>
     );
   }
@@ -779,11 +774,10 @@ export default function ProductsPage() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform ${
-                                  expandedProduct === product._id
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
+                                className={`w-4 h-4 transition-transform ${expandedProduct === product._id
+                                  ? "rotate-180"
+                                  : ""
+                                  }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"

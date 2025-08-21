@@ -37,8 +37,6 @@ export default function AdminLayout({ children }) {
     checkAuth();
   }, [router]);
 
-  if (isLoading) return <p>Carregando...</p>;
-
   return (
     <div className="flex h-screen">
       <aside className="w-60 bg-gray-800 text-white p-4">
