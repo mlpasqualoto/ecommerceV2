@@ -33,6 +33,82 @@ export default function AdminHome() {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const router = useRouter();
 
+  // Função para recarregar/atualizar os dados
+  const handleRefreshData = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchOrders(statusFilter);
+
+      if (
+        data?.message?.toLowerCase().includes("não autenticado") ||
+        data?.error === "Unauthorized"
+      ) {
+        router.push("/login");
+        return;
+      }
+
+      setOrders(data.orders || []);
+
+      // Feedback visual de sucesso
+      const refreshButton = document.querySelector('[data-refresh-btn]');
+      refreshButton?.classList.add('animate-spin');
+      setTimeout(() => {
+        refreshButton?.classList.remove('animate-spin');
+      }, 1000);
+
+    } catch (err) {
+      console.error("Erro ao atualizar pedidos:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Função para exportar dados
+  const handleExportData = () => {
+    try {
+      // Preparar dados para exportação
+      const exportData = orders.map(order => ({
+        ID: order._id,
+        Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
+        Cliente: order.name,
+        Status: getStatusText(order.status),
+        Total: `R$ ${order.totalAmount.toFixed(2).replace('.', ',')}`,
+        Produtos: order.items.map(item => `${item.name} (${item.quantity}x)`).join(', '),
+        'Total de Itens': order.totalQuantity
+      }));
+
+      // Converter para CSV
+      const csvContent = [
+        // Cabeçalhos
+        Object.keys(exportData[0] || {}).join(';'),
+        // Dados
+        ...exportData.map(row => Object.values(row).join(';'))
+      ].join('\n');
+
+      // Criar e baixar arquivo
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `pedidos_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Feedback visual
+      const exportButton = document.querySelector('[data-export-btn]');
+      exportButton?.classList.add('bg-green-200', 'text-green-700');
+      setTimeout(() => {
+        exportButton?.classList.remove('bg-green-200', 'text-green-700');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Erro ao exportar dados:', error);
+      alert('Erro ao exportar dados. Tente novamente.');
+    }
+  };
+
   // Animação de entrada da página
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -334,33 +410,141 @@ export default function AdminHome() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
-        isPageLoaded ? "opacity-100" : "opacity-0"
-      }`}
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"
+        }`}
     >
       {/* Header Principal */}
-      <div
-        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
-          isPageLoaded ? "translate-y-0" : "-translate-y-4"
-        }`}
-      >
+      <div className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${isPageLoaded ? "translate-y-0" : "-translate-y-4"
+        }`}>
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="animate-fadeInLeft">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-                Gerenciamento de Pedidos
-              </h1>
-              <p className="mt-2 text-slate-600 max-w-2xl">
+              {/* Título com ícone */}
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                  Gerenciamento de Pedidos
+                </h1>
+              </div>
+
+              <p className="text-slate-600 max-w-2xl leading-relaxed">
                 Controle completo sobre todos os pedidos do seu e-commerce.
                 Visualize, edite e gerencie o status de cada transação.
               </p>
-            </div>
-            <div className="flex items-center space-x-3 animate-fadeInRight">
-              <div className="text-right">
-                <div className="text-2xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600">
-                  {orders.length}
+
+              {/* Indicadores visuais */}
+              <div className="flex items-center space-x-6 mt-4">
+                <div className="flex items-center space-x-2 text-sm text-slate-500">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span>Sistema Online</span>
                 </div>
-                <div className="text-sm text-slate-500">pedidos listados</div>
+                <div className="flex items-center space-x-2 text-sm text-slate-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Atualizado em tempo real</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-6 animate-fadeInRight">
+              {/* Card de estatísticas melhorado */}
+              <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="flex items-center space-x-4">
+                  {/* Ícone de pedidos */}
+                  <div className="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-xl">
+                    <svg
+                      className="w-7 h-7 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                      />
+                    </svg>
+                  </div>
+
+                  {/* Números e descrição */}
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
+                      {orders.length}
+                    </div>
+                    <div className="text-sm text-slate-500 mt-1">
+                      {orders.length === 1 ? 'pedido listado' : 'pedidos listados'}
+                    </div>
+                    <div className="flex items-center justify-end space-x-1 mt-2">
+                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                      <span className="text-xs text-green-600 font-medium">Ativo</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão de ações rápidas (opcional) */}
+              <div className="flex flex-col gap-4 items-center">
+                {/* Botão de atualizar dados */}
+                <button
+                  onClick={handleRefreshData}
+                  data-refresh-btn
+                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group"
+                  title="Atualizar dados"
+                  disabled={loading}
+                >
+                  <svg
+                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${loading ? 'animate-spin' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+
+                {/* Botão de exportar dados */}
+                <button
+                  onClick={handleExportData}
+                  data-export-btn
+                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group"
+                  title="Exportar dados (CSV)"
+                  disabled={orders.length === 0}
+                >
+                  <svg
+                    className="w-5 h-5 text-slate-600 group-hover:text-slate-800"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -565,11 +749,10 @@ export default function AdminHome() {
 
         {/* Barra de Controles */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${
-            isPageLoaded
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
-          }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${isPageLoaded
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+            }`}
           style={{ transitionDelay: "0.1s" }}
         >
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
@@ -663,11 +846,10 @@ export default function AdminHome() {
 
         {/* Tabela de Pedidos */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${
-            isPageLoaded
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
-          }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${isPageLoaded
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+            }`}
           style={{ transitionDelay: "0.2s" }}
         >
           <div className="overflow-x-auto">
@@ -833,11 +1015,10 @@ export default function AdminHome() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform duration-300 ${
-                                  expandedOrder === order._id
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
+                                className={`w-4 h-4 transition-transform duration-300 ${expandedOrder === order._id
+                                  ? "rotate-180"
+                                  : ""
+                                  }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1108,9 +1289,8 @@ export default function AdminHome() {
 
         {/* Footer com informações extras */}
         <div
-          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${
-            isPageLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${isPageLoaded ? "opacity-100" : "opacity-0"
+            }`}
           style={{ transitionDelay: "0.3s" }}
         >
           <p>
