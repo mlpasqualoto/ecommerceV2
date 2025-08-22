@@ -36,7 +36,16 @@ export default function ProductsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [expandedProduct, setExpandedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
   const router = useRouter();
+
+  // Animação de entrada da página
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoaded(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Abre modal e preenche dados do produto
   const openEditModal = (product) => {
@@ -264,20 +273,38 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="fixed top-0 left-0 w-screen h-dvh bg-white/90 flex items-center justify-center z-[9999] text-[#1a73e8] text-xl">
-        <i className="fa-solid fa-spinner animate-spin mr-3 text-3xl"></i>
-        Carregando produtos...
+      <div className="fixed top-0 left-0 w-screen h-dvh bg-white/95 backdrop-blur-sm flex items-center justify-center z-[9999] text-[#1a73e8] text-xl">
+        <div className="flex flex-col items-center space-y-4 animate-pulse">
+          <div className="relative">
+            <i className="fa-solid fa-spinner animate-spin text-4xl"></i>
+            <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
+          </div>
+          <div className="text-center">
+            <div className="font-semibold">Carregando produtos...</div>
+            <div className="text-sm text-slate-500 mt-1">
+              Aguarde um momento
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
+        isPageLoaded ? "opacity-100" : "opacity-0"
+      }`}
+    >
       {/* Header Principal */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
+      <div
+        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
+          isPageLoaded ? "translate-y-0" : "-translate-y-4"
+        }`}
+      >
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="animate-fadeInLeft">
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                 Gerenciamento de Produtos
               </h1>
@@ -286,9 +313,9 @@ export default function ProductsPage() {
                 Visualize, edite e gerencie o status de cada produto.
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 animate-fadeInRight">
               <div className="text-right">
-                <div className="text-2xl font-bold text-slate-900">
+                <div className="text-2xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600">
                   {products.length}
                 </div>
                 <div className="text-sm text-slate-500">produtos listados</div>
@@ -301,8 +328,8 @@ export default function ProductsPage() {
       <div className="max-w-[1500px] mx-auto px-8 py-8">
         {/* Modal de Edição */}
         {editProduct && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
               <div className="px-8 py-6 border-b border-slate-200">
                 <h2 className="text-xl font-semibold text-slate-900">
                   Editar Produto
@@ -313,7 +340,10 @@ export default function ProductsPage() {
               </div>
 
               <form onSubmit={handleEditSubmit} className="p-8 space-y-6">
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.1s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Nome
                   </label>
@@ -322,12 +352,15 @@ export default function ProductsPage() {
                     type="text"
                     value={editForm.name}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.2s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Preço
                   </label>
@@ -336,12 +369,15 @@ export default function ProductsPage() {
                     type="text"
                     value={editForm.price}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.3s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Descrição
                   </label>
@@ -350,12 +386,15 @@ export default function ProductsPage() {
                     type="text"
                     value={editForm.description}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.4s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Categoria
                   </label>
@@ -364,12 +403,15 @@ export default function ProductsPage() {
                     type="text"
                     value={editForm.category}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.5s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Estoque
                   </label>
@@ -378,12 +420,15 @@ export default function ProductsPage() {
                     type="text"
                     value={editForm.stock}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.6s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Status
                   </label>
@@ -391,7 +436,7 @@ export default function ProductsPage() {
                     name="status"
                     value={editForm.status}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-slate-900 hover:border-slate-300"
                   >
                     <option value="active">Ativo</option>
                     <option value="inactive">Inativo</option>
@@ -401,7 +446,10 @@ export default function ProductsPage() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.7s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Desconto (R$)
                   </label>
@@ -410,23 +458,26 @@ export default function ProductsPage() {
                     name="discount"
                     value={editForm.discount}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="0"
                     step="0.01"
                   />
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-6">
+                <div
+                  className="flex justify-end space-x-3 pt-6 animate-slideInUp"
+                  style={{ animationDelay: "0.8s" }}
+                >
                   <button
                     type="button"
-                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
                     onClick={closeEditModal}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-lg"
+                    className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105 hover:shadow-xl"
                   >
                     Salvar Alterações
                   </button>
@@ -438,8 +489,8 @@ export default function ProductsPage() {
 
         {/* Modal de Criação */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
               <div className="px-8 py-6 border-b border-slate-200">
                 <h2 className="text-xl font-semibold text-slate-900">
                   Criar Novo Produto
@@ -450,7 +501,10 @@ export default function ProductsPage() {
               </div>
 
               <form onSubmit={handleCreateProduct} className="p-8 space-y-6">
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.1s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Nome do Produto
                   </label>
@@ -459,13 +513,16 @@ export default function ProductsPage() {
                     name="name"
                     value={newProduct.name}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     placeholder="Digite o nome do produto"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.2s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Preço
                   </label>
@@ -474,14 +531,17 @@ export default function ProductsPage() {
                     name="price"
                     value={newProduct.price}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                     placeholder="Digite o preço do produto"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.3s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Descrição
                   </label>
@@ -490,14 +550,17 @@ export default function ProductsPage() {
                     name="description"
                     value={newProduct.description}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                     placeholder="Digite a descrição do produto"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.4s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Categoria
                   </label>
@@ -506,14 +569,17 @@ export default function ProductsPage() {
                     name="category"
                     value={newProduct.category}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                     placeholder="Digite a categoria do produto"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.5s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Estoque
                   </label>
@@ -522,14 +588,17 @@ export default function ProductsPage() {
                     name="stock"
                     value={newProduct.stock}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                     placeholder="Digite a quantidade em estoque"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.6s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Status
                   </label>
@@ -538,14 +607,17 @@ export default function ProductsPage() {
                     name="status"
                     value={newProduct.status}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                     placeholder="Digite o status do produto"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.7s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Desconto
                   </label>
@@ -554,23 +626,26 @@ export default function ProductsPage() {
                     name="discount"
                     value={newProduct.discount}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                     placeholder="Digite o desconto do produto (se houver)"
                   />
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-6">
+                <div
+                  className="flex justify-end space-x-3 pt-6 animate-slideInUp"
+                  style={{ animationDelay: "0.8s" }}
+                >
                   <button
                     type="button"
-                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
                     onClick={() => setIsCreateModalOpen(false)}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-lg"
+                    className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105 hover:shadow-xl"
                   >
                     Criar Produto
                   </button>
@@ -581,13 +656,21 @@ export default function ProductsPage() {
         )}
 
         {/* Barra de Controles */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+        <div
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${
+            isPageLoaded
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
+          }`}
+          style={{ transitionDelay: "0.1s" }}
+        >
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
             <div className="flex flex-col lg:flex-row lg:items-center gap-6">
               {/* Busca por ID */}
               <form
                 onSubmit={handleFilterById}
-                className="flex items-center gap-3"
+                className="flex items-center gap-3 animate-slideInUp"
+                style={{ animationDelay: "0.2s" }}
               >
                 <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
                   Buscar por ID:
@@ -596,12 +679,12 @@ export default function ProductsPage() {
                   <input
                     type="text"
                     name="productId"
-                    className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900"
+                    className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     placeholder="ID do produto..."
                   />
                   <button
                     type="submit"
-                    className="cursor-pointer px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all"
+                    className="cursor-pointer px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
                   >
                     Buscar
                   </button>
@@ -609,14 +692,17 @@ export default function ProductsPage() {
               </form>
 
               {/* Filtro por Status */}
-              <div className="flex items-center gap-3">
+              <div
+                className="flex items-center gap-3 animate-slideInUp"
+                style={{ animationDelay: "0.3s" }}
+              >
                 <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
                   Filtrar por Status:
                 </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-medium min-w-[140px] text-slate-900"
+                  className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-medium min-w-[140px] text-slate-900 hover:border-slate-300"
                 >
                   <option value="active">Ativo</option>
                   <option value="inactive">Inativo</option>
@@ -630,10 +716,11 @@ export default function ProductsPage() {
             {/* Botão Novo Produto */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
+              className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-lg flex items-center gap-2 whitespace-nowrap transform hover:scale-105 hover:shadow-xl animate-slideInUp"
+              style={{ animationDelay: "0.4s" }}
             >
               <svg
-                className="w-4 h-4"
+                className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -651,7 +738,14 @@ export default function ProductsPage() {
         </div>
 
         {/* Tabela de Produtos Otimizada */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${
+            isPageLoaded
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
+          }`}
+          style={{ transitionDelay: "0.2s" }}
+        >
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
@@ -684,11 +778,12 @@ export default function ProductsPage() {
                         {/* Linha Principal */}
                         <tr
                           key={product._id || idx}
-                          className="hover:bg-slate-50 transition-colors group"
+                          className="hover:bg-slate-50 transition-all duration-200 group animate-fadeInUp"
+                          style={{ animationDelay: `${idx * 0.05}s` }}
                         >
                           <td className="px-6 py-5">
                             <div className="flex flex-col">
-                              <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
+                              <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate transition-colors duration-200 group-hover:text-blue-600">
                                 {product.name}
                               </div>
                               <div className="text-xs text-slate-500 font-mono">
@@ -698,20 +793,20 @@ export default function ProductsPage() {
                           </td>
 
                           <td className="px-6 py-5 text-center">
-                            <div className="text-sm font-semibold text-slate-900">
+                            <div className="text-sm font-semibold text-slate-900 transition-colors duration-200 group-hover:text-emerald-600">
                               {formatCurrencyBRL(product.price)}
                             </div>
                           </td>
 
                           <td className="px-6 py-5 text-center">
-                            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
+                            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full transition-all duration-200 group-hover:bg-blue-100 group-hover:text-blue-700">
                               {product.stock}
                             </span>
                           </td>
 
                           <td className="px-6 py-5 text-center">
                             <span
-                              className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                              className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-all duration-200 transform hover:scale-105 ${getStatusColor(
                                 product.status
                               )}`}
                             >
@@ -722,7 +817,7 @@ export default function ProductsPage() {
                           <td className="px-6 py-5">
                             <div className="flex items-center justify-center gap-1">
                               <button
-                                className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
+                                className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                                 onClick={() => openEditModal(product)}
                                 title="Editar produto"
                               >
@@ -742,7 +837,7 @@ export default function ProductsPage() {
                               </button>
 
                               <button
-                                className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
+                                className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                                 onClick={() => handleDeleteProduct(product._id)}
                                 title="Deletar produto"
                               >
@@ -765,7 +860,7 @@ export default function ProductsPage() {
 
                           <td className="px-6 py-5 text-center">
                             <button
-                              className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all"
+                              className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                               onClick={() => toggleProductDetails(product._id)}
                               title={
                                 expandedProduct === product._id
@@ -774,10 +869,11 @@ export default function ProductsPage() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform ${expandedProduct === product._id
-                                  ? "rotate-180"
-                                  : ""
-                                  }`}
+                                className={`w-4 h-4 transition-transform duration-300 ${
+                                  expandedProduct === product._id
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -797,13 +893,16 @@ export default function ProductsPage() {
                         {expandedProduct === product._id && (
                           <tr
                             key={`${product._id}-details`}
-                            className="bg-slate-50"
+                            className="bg-slate-50 animate-slideDown"
                           >
                             <td colSpan="6" className="px-6 py-6">
-                              <div className="bg-white rounded-xl p-6 border border-slate-200">
+                              <div className="bg-white rounded-xl p-6 border border-slate-200 animate-fadeIn">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                   {/* Informações Básicas */}
-                                  <div className="space-y-4">
+                                  <div
+                                    className="space-y-4 animate-slideInUp"
+                                    style={{ animationDelay: "0.1s" }}
+                                  >
                                     <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
                                       Informações do Produto
                                     </h4>
@@ -836,7 +935,10 @@ export default function ProductsPage() {
                                   </div>
 
                                   {/* Descrição e Preços */}
-                                  <div className="space-y-4">
+                                  <div
+                                    className="space-y-4 animate-slideInUp"
+                                    style={{ animationDelay: "0.2s" }}
+                                  >
                                     <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
                                       Descrição e Preços
                                     </h4>
@@ -871,7 +973,10 @@ export default function ProductsPage() {
                                   </div>
 
                                   {/* Status e Data */}
-                                  <div className="space-y-4">
+                                  <div
+                                    className="space-y-4 animate-slideInUp"
+                                    style={{ animationDelay: "0.3s" }}
+                                  >
                                     <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
                                       Status e Datas
                                     </h4>
@@ -882,7 +987,7 @@ export default function ProductsPage() {
                                         </label>
                                         <div className="mt-1">
                                           <span
-                                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-all duration-200 ${getStatusColor(
                                               product.status
                                             )}`}
                                           >
@@ -925,7 +1030,7 @@ export default function ProductsPage() {
                                   </h4>
                                   <div className="flex flex-wrap gap-2">
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() =>
                                         handleStatusProduct(
                                           product._id,
@@ -950,7 +1055,7 @@ export default function ProductsPage() {
                                     </button>
 
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() =>
                                         handleStatusProduct(
                                           product._id,
@@ -975,7 +1080,7 @@ export default function ProductsPage() {
                                     </button>
 
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() =>
                                         handleStatusProduct(
                                           product._id,
@@ -1000,7 +1105,7 @@ export default function ProductsPage() {
                                     </button>
 
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      className="cursor-pointer px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() =>
                                         handleStatusProduct(
                                           product._id,
@@ -1031,21 +1136,27 @@ export default function ProductsPage() {
                 ) : (
                   <tr key="no-products">
                     <td colSpan="6" className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center space-y-4">
-                        <svg
-                          className="w-16 h-16 text-slate-300"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="flex flex-col items-center space-y-4 animate-fadeIn">
+                        <div className="relative">
+                          <svg
+                            className="w-16 h-16 text-slate-300 animate-pulse"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1"
+                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 bg-slate-300/30 rounded-full animate-ping"></div>
+                        </div>
+                        <div
+                          className="text-slate-500 animate-slideInUp"
+                          style={{ animationDelay: "0.2s" }}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="1"
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                          />
-                        </svg>
-                        <div className="text-slate-500">
                           <div className="text-lg font-semibold mb-2">
                             Nenhum produto encontrado
                           </div>
@@ -1065,13 +1176,124 @@ export default function ProductsPage() {
         </div>
 
         {/* Footer com informações extras */}
-        <div className="mt-8 text-center text-sm text-slate-500">
+        <div
+          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${
+            isPageLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ transitionDelay: "0.3s" }}
+        >
           <p>
             Painel de Administração • Total de {products.length} produtos
             listados
           </p>
         </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes fadeInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes fadeInRight {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .animate-fadeInUp {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-slideInUp {
+          animation: slideInUp 0.5s ease-out forwards;
+          opacity: 0;
+        }
+
+        .animate-slideDown {
+          animation: slideDown 0.3s ease-out forwards;
+        }
+
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out forwards;
+        }
+
+        .animate-fadeInLeft {
+          animation: fadeInLeft 0.6s ease-out forwards;
+        }
+
+        .animate-fadeInRight {
+          animation: fadeInRight 0.6s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

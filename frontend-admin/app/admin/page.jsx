@@ -22,13 +22,24 @@ export default function AdminHome() {
     status: "",
     totalAmount: "",
   });
-  const [newOrder, setNewOrder] = useState({ productId: "", quantity: "" });
+  const [newOrder, setNewOrder] = useState({
+    items: [{ productId: "", quantity: "" }],
+  });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("paid");
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
   const router = useRouter();
+
+  // Animação de entrada da página
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoaded(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Toggle detalhes do pedido
   const toggleOrderDetails = (orderId) => {
@@ -114,6 +125,7 @@ export default function AdminHome() {
         setOrders([]);
       } else {
         setOrders([data.order]);
+        toggleOrderDetails();
       }
     }
   };
@@ -142,16 +154,13 @@ export default function AdminHome() {
     e.preventDefault();
 
     const newOrderData = {
-      items: [
-        {
-          productId: newOrder.productId,
-          quantity: Number(newOrder.quantity),
-        },
-      ],
+      items: newOrder.items.map((item) => ({
+        productId: item.productId,
+        quantity: Number(item.quantity),
+      })),
     };
 
     const data = await fetchCreateOrder(newOrderData);
-    console.log(data);
 
     if (!data.order) {
       console.error("Pedido não foi criado corretamente:", data);
@@ -167,13 +176,39 @@ export default function AdminHome() {
     }
 
     setOrders((prevOrders) => [...prevOrders, data.order]);
-    setNewOrder({ productId: "", quantity: "" });
+    setNewOrder({ items: [{ productId: "", quantity: "" }] });
     setIsCreateModalOpen(false);
   };
 
   const handleNewOrderChange = (e) => {
     const { name, value } = e.target;
     setNewOrder((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Atualiza campos do item do pedido
+  const handleNewOrderItemChange = (index, e) => {
+    const { name, value } = e.target;
+    setNewOrder((prev) => {
+      const updatedItems = [...prev.items];
+      updatedItems[index][name] = value;
+      return { ...prev, items: updatedItems };
+    });
+  };
+
+  // Adiciona um novo produto ao pedido
+  const handleAddItem = () => {
+    setNewOrder((prev) => ({
+      ...prev,
+      items: [...prev.items, { productId: "", quantity: "" }],
+    }));
+  };
+
+  // Remove um produto do pedido
+  const handleRemoveItem = (index) => {
+    setNewOrder((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
   };
 
   const handleUpdateOrder = async (orderId, updatedData) => {
@@ -280,20 +315,38 @@ export default function AdminHome() {
 
   if (loading) {
     return (
-      <div className="fixed top-0 left-0 w-screen h-dvh bg-white/90 flex items-center justify-center z-[9999] text-[#1a73e8] text-xl">
-        <i className="fa-solid fa-spinner animate-spin mr-3 text-3xl"></i>
-        Carregando pedidos...
+      <div className="fixed top-0 left-0 w-screen h-dvh bg-white/95 backdrop-blur-sm flex items-center justify-center z-[9999] text-[#1a73e8] text-xl">
+        <div className="flex flex-col items-center space-y-4 animate-pulse">
+          <div className="relative">
+            <i className="fa-solid fa-spinner animate-spin text-4xl"></i>
+            <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
+          </div>
+          <div className="text-center">
+            <div className="font-semibold">Carregando pedidos...</div>
+            <div className="text-sm text-slate-500 mt-1">
+              Aguarde um momento
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
+        isPageLoaded ? "opacity-100" : "opacity-0"
+      }`}
+    >
       {/* Header Principal */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
+      <div
+        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
+          isPageLoaded ? "translate-y-0" : "-translate-y-4"
+        }`}
+      >
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="animate-fadeInLeft">
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                 Gerenciamento de Pedidos
               </h1>
@@ -302,9 +355,9 @@ export default function AdminHome() {
                 Visualize, edite e gerencie o status de cada transação.
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 animate-fadeInRight">
               <div className="text-right">
-                <div className="text-2xl font-bold text-slate-900">
+                <div className="text-2xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600">
                   {orders.length}
                 </div>
                 <div className="text-sm text-slate-500">pedidos listados</div>
@@ -317,8 +370,8 @@ export default function AdminHome() {
       <div className="max-w-[1500px] mx-auto px-8 py-8">
         {/* Modal de Edição */}
         {editOrder && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
               <div className="px-8 py-6 border-b border-slate-200">
                 <h2 className="text-xl font-semibold text-slate-900">
                   Editar Pedido
@@ -329,7 +382,10 @@ export default function AdminHome() {
               </div>
 
               <form onSubmit={handleEditSubmit} className="p-8 space-y-6">
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.1s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Produto ID
                   </label>
@@ -338,11 +394,14 @@ export default function AdminHome() {
                     type="text"
                     value={editForm.productId}
                     readOnly
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 font-mono text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 font-mono text-sm transition-colors duration-200"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.2s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Quantidade
                   </label>
@@ -351,12 +410,15 @@ export default function AdminHome() {
                     type="number"
                     value={editForm.quantity}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.3s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Status
                   </label>
@@ -364,7 +426,7 @@ export default function AdminHome() {
                     name="status"
                     value={editForm.status}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-slate-900 hover:border-slate-300"
                   >
                     <option value="paid">Pago</option>
                     <option value="pending">Pendente</option>
@@ -374,7 +436,10 @@ export default function AdminHome() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.4s" }}
+                >
                   <label className="block text-sm font-semibold text-slate-700">
                     Total (R$)
                   </label>
@@ -383,23 +448,26 @@ export default function AdminHome() {
                     name="totalAmount"
                     value={editForm.totalAmount}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="0"
                     step="0.01"
                   />
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-6">
+                <div
+                  className="flex justify-end space-x-3 pt-6 animate-slideInUp"
+                  style={{ animationDelay: "0.5s" }}
+                >
                   <button
                     type="button"
-                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
                     onClick={closeEditModal}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-lg"
+                    className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105 hover:shadow-xl"
                   >
                     Salvar Alterações
                   </button>
@@ -411,8 +479,8 @@ export default function AdminHome() {
 
         {/* Modal de Criação */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
               <div className="px-8 py-6 border-b border-slate-200">
                 <h2 className="text-xl font-semibold text-slate-900">
                   Criar Novo Pedido
@@ -423,48 +491,69 @@ export default function AdminHome() {
               </div>
 
               <form onSubmit={handleCreateOrder} className="p-8 space-y-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Produto ID
-                  </label>
-                  <input
-                    type="text"
-                    name="productId"
-                    value={newOrder.productId}
-                    onChange={handleNewOrderChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                    placeholder="Digite o ID do produto"
-                    required
-                  />
-                </div>
+                {newOrder.items.map((item, idx) => (
+                  <div key={idx} className="flex gap-4 items-end">
+                    <div className="flex-1 space-y-2">
+                      <label className="block text-sm font-semibold text-slate-700">
+                        Produto ID
+                      </label>
+                      <input
+                        type="text"
+                        name="productId"
+                        value={item.productId}
+                        onChange={(e) => handleNewOrderItemChange(idx, e)}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 placeholder:text-slate-300 text-slate-900"
+                        placeholder="Digite o ID do produto"
+                        required
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Quantidade
-                  </label>
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={newOrder.quantity}
-                    onChange={handleNewOrderChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-300 text-slate-900"
-                    min="1"
-                    placeholder="Quantidade de itens"
-                    required
-                  />
-                </div>
+                    <div className="w-32 space-y-2">
+                      <label className="block text-sm font-semibold text-slate-700">
+                        Quantidade
+                      </label>
+                      <input
+                        type="number"
+                        name="quantity"
+                        value={item.quantity}
+                        onChange={(e) => handleNewOrderItemChange(idx, e)}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-900"
+                        min="1"
+                        required
+                      />
+                    </div>
+
+                    {newOrder.items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(idx)}
+                        className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                      >
+                        Remover
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={handleAddItem}
+                  className="mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
+                >
+                  + Adicionar Produto
+                </button>
 
                 <div className="flex justify-end space-x-3 pt-6">
                   <button
                     type="button"
-                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl"
                     onClick={() => setIsCreateModalOpen(false)}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-lg"
+                    className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl"
                   >
                     Criar Pedido
                   </button>
@@ -475,13 +564,21 @@ export default function AdminHome() {
         )}
 
         {/* Barra de Controles */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+        <div
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${
+            isPageLoaded
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
+          }`}
+          style={{ transitionDelay: "0.1s" }}
+        >
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
             <div className="flex flex-col lg:flex-row lg:items-center gap-6">
               {/* Busca por ID */}
               <form
                 onSubmit={handleFilterById}
-                className="flex items-center gap-3"
+                className="flex items-center gap-3 animate-slideInUp"
+                style={{ animationDelay: "0.2s" }}
               >
                 <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
                   Buscar por ID:
@@ -490,12 +587,12 @@ export default function AdminHome() {
                   <input
                     type="text"
                     name="orderId"
-                    className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900"
+                    className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     placeholder="ID do pedido..."
                   />
                   <button
                     type="submit"
-                    className="cursor-pointer px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all"
+                    className="cursor-pointer px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
                   >
                     Buscar
                   </button>
@@ -503,14 +600,17 @@ export default function AdminHome() {
               </form>
 
               {/* Filtro por Status */}
-              <div className="flex items-center gap-3">
+              <div
+                className="flex items-center gap-3 animate-slideInUp"
+                style={{ animationDelay: "0.3s" }}
+              >
                 <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
                   Filtrar por Status:
                 </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-medium min-w-[140px] text-slate-900"
+                  className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-medium min-w-[140px] text-slate-900 hover:border-slate-300"
                 >
                   <option value="paid">Pago</option>
                   <option value="pending">Pendente</option>
@@ -521,7 +621,10 @@ export default function AdminHome() {
               </div>
 
               {/* Filtro por Data */}
-              <div className="flex items-center gap-3">
+              <div
+                className="flex items-center gap-3 animate-slideInUp"
+                style={{ animationDelay: "0.4s" }}
+              >
                 <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
                   Filtrar por Data:
                 </label>
@@ -529,7 +632,7 @@ export default function AdminHome() {
                   type="date"
                   name="orderDate"
                   onChange={(e) => handleFilterByDate(e.target.value)}
-                  className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm font-mono min-w-[140px] placeholder:text-slate-300 text-slate-900"
+                  className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-mono min-w-[140px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                 />
               </div>
             </div>
@@ -537,10 +640,11 @@ export default function AdminHome() {
             {/* Botão Novo Pedido */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
+              className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-lg flex items-center gap-2 whitespace-nowrap transform hover:scale-105 hover:shadow-xl animate-slideInUp"
+              style={{ animationDelay: "0.5s" }}
             >
               <svg
-                className="w-4 h-4"
+                className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -558,7 +662,14 @@ export default function AdminHome() {
         </div>
 
         {/* Tabela de Pedidos */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${
+            isPageLoaded
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
+          }`}
+          style={{ transitionDelay: "0.2s" }}
+        >
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
@@ -597,15 +708,19 @@ export default function AdminHome() {
                         {/* Linha Principal */}
                         <tr
                           key={order._id || idx}
-                          className="hover:bg-slate-50 transition-colors group"
+                          className="hover:bg-slate-50 transition-all duration-200 group animate-fadeInUp"
+                          style={{ animationDelay: `${idx * 0.05}s` }}
                         >
                           <td className="px-6 py-5">
-                            <div className="text-sm font-semibold text-slate-900">
-                              {new Date(order.createdAt).toLocaleDateString("pt-BR", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "2-digit",
-                              })}
+                            <div className="text-sm font-semibold text-slate-900 transition-colors duration-200 group-hover:text-blue-600">
+                              {new Date(order.createdAt).toLocaleDateString(
+                                "pt-BR",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "2-digit",
+                                }
+                              )}
                             </div>
                             <div className="text-xs text-slate-500">
                               {new Date(order.createdAt).toLocaleString(
@@ -633,7 +748,7 @@ export default function AdminHome() {
                           </td>
 
                           <td className="px-6 py-5 text-center">
-                            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full">
+                            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full transition-all duration-200 group-hover:bg-blue-100 group-hover:text-blue-700">
                               {order.totalQuantity}
                             </span>
                           </td>
@@ -649,7 +764,7 @@ export default function AdminHome() {
 
                           <td className="px-6 py-5 text-center">
                             <span
-                              className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                              className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-all duration-200 transform hover:scale-105 ${getStatusColor(
                                 order.status
                               )}`}
                             >
@@ -658,7 +773,7 @@ export default function AdminHome() {
                           </td>
 
                           <td className="px-6 py-5 text-right">
-                            <div className="text-sm font-bold text-slate-900">
+                            <div className="text-sm font-bold text-slate-900 transition-colors duration-200 group-hover:text-emerald-600">
                               {formatCurrencyBRL(order.totalAmount)}
                             </div>
                           </td>
@@ -666,7 +781,7 @@ export default function AdminHome() {
                           <td className="px-6 py-5">
                             <div className="flex items-center justify-center gap-1">
                               <button
-                                className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all"
+                                className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                                 onClick={() => openEditModal(order)}
                                 title="Editar pedido"
                               >
@@ -686,7 +801,7 @@ export default function AdminHome() {
                               </button>
 
                               <button
-                                className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all"
+                                className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                                 onClick={() => handleDeleteOrder(order._id)}
                                 title="Deletar pedido"
                               >
@@ -709,7 +824,7 @@ export default function AdminHome() {
 
                           <td className="px-6 py-5 text-center">
                             <button
-                              className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all"
+                              className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                               onClick={() => toggleOrderDetails(order._id)}
                               title={
                                 expandedOrder === order._id
@@ -718,10 +833,11 @@ export default function AdminHome() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform ${expandedOrder === order._id
-                                  ? "rotate-180"
-                                  : ""
-                                  }`}
+                                className={`w-4 h-4 transition-transform duration-300 ${
+                                  expandedOrder === order._id
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -741,13 +857,16 @@ export default function AdminHome() {
                         {expandedOrder === order._id && (
                           <tr
                             key={`${order._id}-details`}
-                            className="bg-slate-50"
+                            className="bg-slate-50 animate-slideDown"
                           >
                             <td colSpan="10" className="px-6 py-6">
-                              <div className="bg-white rounded-xl p-6 border border-slate-200">
+                              <div className="bg-white rounded-xl p-6 border border-slate-200 animate-fadeIn">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                   {/* Informações do Pedido */}
-                                  <div className="space-y-4">
+                                  <div
+                                    className="space-y-4 animate-slideInUp"
+                                    style={{ animationDelay: "0.1s" }}
+                                  >
                                     <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
                                       Informações do Pedido
                                     </h4>
@@ -777,7 +896,10 @@ export default function AdminHome() {
                                   </div>
 
                                   {/* Total, Pagamento e Endereço */}
-                                  <div className="space-y-4">
+                                  <div
+                                    className="space-y-4 animate-slideInUp"
+                                    style={{ animationDelay: "0.2s" }}
+                                  >
                                     <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
                                       Total, Pagamento e Endereço
                                     </h4>
@@ -810,7 +932,10 @@ export default function AdminHome() {
                                   </div>
 
                                   {/* Status e Data */}
-                                  <div className="space-y-4">
+                                  <div
+                                    className="space-y-4 animate-slideInUp"
+                                    style={{ animationDelay: "0.3s" }}
+                                  >
                                     <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
                                       Status e Datas
                                     </h4>
@@ -821,7 +946,7 @@ export default function AdminHome() {
                                         </label>
                                         <div className="mt-1">
                                           <span
-                                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full transition-all duration-200 ${getStatusColor(
                                               order.status
                                             )}`}
                                           >
@@ -872,7 +997,7 @@ export default function AdminHome() {
                                   </h4>
                                   <div className="flex flex-wrap gap-2">
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() => handlePayOrder(order._id)}
                                       title="Marcar como pago"
                                     >
@@ -891,7 +1016,7 @@ export default function AdminHome() {
                                     </button>
 
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() => handleShipOrder(order._id)}
                                       title="Enviar pedido"
                                     >
@@ -909,7 +1034,7 @@ export default function AdminHome() {
                                     </button>
 
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all text-sm font-medium flex items-center gap-2"
+                                      className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() =>
                                         handleCancelOrder(order._id)
                                       }
@@ -942,21 +1067,27 @@ export default function AdminHome() {
                 ) : (
                   <tr key="no-orders">
                     <td colSpan="8" className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center space-y-4">
-                        <svg
-                          className="w-16 h-16 text-slate-300"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="flex flex-col items-center space-y-4 animate-fadeIn">
+                        <div className="relative">
+                          <svg
+                            className="w-16 h-16 text-slate-300 animate-pulse"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1"
+                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 bg-slate-300/30 rounded-full animate-ping"></div>
+                        </div>
+                        <div
+                          className="text-slate-500 animate-slideInUp"
+                          style={{ animationDelay: "0.2s" }}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="1"
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                          />
-                        </svg>
-                        <div className="text-slate-500">
                           <div className="text-lg font-semibold mb-2">
                             Nenhum pedido encontrado
                           </div>
@@ -976,12 +1107,123 @@ export default function AdminHome() {
         </div>
 
         {/* Footer com informações extras */}
-        <div className="mt-8 text-center text-sm text-slate-500">
+        <div
+          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${
+            isPageLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ transitionDelay: "0.3s" }}
+        >
           <p>
             Painel de Administração • Total de {orders.length} pedidos listados
           </p>
         </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes fadeInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes fadeInRight {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .animate-fadeInUp {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-slideInUp {
+          animation: slideInUp 0.5s ease-out forwards;
+          opacity: 0;
+        }
+
+        .animate-slideDown {
+          animation: slideDown 0.3s ease-out forwards;
+        }
+
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out forwards;
+        }
+
+        .animate-fadeInLeft {
+          animation: fadeInLeft 0.6s ease-out forwards;
+        }
+
+        .animate-fadeInRight {
+          animation: fadeInRight 0.6s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }
