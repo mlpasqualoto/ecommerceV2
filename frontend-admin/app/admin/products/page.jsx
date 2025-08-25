@@ -56,12 +56,11 @@ export default function ProductsPage() {
       setProducts(data.products || []);
 
       // Feedback visual de sucesso
-      const refreshButton = document.querySelector('[data-refresh-btn]');
-      refreshButton?.classList.add('animate-spin');
+      const refreshButton = document.querySelector("[data-refresh-btn]");
+      refreshButton?.classList.add("animate-spin");
       setTimeout(() => {
-        refreshButton?.classList.remove('animate-spin');
+        refreshButton?.classList.remove("animate-spin");
       }, 1000);
-
     } catch (err) {
       console.error("Erro ao atualizar pedidos:", err);
     } finally {
@@ -73,46 +72,48 @@ export default function ProductsPage() {
   const handleExportData = () => {
     try {
       // Preparar dados para exportação
-      const exportData = products.map(product => ({
+      const exportData = products.map((product) => ({
         ID: product._id,
         Nome: product.name,
-        Preço: `R$ ${product.price.toFixed(2).replace('.', ',')}`,
+        Preço: `R$ ${product.price.toFixed(2).replace(".", ",")}`,
         Descrição: product.description,
         Categoria: product.category,
         Estoque: product.stock,
         Status: getStatusText(product.status),
-        Desconto: `${product.discount}%`
+        Desconto: `${product.discount}%`,
       }));
 
       // Converter para CSV
       const csvContent = [
         // Cabeçalhos
-        Object.keys(exportData[0] || {}).join(';'),
+        Object.keys(exportData[0] || {}).join(";"),
         // Dados
-        ...exportData.map(row => Object.values(row).join(';'))
-      ].join('\n');
+        ...exportData.map((row) => Object.values(row).join(";")),
+      ].join("\n");
 
       // Criar e baixar arquivo
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `produtos_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `produtos_${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
       // Feedback visual
-      const exportButton = document.querySelector('[data-export-btn]');
-      exportButton?.classList.add('bg-green-200', 'text-green-700');
+      const exportButton = document.querySelector("[data-export-btn]");
+      exportButton?.classList.add("bg-green-200", "text-green-700");
       setTimeout(() => {
-        exportButton?.classList.remove('bg-green-200', 'text-green-700');
+        exportButton?.classList.remove("bg-green-200", "text-green-700");
       }, 2000);
-
     } catch (error) {
-      console.error('Erro ao exportar dados:', error);
-      alert('Erro ao exportar dados. Tente novamente.');
+      console.error("Erro ao exportar dados:", error);
+      alert("Erro ao exportar dados. Tente novamente.");
     }
   };
 
@@ -257,7 +258,6 @@ export default function ProductsPage() {
     };
 
     const data = await fetchCreateProduct(newProductData);
-    console.log(data);
 
     if (!data.product) {
       console.error("Produto não foi criado corretamente:", data);
@@ -369,12 +369,16 @@ export default function ProductsPage() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"
-        }`}
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
+        isPageLoaded ? "opacity-100" : "opacity-0"
+      }`}
     >
       {/* Header Principal */}
-      <div className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${isPageLoaded ? "translate-y-0" : "-translate-y-4"
-        }`}>
+      <div
+        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
+          isPageLoaded ? "translate-y-0" : "-translate-y-4"
+        }`}
+      >
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="animate-fadeInLeft">
@@ -412,8 +416,18 @@ export default function ProductsPage() {
                   <span>Sistema Online</span>
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-slate-500">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <span>Atualizado em tempo real</span>
                 </div>
@@ -447,11 +461,15 @@ export default function ProductsPage() {
                       {products.length}
                     </div>
                     <div className="text-sm text-slate-500 mt-1">
-                      {products.length === 1 ? 'produto listado' : 'produtos listados'}
+                      {products.length === 1
+                        ? "produto listado"
+                        : "produtos listados"}
                     </div>
                     <div className="flex items-center justify-end space-x-1 mt-2">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                      <span className="text-xs text-green-600 font-medium">Ativo</span>
+                      <span className="text-xs text-green-600 font-medium">
+                        Ativo
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -468,7 +486,9 @@ export default function ProductsPage() {
                   disabled={loading}
                 >
                   <svg
-                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${loading ? 'animate-spin' : ''}`}
+                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${
+                      loading ? "animate-spin" : ""
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -842,10 +862,11 @@ export default function ProductsPage() {
 
         {/* Barra de Controles */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${isPageLoaded
-            ? "translate-y-0 opacity-100"
-            : "translate-y-4 opacity-0"
-            }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${
+            isPageLoaded
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
+          }`}
           style={{ transitionDelay: "0.1s" }}
         >
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
@@ -923,10 +944,11 @@ export default function ProductsPage() {
 
         {/* Tabela de Produtos Otimizada */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${isPageLoaded
-            ? "translate-y-0 opacity-100"
-            : "translate-y-4 opacity-0"
-            }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${
+            isPageLoaded
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
+          }`}
           style={{ transitionDelay: "0.2s" }}
         >
           <div className="overflow-x-auto">
@@ -1052,10 +1074,11 @@ export default function ProductsPage() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform duration-300 ${expandedProduct === product._id
-                                  ? "rotate-180"
-                                  : ""
-                                  }`}
+                                className={`w-4 h-4 transition-transform duration-300 ${
+                                  expandedProduct === product._id
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1359,8 +1382,9 @@ export default function ProductsPage() {
 
         {/* Footer com informações extras */}
         <div
-          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${isPageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${
+            isPageLoaded ? "opacity-100" : "opacity-0"
+          }`}
           style={{ transitionDelay: "0.3s" }}
         >
           <p>
