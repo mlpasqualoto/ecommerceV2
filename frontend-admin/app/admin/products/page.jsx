@@ -65,6 +65,7 @@ export default function ProductsPage() {
       console.error("Erro ao atualizar pedidos:", err);
     } finally {
       setLoading(false);
+      toggleProductDetails();
     }
   };
 
@@ -241,6 +242,7 @@ export default function ProductsPage() {
       setProducts([]);
     } else {
       setProducts([data.product]);
+      toggleProductDetails();
     }
   };
 
@@ -369,15 +371,13 @@ export default function ProductsPage() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
-        isPageLoaded ? "opacity-100" : "opacity-0"
-      }`}
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"
+        }`}
     >
       {/* Header Principal */}
       <div
-        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
-          isPageLoaded ? "translate-y-0" : "-translate-y-4"
-        }`}
+        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${isPageLoaded ? "translate-y-0" : "-translate-y-4"
+          }`}
       >
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
@@ -481,14 +481,13 @@ export default function ProductsPage() {
                 <button
                   onClick={handleRefreshData}
                   data-refresh-btn
-                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group"
+                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group cursor-pointer"
                   title="Atualizar dados"
                   disabled={loading}
                 >
                   <svg
-                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${
-                      loading ? "animate-spin" : ""
-                    }`}
+                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${loading ? "animate-spin" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -506,7 +505,7 @@ export default function ProductsPage() {
                 <button
                   onClick={handleExportData}
                   data-export-btn
-                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group"
+                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group cursor-pointer"
                   title="Exportar dados (CSV)"
                   disabled={products.length === 0}
                 >
@@ -862,11 +861,10 @@ export default function ProductsPage() {
 
         {/* Barra de Controles */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${
-            isPageLoaded
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
-          }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${isPageLoaded
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+            }`}
           style={{ transitionDelay: "0.1s" }}
         >
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
@@ -944,11 +942,10 @@ export default function ProductsPage() {
 
         {/* Tabela de Produtos Otimizada */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${
-            isPageLoaded
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
-          }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${isPageLoaded
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+            }`}
           style={{ transitionDelay: "0.2s" }}
         >
           <div className="overflow-x-auto">
@@ -1074,11 +1071,10 @@ export default function ProductsPage() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform duration-300 ${
-                                  expandedProduct === product._id
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
+                                className={`w-4 h-4 transition-transform duration-300 ${expandedProduct === product._id
+                                  ? "rotate-180"
+                                  : ""
+                                  }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1382,9 +1378,8 @@ export default function ProductsPage() {
 
         {/* Footer com informações extras */}
         <div
-          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${
-            isPageLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${isPageLoaded ? "opacity-100" : "opacity-0"
+            }`}
           style={{ transitionDelay: "0.3s" }}
         >
           <p>

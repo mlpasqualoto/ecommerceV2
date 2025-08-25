@@ -166,15 +166,13 @@ export default function UsersPage() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
-        isPageLoaded ? "opacity-100" : "opacity-0"
-      }`}
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"
+        }`}
     >
       {/* Header Principal */}
       <div
-        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
-          isPageLoaded ? "translate-y-0" : "-translate-y-4"
-        }`}
+        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${isPageLoaded ? "translate-y-0" : "-translate-y-4"
+          }`}
       >
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
@@ -231,34 +229,6 @@ export default function UsersPage() {
               </div>
             </div>
 
-            {/* Botão de ações rápidas (opcional) */}
-            <div className="flex flex-col gap-4 items-center">
-              {/* Botão de atualizar dados */}
-              <button
-                onClick={handleRefreshData}
-                data-refresh-btn
-                className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group"
-                title="Atualizar dados"
-                disabled={loading}
-              >
-                <svg
-                  className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${
-                    loading ? "animate-spin" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              </button>
-            </div>
-
             <div className="flex items-center space-x-6 animate-fadeInRight">
               {/* Card de estatísticas melhorado */}
               <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
@@ -298,6 +268,33 @@ export default function UsersPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Botão de ações rápidas (opcional) */}
+              <div className="flex flex-col gap-4 items-center">
+                {/* Botão de atualizar dados */}
+                <button
+                  onClick={handleRefreshData}
+                  data-refresh-btn
+                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group cursor-pointer"
+                  title="Atualizar dados"
+                  disabled={loading}
+                >
+                  <svg
+                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${loading ? "animate-spin" : ""
+                      }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -457,11 +454,10 @@ export default function UsersPage() {
 
         {/* Barra de Controles */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${
-            isPageLoaded
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
-          }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${isPageLoaded
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+            }`}
           style={{ transitionDelay: "0.1s" }}
         >
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
@@ -478,9 +474,9 @@ export default function UsersPage() {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    name="productId"
+                    name="userId"
                     className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
-                    placeholder="ID do produto..."
+                    placeholder="ID do usuário..."
                   />
                   <button
                     type="submit"
@@ -518,11 +514,10 @@ export default function UsersPage() {
 
         {/* Tabela de Usuários Otimizada */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${
-            isPageLoaded
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
-          }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${isPageLoaded
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+            }`}
           style={{ transitionDelay: "0.2s" }}
         >
           <div className="overflow-x-auto">
@@ -618,9 +613,8 @@ export default function UsersPage() {
 
         {/* Footer com informações extras */}
         <div
-          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${
-            isPageLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${isPageLoaded ? "opacity-100" : "opacity-0"
+            }`}
           style={{ transitionDelay: "0.3s" }}
         >
           <p>

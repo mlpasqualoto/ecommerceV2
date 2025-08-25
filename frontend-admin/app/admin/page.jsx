@@ -60,6 +60,7 @@ export default function AdminHome() {
       console.error("Erro ao atualizar pedidos:", err);
     } finally {
       setLoading(false);
+      toggleOrderDetails();
     }
   };
 
@@ -504,7 +505,7 @@ export default function AdminHome() {
                 <button
                   onClick={handleRefreshData}
                   data-refresh-btn
-                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group"
+                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group cursor-pointer"
                   title="Atualizar dados"
                   disabled={loading}
                 >
@@ -527,7 +528,7 @@ export default function AdminHome() {
                 <button
                   onClick={handleExportData}
                   data-export-btn
-                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group"
+                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group cursor-pointer"
                   title="Exportar dados (CSV)"
                   disabled={orders.length === 0}
                 >
