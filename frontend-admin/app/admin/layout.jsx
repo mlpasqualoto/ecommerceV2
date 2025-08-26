@@ -60,7 +60,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="flex h-screen">
-      <aside className="w-60 bg-gray-800 text-white p-4 flex flex-col justify-between">
+      <aside className="w-60 bg-gradient-to-r from-gray-950 to-gray-800 text-white p-4 flex flex-col justify-between">
         {/* Seção superior */}
         <div>
           <h2 className="text-lg font-bold mb-4">Painel Admin</h2>
@@ -91,7 +91,7 @@ export default function AdminLayout({ children }) {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className=" cursor-pointer w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-red-400 disabled:to-red-500 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-lg hover:shadow-xl group"
+            className=" cursor-pointer w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-40 to-red-600 hover:from-red-600 hover:to-red-40 disabled:from-red-400 disabled:to-red-500 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-lg hover:shadow-xl group"
           >
             {isLoggingOut ? (
               <>

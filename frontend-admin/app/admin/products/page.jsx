@@ -395,7 +395,7 @@ export default function ProductsPage() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      d="M 16 11 V 7 a 4 4 0 0 0 -8 0 v 4 M 5 9 h 14 l 1 12 H 4 L 5 9 Z"
                     />
                   </svg>
                 </div>
@@ -788,7 +788,7 @@ export default function ProductsPage() {
                     Estoque
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     name="stock"
                     value={newProduct.stock}
                     onChange={handleNewProductChange}
@@ -826,7 +826,7 @@ export default function ProductsPage() {
                     Desconto
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     name="discount"
                     value={newProduct.discount}
                     onChange={handleNewProductChange}
