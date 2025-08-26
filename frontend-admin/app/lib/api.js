@@ -49,6 +49,13 @@ export async function fetchUserById(userId) {
   return res.json();
 }
 
+export async function fetchUsersByRole(role) {
+  const res = await fetch(`${API_URL}/api/users/role/${role}`, {
+    credentials: "include", // envia o cookie junto
+  });
+  return res.json();
+}
+
 export async function fetchCreateOrder(orderData) {
   const res = await fetch(`${API_URL}/api/orders/create`, {
     method: "POST",

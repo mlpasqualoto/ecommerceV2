@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, Fragment } from "react";
-import { fetchUsers, fetchUserById, fetchCreateUser } from "@/app/lib/api.js";
+import { fetchUsers, fetchUserById, fetchUsersByRole, fetchCreateUser } from "@/app/lib/api.js";
 import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
@@ -14,6 +14,7 @@ export default function UsersPage() {
     role: "",
   });
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("user");
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const router = useRouter();
@@ -22,7 +23,13 @@ export default function UsersPage() {
     const loadUsers = async () => {
       setLoading(true);
       try {
-        const data = await fetchUsers();
+        let data;
+
+        if (statusFilter === "all") {
+          data = await fetchUsers();
+        } else {
+          data = await fetchUsersByRole(statusFilter);
+        }
 
         if (
           data?.message?.toLowerCase().includes("não autenticado") ||
@@ -41,7 +48,7 @@ export default function UsersPage() {
     };
 
     loadUsers();
-  }, []);
+  }, [statusFilter, router]);
 
   // Animação de entrada da página
   useEffect(() => {
@@ -55,7 +62,13 @@ export default function UsersPage() {
   const handleRefreshData = async () => {
     setLoading(true);
     try {
-      const data = await fetchUsers();
+      let data;
+
+      if (statusFilter === "all") {
+        data = await fetchUsers();
+      } else {
+        data = await fetchUsersByRole(statusFilter);
+      }
 
       if (
         data?.message?.toLowerCase().includes("não autenticado") ||
@@ -151,7 +164,7 @@ export default function UsersPage() {
         <div className="flex flex-col items-center space-y-4 animate-pulse">
           <div className="relative">
             <i className="fa-solid fa-spinner animate-spin text-4xl"></i>
-            <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
+            <div className="absolute inset-0 rounded-full animate-ping"></div>
           </div>
           <div className="text-center">
             <div className="font-semibold">Carregando usuários...</div>
@@ -362,8 +375,8 @@ export default function UsersPage() {
                   </label>
                   <input
                     type="text"
-                    name="username"
-                    value={newUser.username}
+                    name="userName"
+                    value={newUser.userName}
                     onChange={handleNewUserChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
@@ -399,9 +412,9 @@ export default function UsersPage() {
                     Número de Telefone
                   </label>
                   <input
-                    type="text"
-                    name="phone"
-                    value={newUser.phone}
+                    type="number"
+                    name="number"
+                    value={newUser.number}
                     onChange={handleNewUserChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
@@ -486,6 +499,25 @@ export default function UsersPage() {
                   </button>
                 </div>
               </form>
+
+              {/* Filtro por Role */}
+              <div
+                className="flex items-center gap-3 animate-slideInUp"
+                style={{ animationDelay: "0.3s" }}
+              >
+                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+                  Filtrar por Role:
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-medium min-w-[140px] text-slate-900 hover:border-slate-300"
+                >
+                  <option value="user">Usuário</option>
+                  <option value="admin">Admin</option>
+                  <option value="all">Todos</option>
+                </select>
+              </div>
             </div>
 
             {/* Botão Novo Usuário */}
@@ -533,6 +565,9 @@ export default function UsersPage() {
                   <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
                     Email
                   </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Role
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -566,13 +601,18 @@ export default function UsersPage() {
                               {user.email}
                             </div>
                           </td>
+                          <td>
+                            <div id="user-role" className="text-sm font-semibold text-slate-900">
+                              {user.role}
+                            </div>
+                          </td>
                         </tr>
                       </Fragment>
                     ) : null
                   )
                 ) : (
                   <tr key="no-users">
-                    <td colSpan="3" className="px-6 py-16 text-center">
+                    <td colSpan="4" className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center space-y-4 animate-fadeIn">
                         <div className="relative">
                           <svg

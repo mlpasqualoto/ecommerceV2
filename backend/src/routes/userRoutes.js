@@ -3,10 +3,12 @@ import {
   getUsers,
   getUserProfile,
   getUserById,
+  getUsersByRole,
   getCurrentUser,
   createUser,
   createUserByAdmin,
   loginUser,
+  logoutUser,
   updateUser,
   updatePassword,
   deleteUser,
@@ -28,6 +30,9 @@ router.get("/me", authenticateToken, getCurrentUser);
 // Rota protegida para obter um usuário por ID (apenas admin)
 router.get("/:id", authenticateToken, authorizeRole("admin"), getUserById);
 
+// Rota protegida para obter usuários por role (apenas admin)
+router.get("/role/:role", authenticateToken, authorizeRole("admin"), getUsersByRole);
+
 // Rota pública para registro de um novo usuário
 router.post("/register", createUser);
 
@@ -41,6 +46,9 @@ router.post(
 
 // Rota para login de usuário
 router.post("/login", loginUser);
+
+// Rota para logout de usuário
+router.post("/logout", logoutUser);
 
 // Rota para atualização de usuário
 router.put("/update", authenticateToken, updateUser);

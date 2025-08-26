@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import {
   generateToken,
   hashPassword,
-  comparePassword,
+  comparePassword
 } from "../config/auth.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
 
@@ -37,6 +37,7 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
+// Obter usuário por ID
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id, "-password");
@@ -51,6 +52,21 @@ export const getUserById = async (req, res) => {
     res
       .status(500)
       .json({ message: "Erro ao buscar usuário", error: err.message });
+  }
+};
+
+export const getUsersByRole = async (req, res) => {
+  const { role } = req.params;
+  try {
+    const users = await User.find({ role }, "-password");
+    res.json({
+      message: "Usuários encontrados com sucesso",
+      users: users,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar usuários", error: err.message });
   }
 };
 
@@ -177,6 +193,18 @@ export const loginUser = async (req, res) => {
     res
       .status(500)
       .json({ message: "Erro ao fazer login", error: err.message });
+  }
+};
+
+// Logout do usuário
+export const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    res.json({ message: "Logout realizado com sucesso" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Erro ao fazer logout", error: err.message });
   }
 };
 

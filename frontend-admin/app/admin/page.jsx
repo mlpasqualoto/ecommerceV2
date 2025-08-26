@@ -396,7 +396,7 @@ export default function AdminHome() {
         <div className="flex flex-col items-center space-y-4 animate-pulse">
           <div className="relative">
             <i className="fa-solid fa-spinner animate-spin text-4xl"></i>
-            <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
+            <div className="absolute inset-0 rounded-full animate-ping"></div>
           </div>
           <div className="text-center">
             <div className="font-semibold">Carregando pedidos...</div>
