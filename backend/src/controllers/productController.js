@@ -1,14 +1,69 @@
 import Product from "../models/Product.js";
+import cloudinary from "../config/cloudinary.js";
+
+const uploadToCloudinary = (fileBuffer, folder = "ecommerce/products") => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder,
+                resource_type: "image",
+                // Ex.: gerar derivado de forma síncrona (opcional)
+                // eager: [{ width: 800, height: 800, crop: "fill", gravity: "auto" }],
+            },
+            (err, result) => {
+                if (err) return reject(err);
+                resolve({
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                    width: result.width,
+                    height: result.height,
+                    format: result.format,
+                    bytes: result.bytes,
+                });
+            }
+        );
+        stream.end(fileBuffer);
+    });
+};
 
 // Criar novo produto
 export const createProduct = async (req, res) => {
     try {
-        const product = new Product(req.body);
-        const savedProduct = await product.save();
+        // Verificar se chegou arquivo
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ message: "Nenhuma imagem enviada" });
+        }
+
+        const product = req.body;
+        console.log(req.files);
+
+        const uploads = await Promise.all(
+            req.files.map((f) => uploadToCloudinary(f.buffer))
+        );
+
+        product.images = uploads;
+        const savedProduct = await Product.create(product);
 
         res.status(201).json({ message: "Produto criado com sucesso", product: savedProduct });
     } catch (err) {
         res.status(400).json({ message: "Erro ao criar produto", error: err.message });
+    }
+};
+
+// Deletar imagem do produto
+export const deleteProductImage = async (req, res) => {
+    const { productId, publicId } = req.params;
+
+    try {
+        await cloudinary.uploader.destroy(publicId);
+        const updated = await Product.findByIdAndUpdate(
+            productId,
+            { $pull: { images: { public_id: publicId } } },
+            { new: true }
+        );
+        res.json({ message: "Imagem do produto removida com sucesso", product: updated });
+    } catch (e) {
+        res.status(500).json({ message: "Erro ao remover imagem", error: e.message });
     }
 };
 

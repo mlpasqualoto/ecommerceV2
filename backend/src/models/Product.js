@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+const imageSchema = new mongoose.Schema({
+    public_id: String,
+    url: String,
+    width: Number,
+    height: Number,
+    format: String,
+    bytes: Number,
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -11,6 +20,7 @@ const productSchema = new mongoose.Schema({
         required: true,
         min: 0,
     },
+    images: [imageSchema],
     description: {
         type: String,
         default: '',

@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createProduct,
+  deleteProductImage,
   getProducts,
   getProductById,
   updateProduct,
@@ -9,11 +10,17 @@ import {
 } from "../controllers/productController.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
 import { authorizeRole } from "../middlewares/authRoleMiddleware.js";
+import multer from "multer";
 
 const router = express.Router();
 
+const upload = multer({ storage: multer.memoryStorage() });
+
 // Criar novo produto
-router.post("/create", authenticateToken, authorizeRole("admin"), createProduct);
+router.post("/create", authenticateToken, authorizeRole("admin"), upload.array("images", 5), createProduct);
+
+// Deletar imagem do produto
+router.delete("/deleteImg/:productId/images/:publicId", authenticateToken, authorizeRole("admin"), deleteProductImage);
 
 /**
  * Listar produtos com filtros

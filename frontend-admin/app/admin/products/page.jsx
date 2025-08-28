@@ -27,6 +27,7 @@ export default function ProductsPage() {
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
+    images: [],
     description: "",
     category: "",
     stock: "",
@@ -249,17 +250,21 @@ export default function ProductsPage() {
   const handleCreateProduct = async (e) => {
     e.preventDefault();
 
-    const newProductData = {
-      name: newProduct.name,
-      price: Number(newProduct.price),
-      description: newProduct.description,
-      category: newProduct.category,
-      stock: Number(newProduct.stock),
-      status: newProduct.status,
-      discount: Number(newProduct.discount),
-    };
+    const formData = new FormData();
+    formData.append("name", newProduct.name);
+    formData.append("price", newProduct.price);
+    formData.append("description", newProduct.description);
+    formData.append("category", newProduct.category);
+    formData.append("stock", newProduct.stock);
+    formData.append("status", newProduct.status);
+    formData.append("discount", newProduct.discount);
 
-    const data = await fetchCreateProduct(newProductData);
+    // Adicionar múltiplas imagens
+    for (let i = 0; i < newProduct.images.length; i++) {
+      formData.append("images", newProduct.images[i]);
+    }
+
+    const data = await fetchCreateProduct(formData);
 
     if (!data.product) {
       console.error("Produto não foi criado corretamente:", data);
@@ -278,6 +283,7 @@ export default function ProductsPage() {
     setNewProduct({
       name: "",
       price: "",
+      images: [],
       description: "",
       category: "",
       stock: "",
@@ -288,8 +294,13 @@ export default function ProductsPage() {
   };
 
   const handleNewProductChange = (e) => {
-    const { name, value } = e.target;
-    setNewProduct((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = e.target;
+
+    if (name === "images") {
+      setNewProduct((prev) => ({ ...prev, [name]: Array.from(files) }));
+    } else {
+      setNewProduct((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleStatusProduct = async (productId, status) => {
@@ -738,6 +749,21 @@ export default function ProductsPage() {
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                     placeholder="Digite o preço do produto"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2 animate-slideInUp">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Imagens
+                  </label>
+                  <input
+                    type="file"
+                    name="images"
+                    accept="image/*"
+                    multiple
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     required
                   />
                 </div>

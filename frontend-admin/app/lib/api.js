@@ -68,14 +68,11 @@ export async function fetchCreateOrder(orderData) {
   return res.json();
 }
 
-export async function fetchCreateProduct(productData) {
+export async function fetchCreateProduct(formData) {
   const res = await fetch(`${API_URL}/api/products/create`, {
     method: "POST",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(productData),
+    body: formData,
   });
   return res.json();
 }
