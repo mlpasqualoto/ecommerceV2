@@ -27,7 +27,10 @@ router.delete("/deleteImg/:productId/images/:publicId", authenticateToken, autho
  * Filtros disponíveis: category, brand, minPrice, maxPrice, isActive
  * Exemplo: /products?category=Eletrônicos&minPrice=100&maxPrice=500&isActive=true
  */
-router.get("/", getProducts);
+router.get("/admin", authenticateToken, authorizeRole("admin"), getProducts);
+
+// Rota pública para listar produtos ativos
+router.get("/public", getProducts);
 
 // Obter produto por ID
 router.get("/:id", getProductById);

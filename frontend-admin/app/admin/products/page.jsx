@@ -19,10 +19,12 @@ export default function ProductsPage() {
     name: "",
     price: "",
     description: "",
+    images: [],
+    newImages: [],
     category: "",
-    stock: "",
+    stock: 0,
     status: "",
-    discount: "",
+    discount: 0,
   });
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -30,9 +32,9 @@ export default function ProductsPage() {
     images: [],
     description: "",
     category: "",
-    stock: "",
+    stock: 0,
     status: "",
-    discount: "",
+    discount: 0,
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [expandedProduct, setExpandedProduct] = useState(null);
@@ -133,6 +135,8 @@ export default function ProductsPage() {
     setEditForm({
       name: product.name,
       price: product.price,
+      images: product.images || [],
+      newImages: [],
       description: product.description,
       category: product.category,
       stock: product.stock,
@@ -147,6 +151,8 @@ export default function ProductsPage() {
     setEditForm({
       name: "",
       price: "",
+      images: [],
+      newImages: [],
       description: "",
       category: "",
       stock: "",
@@ -170,21 +176,40 @@ export default function ProductsPage() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!editProduct) return;
-    await handleUpdateProduct(editProduct._id, {
-      name: editForm.name,
-      price: Number(editForm.price),
-      description: editForm.description,
-      category: editForm.category,
-      stock: Number(editForm.stock),
-      status: editForm.status,
-      discount: Number(editForm.discount),
+
+    // junta imagens já existentes com as novas
+    const finalImages = [
+      ...(editForm.images || []),     // já existentes (pode ser URL/id)
+      ...(editForm.newImages || []),  // novas (File)
+    ];
+
+    const formData = new FormData();
+    formData.append("name", editForm.name);
+    formData.append("price", Number(editForm.price));
+    formData.append("description", editForm.description);
+    formData.append("category", editForm.category);
+    formData.append("stock", Number(editForm.stock));
+    formData.append("status", editForm.status);
+    formData.append("discount", Number(editForm.discount));
+
+    // adiciona imagens (se já forem URLs, você pode tratá-las diferente do File)
+    finalImages.forEach((img) => {
+      if (img instanceof File) {
+        formData.append("images", img); // arquivo
+      } else {
+        formData.append("existingImages", JSON.stringify([img])); // string/URL
+      }
     });
+
+    await handleUpdateProduct(editProduct._id, formData);
+
     closeEditModal();
   };
 
   // Atualiza produto
-  const handleUpdateProduct = async (productId, updatedData) => {
-    const data = await fetchUpdateProduct(productId, updatedData);
+  const handleUpdateProduct = async (productId, formData) => {
+    const data = await fetchUpdateProduct(productId, formData);
+
     if (
       data?.message?.toLowerCase().includes("não autenticado") ||
       data?.error === "Unauthorized"
@@ -192,9 +217,12 @@ export default function ProductsPage() {
       router.push("/login");
       return;
     }
+
     setProducts((prevProducts) =>
       prevProducts.map((product) =>
-        product.id === productId ? { ...product, ...updatedData } : product
+        product.id === productId
+          ? { ...product, name: formData.get("name"), price: formData.get("price") }
+          : product
       )
     );
   };
@@ -286,9 +314,9 @@ export default function ProductsPage() {
       images: [],
       description: "",
       category: "",
-      stock: "",
+      stock: 0,
       status: "",
-      discount: "",
+      discount: 0,
     });
     setIsCreateModalOpen(false);
   };
@@ -565,7 +593,7 @@ export default function ProductsPage() {
                   <input
                     name="name"
                     type="text"
-                    value={editForm.name}
+                    value={editForm.name || ""}
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
@@ -582,12 +610,103 @@ export default function ProductsPage() {
                   <input
                     name="price"
                     type="text"
-                    value={editForm.price}
+                    value={editForm.price || ""}
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
                   />
                 </div>
+
+                {editProduct && (
+                  <div>
+                    {/* Área de Upload (edição) */}
+                    <div className="space-y-2 animate-slideInUp">
+                      <label className="block text-sm font-semibold text-slate-700">
+                        Imagens
+                      </label>
+
+                      <label
+                        htmlFor="edit-images"
+                        className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-400 rounded-xl cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
+                      >
+                        <svg className="w-10 h-10 text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4a2 2 0 012-2h6a2 2 0 012 2v12M7 16h10m-5 4h.01" />
+                        </svg>
+                        <span className="text-sm text-blue-600 font-medium">
+                          Clique para adicionar mais imagens
+                        </span>
+                        <input
+                          id="edit-images"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) =>
+                            setEditForm((prev) => ({
+                              ...prev,
+                              newImages: [...(prev?.newImages || []), ...Array.from(e.target.files)],
+                            }))
+                          }
+                        />
+                      </label>
+
+                      {/* Imagens já existentes (vindas do banco) */}
+                      {editForm.images?.length > 0 && (
+                        <div className="mt-4 grid grid-cols-3 gap-3">
+                          {editForm.images.map((img, index) => (
+                            <div key={index} className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                              <img
+                                src={typeof img === "string" ? img : img.url}
+                                alt={`product-image-${index}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    images: prev.images.filter((_, i) => i !== index),
+                                  }))
+                                }
+                                className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow hover:bg-red-600 transition"
+                              >
+                                X
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Novas imagens adicionadas agora (arquivos File) */}
+                      {editForm.newImages?.length > 0 && (
+                        <div className="mt-4 grid grid-cols-3 gap-3">
+                          {editForm.newImages.map((file, index) => (
+                            <div key={index} className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`new-preview-${index}`}
+                                className="w-full h-full object-cover"
+                                onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)} // libera memória
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditForm((prev) => ({
+                                    ...prev,
+                                    newImages: prev.newImages.filter((_, i) => i !== index),
+                                  }))
+                                }
+                                className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow hover:bg-red-600 transition"
+                              >
+                                X
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div
                   className="space-y-2 animate-slideInUp"
@@ -599,7 +718,7 @@ export default function ProductsPage() {
                   <input
                     name="description"
                     type="text"
-                    value={editForm.description}
+                    value={editForm.description || ""}
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
@@ -616,7 +735,7 @@ export default function ProductsPage() {
                   <input
                     name="category"
                     type="text"
-                    value={editForm.category}
+                    value={editForm.category || ""}
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
@@ -633,7 +752,7 @@ export default function ProductsPage() {
                   <input
                     name="stock"
                     type="text"
-                    value={editForm.stock}
+                    value={editForm.stock || ""}
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
@@ -649,7 +768,7 @@ export default function ProductsPage() {
                   </label>
                   <select
                     name="status"
-                    value={editForm.status}
+                    value={editForm.status || ""}
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-slate-900 hover:border-slate-300"
                   >
@@ -671,7 +790,7 @@ export default function ProductsPage() {
                   <input
                     type="number"
                     name="discount"
-                    value={editForm.discount}
+                    value={editForm.discount || 0}
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="0"
@@ -757,15 +876,69 @@ export default function ProductsPage() {
                   <label className="block text-sm font-semibold text-slate-700">
                     Imagens
                   </label>
-                  <input
-                    type="file"
-                    name="images"
-                    accept="image/*"
-                    multiple
-                    onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
-                    required
-                  />
+
+                  {/* Área de Upload */}
+                  <label
+                    htmlFor="images"
+                    className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-400 rounded-xl cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
+                  >
+                    <svg
+                      className="w-10 h-10 text-blue-500 mb-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16V4a2 2 0 012-2h6a2 2 0 012 2v12M7 16h10m-5 4h.01"
+                      />
+                    </svg>
+                    <span className="text-sm text-blue-600 font-medium">
+                      Clique para adicionar mais imagens
+                    </span>
+                    <input
+                      id="images"
+                      type="file"
+                      name="images"
+                      accept="image/*"
+                      multiple
+                      onChange={handleNewProductChange}
+                      className="hidden"
+                      required
+                    />
+                  </label>
+
+                  {/* Pré-visualização */}
+                  {newProduct.images && newProduct.images.length > 0 && (
+                    <div className="mt-4 grid grid-cols-3 gap-3">
+                      {newProduct.images.map((file, index) => (
+                        <div
+                          key={index}
+                          className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 shadow-sm"
+                        >
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`preview-${index}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setNewProduct((prev) => ({
+                                ...prev,
+                                images: prev.images.filter((_, i) => i !== index),
+                              }))
+                            }
+                            className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow hover:bg-red-600 transition"
+                          >
+                            X
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div

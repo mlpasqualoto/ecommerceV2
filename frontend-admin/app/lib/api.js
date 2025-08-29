@@ -8,7 +8,7 @@ export async function fetchOrders(status) {
 }
 
 export async function fetchProducts(status) {
-  const res = await fetch(`${API_URL}/api/products?status=${status}`, {
+  const res = await fetch(`${API_URL}/api/products/admin?status=${status}`, {
     credentials: "include", // envia o cookie junto
   });
   return res.json();
@@ -74,8 +74,14 @@ export async function fetchCreateProduct(formData) {
     credentials: "include",
     body: formData,
   });
-  return res.json();
-}
+
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: res.ok, raw: text };
+  }
+};
 
 export async function fetchCreateUser(userData) {
   const res = await fetch(`${API_URL}/api/users/admin/register`, {
@@ -101,17 +107,20 @@ export async function fetchUpdateOrder(orderId, updatedData) {
   return res.json();
 }
 
-export async function fetchUpdateProduct(productId, updatedData) {
+export async function fetchUpdateProduct(productId, formData) {
   const res = await fetch(`${API_URL}/api/products/${productId}/update`, {
     method: "PUT",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(updatedData),
+    body: formData,
   });
-  return res.json();
-}
+
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: res.ok, raw: text };
+  }
+};
 
 export async function fetchStatusProduct(productId, status) {
   const res = await fetch(`${API_URL}/api/products/${productId}/status`, {

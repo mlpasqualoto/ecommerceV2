@@ -35,7 +35,6 @@ export const createProduct = async (req, res) => {
         }
 
         const product = req.body;
-        console.log(req.files);
 
         const uploads = await Promise.all(
             req.files.map((f) => uploadToCloudinary(f.buffer))
@@ -73,6 +72,23 @@ export const deleteProductImage = async (req, res) => {
  * Exemplo: /products?category=Eletrônicos&minPrice=100&maxPrice=500&status=active
  */
 export const getProducts = async (req, res) => {
+    if (!req.user) {
+        // Rota pública para listar produtos ativos
+        try {
+            const data = await Product.find({ status: "active" });
+            const products = data.map((item) => ({
+                id: item._id,
+                name: item.name,
+                price: item.price,
+                images: item.images,
+            }));
+
+            return res.json({ message: "Produtos encontrados com sucesso", products: products });
+        } catch (err) {
+            return res.status(500).json({ message: "Erro ao listar produtos", error: err.message });
+        }
+    }
+
     try {
         const { category, brand, minPrice, maxPrice, status } = req.query;
 
@@ -109,10 +125,54 @@ export const getProductById = async (req, res) => {
 // Atualizar produto
 export const updateProduct = async (req, res) => {
     try {
-        const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!product) return res.status(404).json({ message: "Produto não encontrado" });
+        const { id } = req.params;
 
-        res.json({ message: "Produto atualizado com sucesso", product: product });
+        // Pega os campos do body
+        const { name, price, description, category, stock, status, discount, existingImages } = req.body;
+
+        // Começa com as imagens existentes
+        let finalImages = [];
+        if (existingImages) {
+            // pode vir como JSON string ou como múltiplos campos
+            try {
+                finalImages = JSON.parse(existingImages);
+            } catch {
+                if (Array.isArray(existingImages)) {
+                    finalImages = existingImages;
+                } else {
+                    finalImages = [existingImages];
+                }
+            }
+        }
+
+        // Se houver novos arquivos, faz upload para o Cloudinary
+        if (req.files && req.files.length > 0) {
+            const uploads = await Promise.all(
+                req.files.map((f) => uploadToCloudinary(f.buffer))
+            );
+            finalImages = [...finalImages, ...uploads];
+        }
+
+        // Monta os campos atualizados
+        const updateData = {
+            name,
+            price,
+            description,
+            category,
+            stock,
+            status,
+            discount,
+            images: finalImages
+        };
+
+        // Atualiza no banco
+        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });
+
+        if (!updatedProduct) {
+            return res.status(404).json({ message: "Produto não encontrado" });
+        }
+
+        res.json({ message: "Produto atualizado com sucesso", product: updatedProduct });
     } catch (err) {
         res.status(400).json({ message: "Erro ao atualizar produto", error: err.message });
     }
