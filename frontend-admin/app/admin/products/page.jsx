@@ -174,36 +174,39 @@ export default function ProductsPage() {
 
   // Envia atualização
   const handleEditSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     if (!editProduct) return;
 
-    // junta imagens já existentes com as novas
-    const finalImages = [
-      ...(editForm.images || []),     // já existentes (pode ser URL/id)
-      ...(editForm.newImages || []),  // novas (File)
-    ];
-
     const formData = new FormData();
-    formData.append("name", editForm.name);
-    formData.append("price", Number(editForm.price));
-    formData.append("description", editForm.description);
-    formData.append("category", editForm.category);
-    formData.append("stock", Number(editForm.stock));
-    formData.append("status", editForm.status);
-    formData.append("discount", Number(editForm.discount));
+    formData.append("name", editForm.name || "");
+    formData.append("price", Number(editForm.price) || 0);
+    formData.append("description", editForm.description || "");
+    formData.append("category", editForm.category || "");
+    formData.append("stock", Number(editForm.stock) || 0);
+    formData.append("status", editForm.status || "");
+    formData.append("discount", Number(editForm.discount) || 0);
 
-    // adiciona imagens (se já forem URLs, você pode tratá-las diferente do File)
-    finalImages.forEach((img) => {
-      if (img instanceof File) {
-        formData.append("images", img); // arquivo
-      } else {
-        formData.append("existingImages", JSON.stringify([img])); // string/URL
+    const existing = (editForm.images || []).filter(
+      (img) => !(img instanceof File)
+    );
+    if (existing.length > 0) {
+      formData.append("existingImages", JSON.stringify(existing));
+    }
+
+    (editForm.newImages || []).forEach((file) => {
+      if (file instanceof File) {
+        formData.append("images", file);
       }
     });
 
+    console.log(formData);
+
     await handleUpdateProduct(editProduct._id, formData);
 
+    setLoading(false);
     closeEditModal();
+    handleRefreshData();
   };
 
   // Atualiza produto
@@ -221,7 +224,11 @@ export default function ProductsPage() {
     setProducts((prevProducts) =>
       prevProducts.map((product) =>
         product.id === productId
-          ? { ...product, name: formData.get("name"), price: formData.get("price") }
+          ? {
+              ...product,
+              name: formData.get("name"),
+              price: formData.get("price"),
+            }
           : product
       )
     );
@@ -410,13 +417,15 @@ export default function ProductsPage() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"
-        }`}
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
+        isPageLoaded ? "opacity-100" : "opacity-0"
+      }`}
     >
       {/* Header Principal */}
       <div
-        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${isPageLoaded ? "translate-y-0" : "-translate-y-4"
-          }`}
+        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
+          isPageLoaded ? "translate-y-0" : "-translate-y-4"
+        }`}
       >
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
@@ -525,8 +534,9 @@ export default function ProductsPage() {
                   disabled={loading}
                 >
                   <svg
-                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${loading ? "animate-spin" : ""
-                      }`}
+                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${
+                      loading ? "animate-spin" : ""
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -571,18 +581,25 @@ export default function ProductsPage() {
       <div className="max-w-[1500px] mx-auto px-8 py-8">
         {/* Modal de Edição */}
         {editProduct && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
-              <div className="px-8 py-6 border-b border-slate-200">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Editar Produto
-                </h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  ID: {editProduct._id}
-                </p>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
+            <div className="bg-white rounded-l-2xl shadow-2xl w-full max-w-xl h-full border-l border-slate-200 transform animate-slideInRight flex flex-col">
+              
+              {/* Cabeçalho fixo */}
+              <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Editar Produto</h2>
+                  <p className="text-sm text-slate-600 mt-1">ID: {editProduct._id}</p>
+                </div>
+                <button
+                  onClick={closeEditModal}
+                  className="cursor-pointer bg-red-50 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
+                  title="Fechar"
+                >
+                  ✕
+                </button>
               </div>
 
-              <form onSubmit={handleEditSubmit} className="p-8 space-y-6">
+              <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
                 <div
                   className="space-y-2 animate-slideInUp"
                   style={{ animationDelay: "0.1s" }}
@@ -629,8 +646,18 @@ export default function ProductsPage() {
                         htmlFor="edit-images"
                         className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-400 rounded-xl cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
                       >
-                        <svg className="w-10 h-10 text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4a2 2 0 012-2h6a2 2 0 012 2v12M7 16h10m-5 4h.01" />
+                        <svg
+                          className="w-10 h-10 text-blue-500 mb-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16V4a2 2 0 012-2h6a2 2 0 012 2v12M7 16h10m-5 4h.01"
+                          />
                         </svg>
                         <span className="text-sm text-blue-600 font-medium">
                           Clique para adicionar mais imagens
@@ -644,7 +671,10 @@ export default function ProductsPage() {
                           onChange={(e) =>
                             setEditForm((prev) => ({
                               ...prev,
-                              newImages: [...(prev?.newImages || []), ...Array.from(e.target.files)],
+                              newImages: [
+                                ...(prev?.newImages || []),
+                                ...Array.from(e.target.files),
+                              ],
                             }))
                           }
                         />
@@ -654,7 +684,10 @@ export default function ProductsPage() {
                       {editForm.images?.length > 0 && (
                         <div className="mt-4 grid grid-cols-3 gap-3">
                           {editForm.images.map((img, index) => (
-                            <div key={index} className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                            <div
+                              key={index}
+                              className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 shadow-sm"
+                            >
                               <img
                                 src={typeof img === "string" ? img : img.url}
                                 alt={`product-image-${index}`}
@@ -665,7 +698,9 @@ export default function ProductsPage() {
                                 onClick={() =>
                                   setEditForm((prev) => ({
                                     ...prev,
-                                    images: prev.images.filter((_, i) => i !== index),
+                                    images: prev.images.filter(
+                                      (_, i) => i !== index
+                                    ),
                                   }))
                                 }
                                 className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow hover:bg-red-600 transition"
@@ -681,19 +716,26 @@ export default function ProductsPage() {
                       {editForm.newImages?.length > 0 && (
                         <div className="mt-4 grid grid-cols-3 gap-3">
                           {editForm.newImages.map((file, index) => (
-                            <div key={index} className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                            <div
+                              key={index}
+                              className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 shadow-sm"
+                            >
                               <img
                                 src={URL.createObjectURL(file)}
                                 alt={`new-preview-${index}`}
                                 className="w-full h-full object-cover"
-                                onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)} // libera memória
+                                onLoad={(e) =>
+                                  URL.revokeObjectURL(e.currentTarget.src)
+                                } // libera memória
                               />
                               <button
                                 type="button"
                                 onClick={() =>
                                   setEditForm((prev) => ({
                                     ...prev,
-                                    newImages: prev.newImages.filter((_, i) => i !== index),
+                                    newImages: prev.newImages.filter(
+                                      (_, i) => i !== index
+                                    ),
                                   }))
                                 }
                                 className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow hover:bg-red-600 transition"
@@ -928,7 +970,9 @@ export default function ProductsPage() {
                             onClick={() =>
                               setNewProduct((prev) => ({
                                 ...prev,
-                                images: prev.images.filter((_, i) => i !== index),
+                                images: prev.images.filter(
+                                  (_, i) => i !== index
+                                ),
                               }))
                             }
                             className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow hover:bg-red-600 transition"
@@ -1060,10 +1104,11 @@ export default function ProductsPage() {
 
         {/* Barra de Controles */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${isPageLoaded
-            ? "translate-y-0 opacity-100"
-            : "translate-y-4 opacity-0"
-            }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${
+            isPageLoaded
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
+          }`}
           style={{ transitionDelay: "0.1s" }}
         >
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
@@ -1141,10 +1186,11 @@ export default function ProductsPage() {
 
         {/* Tabela de Produtos Otimizada */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${isPageLoaded
-            ? "translate-y-0 opacity-100"
-            : "translate-y-4 opacity-0"
-            }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${
+            isPageLoaded
+              ? "translate-y-0 opacity-100"
+              : "translate-y-4 opacity-0"
+          }`}
           style={{ transitionDelay: "0.2s" }}
         >
           <div className="overflow-x-auto">
@@ -1270,10 +1316,11 @@ export default function ProductsPage() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform duration-300 ${expandedProduct === product._id
-                                  ? "rotate-180"
-                                  : ""
-                                  }`}
+                                className={`w-4 h-4 transition-transform duration-300 ${
+                                  expandedProduct === product._id
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1577,8 +1624,9 @@ export default function ProductsPage() {
 
         {/* Footer com informações extras */}
         <div
-          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${isPageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${
+            isPageLoaded ? "opacity-100" : "opacity-0"
+          }`}
           style={{ transitionDelay: "0.3s" }}
         >
           <p>

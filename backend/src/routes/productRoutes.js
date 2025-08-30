@@ -36,7 +36,7 @@ router.get("/public", getProducts);
 router.get("/:id", getProductById);
 
 // Atualizar produto
-router.put("/:id/update", authenticateToken, authorizeRole("admin"), updateProduct);
+router.put("/:id/update", authenticateToken, authorizeRole("admin"), upload.array("images", 5), updateProduct);
 
 // Atualizar status do produto
 router.patch("/:id/status", authenticateToken, authorizeRole("admin"), updateProductStatus);
