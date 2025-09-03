@@ -33,7 +33,7 @@ export default function ProductsPage() {
     description: "",
     category: "",
     stock: 0,
-    status: "",
+    status: "active",
     discount: 0,
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -225,10 +225,10 @@ export default function ProductsPage() {
       prevProducts.map((product) =>
         product.id === productId
           ? {
-              ...product,
-              name: formData.get("name"),
-              price: formData.get("price"),
-            }
+            ...product,
+            name: formData.get("name"),
+            price: formData.get("price"),
+          }
           : product
       )
     );
@@ -283,6 +283,7 @@ export default function ProductsPage() {
   };
 
   const handleCreateProduct = async (e) => {
+    setLoading(true);
     e.preventDefault();
 
     const formData = new FormData();
@@ -325,6 +326,7 @@ export default function ProductsPage() {
       status: "",
       discount: 0,
     });
+    setLoading(false);
     setIsCreateModalOpen(false);
   };
 
@@ -417,15 +419,13 @@ export default function ProductsPage() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
-        isPageLoaded ? "opacity-100" : "opacity-0"
-      }`}
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"
+        }`}
     >
       {/* Header Principal */}
       <div
-        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
-          isPageLoaded ? "translate-y-0" : "-translate-y-4"
-        }`}
+        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${isPageLoaded ? "translate-y-0" : "-translate-y-4"
+          }`}
       >
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
@@ -534,9 +534,8 @@ export default function ProductsPage() {
                   disabled={loading}
                 >
                   <svg
-                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${
-                      loading ? "animate-spin" : ""
-                    }`}
+                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${loading ? "animate-spin" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -583,7 +582,7 @@ export default function ProductsPage() {
         {editProduct && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
             <div className="bg-white rounded-l-2xl shadow-2xl w-full max-w-xl h-full border-l border-slate-200 transform animate-slideInRight flex flex-col">
-              
+
               {/* Cabeçalho fixo */}
               <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
                 <div>
@@ -865,18 +864,25 @@ export default function ProductsPage() {
 
         {/* Modal de Criação */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
-              <div className="px-8 py-6 border-b border-slate-200">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Criar Novo Produto
-                </h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  Adicione um novo produto ao sistema
-                </p>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
+            <div className="bg-white rounded-l-2xl shadow-2xl w-full max-w-xl h-full border-l border-slate-200 transform animate-slideInRight flex flex-col">
+
+              {/* Cabeçalho fixo */}
+              <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Criar Novo Produto</h2>
+                  <p className="text-sm text-slate-600 mt-1">Adicione um novo produto ao sistema</p>
+                </div>
+                <button
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="cursor-pointer bg-red-50 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
+                  aria-label="Fechar"
+                >
+                  ✕
+                </button>
               </div>
 
-              <form onSubmit={handleCreateProduct} className="p-8 space-y-6">
+              <form onSubmit={handleCreateProduct} autoComplete="off" className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
                 <div
                   className="space-y-2 animate-slideInUp"
                   style={{ animationDelay: "0.1s" }}
@@ -889,7 +895,7 @@ export default function ProductsPage() {
                     name="name"
                     value={newProduct.name}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300 auto-complete-"
                     placeholder="Digite o nome do produto"
                     required
                   />
@@ -1036,7 +1042,7 @@ export default function ProductsPage() {
                     value={newProduct.stock}
                     onChange={handleNewProductChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
-                    min="1"
+                    min="0"
                     placeholder="Digite a quantidade em estoque"
                     required
                   />
@@ -1049,16 +1055,18 @@ export default function ProductsPage() {
                   <label className="block text-sm font-semibold text-slate-700">
                     Status
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="status"
-                    value={newProduct.status}
+                    value={newProduct.status || ""}
                     onChange={handleNewProductChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
-                    min="1"
-                    placeholder="Digite o status do produto"
-                    required
-                  />
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-slate-900 hover:border-slate-300"
+                  >
+                    <option value="active">Ativo</option>
+                    <option value="inactive">Inativo</option>
+                    <option value="out_of_stock">Fora de estoque</option>
+                    <option value="archived">Arquivado</option>
+                    <option value="draft">Rascunho</option>
+                  </select>
                 </div>
 
                 <div
@@ -1074,7 +1082,7 @@ export default function ProductsPage() {
                     value={newProduct.discount}
                     onChange={handleNewProductChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
-                    min="1"
+                    min="0"
                     placeholder="Digite o desconto do produto (se houver)"
                   />
                 </div>
@@ -1104,11 +1112,10 @@ export default function ProductsPage() {
 
         {/* Barra de Controles */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${
-            isPageLoaded
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
-          }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${isPageLoaded
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+            }`}
           style={{ transitionDelay: "0.1s" }}
         >
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
@@ -1186,11 +1193,10 @@ export default function ProductsPage() {
 
         {/* Tabela de Produtos Otimizada */}
         <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${
-            isPageLoaded
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
-          }`}
+          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${isPageLoaded
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
+            }`}
           style={{ transitionDelay: "0.2s" }}
         >
           <div className="overflow-x-auto">
@@ -1316,11 +1322,10 @@ export default function ProductsPage() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform duration-300 ${
-                                  expandedProduct === product._id
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
+                                className={`w-4 h-4 transition-transform duration-300 ${expandedProduct === product._id
+                                  ? "rotate-180"
+                                  : ""
+                                  }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1624,9 +1629,8 @@ export default function ProductsPage() {
 
         {/* Footer com informações extras */}
         <div
-          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${
-            isPageLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${isPageLoaded ? "opacity-100" : "opacity-0"
+            }`}
           style={{ transitionDelay: "0.3s" }}
         >
           <p>
