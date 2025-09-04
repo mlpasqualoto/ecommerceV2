@@ -33,7 +33,7 @@ export default function ProductsPage() {
     description: "",
     category: "",
     stock: 0,
-    status: "active",
+    status: "",
     discount: 0,
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -1059,8 +1059,10 @@ export default function ProductsPage() {
                     name="status"
                     value={newProduct.status || ""}
                     onChange={handleNewProductChange}
+                    required
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-slate-900 hover:border-slate-300"
                   >
+                    <option value="" disabled>Selecione</option>
                     <option value="active">Ativo</option>
                     <option value="inactive">Inativo</option>
                     <option value="out_of_stock">Fora de estoque</option>
