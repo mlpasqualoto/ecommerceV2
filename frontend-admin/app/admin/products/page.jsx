@@ -1236,7 +1236,14 @@ export default function ProductsPage() {
                           className="hover:bg-slate-50 transition-all duration-200 group animate-fadeInUp"
                           style={{ animationDelay: `${idx * 0.05}s` }}
                         >
-                          <td className="px-6 py-5">
+                          <td className="px-6 py-5 flex gap-4 items-center">
+                            {product.images?.length > 0 && (
+                              <img
+                                src={typeof product.images[0] === "string" ? product.images[0] : product.images[0].url}
+                                alt={product.name}
+                                className="w-16 h-16 object-cover rounded-md border"
+                              />
+                            )}
                             <div className="flex flex-col">
                               <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate transition-colors duration-200 group-hover:text-blue-600">
                                 {product.name}
@@ -1384,6 +1391,21 @@ export default function ProductsPage() {
                                         <p className="text-sm text-slate-900">
                                           {product.category}
                                         </p>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Imagens
+                                        </label>
+                                        <div className="flex gap-2 pt-1 overflow-x-auto">
+                                          {product.images.map((image, index) => (
+                                            <img
+                                              key={index}
+                                              src={typeof image === "string" ? image : image.url}
+                                              alt={product.name}
+                                              className="w-16 h-16 object-cover rounded-md border"
+                                            />
+                                          ))}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
