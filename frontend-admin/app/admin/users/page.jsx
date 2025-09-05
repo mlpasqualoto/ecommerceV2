@@ -317,15 +317,22 @@ export default function UsersPage() {
       <div className="max-w-[1500px] mx-auto px-8 py-8">
         {/* Modal de Criação */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
-              <div className="px-8 py-6 border-b border-slate-200">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Criar Novo Usuário
-                </h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  Adicione um novo usuário ao sistema
-                </p>
+
+              {/* Cabeçalho fixo */}
+              <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Criar Novo Usuário</h2>
+                  <p className="text-sm text-slate-600 mt-1">Adicione um novo usuário ao sistema</p>
+                </div>
+                <button
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="cursor-pointer bg-red-50 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
+                  aria-label="Fechar"
+                >
+                  ✕
+                </button>
               </div>
 
               <form onSubmit={handleCreateUser} className="p-8 space-y-6">
@@ -444,20 +451,20 @@ export default function UsersPage() {
 
                 <div
                   className="flex justify-end space-x-3 pt-6 animate-slideInUp"
-                  style={{ animationDelay: "0.8s" }}
+                  style={{ animationDelay: "0.7s" }}
                 >
                   <button
                     type="button"
-                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
+                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
                     onClick={() => setIsCreateModalOpen(false)}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105 hover:shadow-xl"
+                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105 hover:shadow-xl"
                   >
-                    Criar Usuário
+                    Criar Pedido
                   </button>
                 </div>
               </form>

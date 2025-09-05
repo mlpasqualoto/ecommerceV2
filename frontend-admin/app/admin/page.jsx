@@ -555,15 +555,22 @@ export default function AdminHome() {
       <div className="max-w-[1500px] mx-auto px-8 py-8">
         {/* Modal de Edição */}
         {editOrder && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
-              <div className="px-8 py-6 border-b border-slate-200">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Editar Pedido
-                </h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  ID: {editOrder._id}
-                </p>
+
+              {/* Cabeçalho fixo */}
+              <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Editar Pedido</h2>
+                  <p className="text-sm text-slate-600 mt-1">ID: {editForm.productId}</p>
+                </div>
+                <button
+                  onClick={closeEditModal}
+                  className="cursor-pointer bg-red-50 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
+                  title="Fechar"
+                >
+                  ✕
+                </button>
               </div>
 
               <form onSubmit={handleEditSubmit} className="p-8 space-y-6">
@@ -645,14 +652,14 @@ export default function AdminHome() {
                 >
                   <button
                     type="button"
-                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
+                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
                     onClick={closeEditModal}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105 hover:shadow-xl"
+                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105 hover:shadow-xl"
                   >
                     Salvar Alterações
                   </button>
@@ -664,21 +671,31 @@ export default function AdminHome() {
 
         {/* Modal de Criação */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
-              <div className="px-8 py-6 border-b border-slate-200">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Criar Novo Pedido
-                </h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  Adicione um novo pedido ao sistema
-                </p>
+
+              {/* Cabeçalho fixo */}
+              <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Criar Novo Pedido</h2>
+                  <p className="text-sm text-slate-600 mt-1">Adicione um novo pedido ao sistema</p>
+                </div>
+                <button
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="cursor-pointer bg-red-50 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
+                  aria-label="Fechar"
+                >
+                  ✕
+                </button>
               </div>
 
               <form onSubmit={handleCreateOrder} className="p-8 space-y-6">
                 {newOrder.items.map((item, idx) => (
                   <div key={idx} className="flex gap-4 items-end">
-                    <div className="flex-1 space-y-2">
+                    <div
+                      className="flex-1 space-y-2 animate-slideInUp"
+                      style={{ animationDelay: "0.1s" }}
+                    >
                       <label className="block text-sm font-semibold text-slate-700">
                         Produto ID
                       </label>
@@ -693,7 +710,10 @@ export default function AdminHome() {
                       />
                     </div>
 
-                    <div className="w-32 space-y-2">
+                    <div
+                      className="w-32 space-y-2 animate-slideInUp"
+                      style={{ animationDelay: "0.1s" }}
+                    >
                       <label className="block text-sm font-semibold text-slate-700">
                         Quantidade
                       </label>
@@ -712,7 +732,8 @@ export default function AdminHome() {
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(idx)}
-                        className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                        className="cursor-pointer px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 animate-slideInUp"
+                        style={{ animationDelay: "0.1s" }}
                       >
                         Remover
                       </button>
@@ -723,22 +744,26 @@ export default function AdminHome() {
                 <button
                   type="button"
                   onClick={handleAddItem}
-                  className="mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
+                  className="cursor-pointer mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 animate-slideInUp"
+                  style={{ animationDelay: "0.2s" }}
                 >
                   + Adicionar Produto
                 </button>
 
-                <div className="flex justify-end space-x-3 pt-6">
+                <div
+                  className="flex justify-end space-x-3 pt-6 animate-slideInUp"
+                  style={{ animationDelay: "0.3s" }}
+                >
                   <button
                     type="button"
-                    className="px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl"
+                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
                     onClick={() => setIsCreateModalOpen(false)}
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl"
+                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all duration-200 shadow-lg transform hover:scale-105 hover:shadow-xl"
                   >
                     Criar Pedido
                   </button>
