@@ -31,6 +31,7 @@ export default function AdminHome() {
   const [statusFilter, setStatusFilter] = useState("paid");
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, orderId: null });
   const router = useRouter();
 
   // Função para recarregar/atualizar os dados
@@ -773,6 +774,37 @@ export default function AdminHome() {
           </div>
         )}
 
+        {/* Modal de Confirmação de Exclusão */}
+        {deleteConfirm.open && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full animate-fadeIn">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                Confirmar Exclusão
+              </h2>
+              <p className="text-slate-600 mb-6">
+                Tem certeza que deseja excluir este pedido? Essa ação não pode ser desfeita.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setDeleteConfirm({ open: false, orderId: null })}
+                  className="cursor-pointer px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeleteOrder(deleteConfirm.orderId);
+                    setDeleteConfirm({ open: false, orderId: null });
+                  }}
+                  className="cursor-pointer px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Barra de Controles */}
         <div
           className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${isPageLoaded
@@ -1010,7 +1042,7 @@ export default function AdminHome() {
 
                               <button
                                 className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
-                                onClick={() => handleDeleteOrder(order._id)}
+                                onClick={() => setDeleteConfirm({ open: true, orderId: order._id })}
                                 title="Deletar pedido"
                               >
                                 <svg
