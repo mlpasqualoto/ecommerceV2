@@ -977,11 +977,20 @@ export default function AdminHome() {
                           <td className="px-6 py-5">
                             {order.items.map((item, idx) => (
                               <div key={idx} className="mb-1">
-                                <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
-                                  {item.name}
-                                </div>
-                                <div className="text-xs text-slate-500 font-mono">
-                                  {item.productId} • Qtd: {item.quantity}
+                                {item.imageUrl && (
+                                  <img
+                                    src={item.imageUrl}
+                                    alt={item.name}
+                                    className="w-10 h-10 object-cover rounded-lg mr-2 inline-block align-middle"
+                                  />
+                                )}
+                                <div className="inline-block align-middle">
+                                  <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
+                                    {item.name}
+                                  </div>
+                                  <div className="text-xs text-slate-500 font-mono">
+                                    {item.productId} • Qtd: {item.quantity}
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -1125,7 +1134,7 @@ export default function AdminHome() {
                                         <ul className="text-sm text-slate-900 space-y-1">
                                           {order.items.map((item, idx) => (
                                             <li key={idx}>
-                                              {item.name} — {item.quantity}x (
+                                              - {item.name} — {item.quantity}x (
                                               {formatCurrencyBRL(item.price)})
                                             </li>
                                           ))}
