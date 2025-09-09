@@ -33,6 +33,16 @@ const orderSchema = new mongoose.Schema({
                 required: true,
                 min: 1
             },
+            originalPrice: {
+                type: Number,
+                required: true,
+                min: 0
+            },
+            discount: {
+                type: Number,
+                required: true,
+                min: 0
+            },
             price: {
                 type: Number,
                 required: true,

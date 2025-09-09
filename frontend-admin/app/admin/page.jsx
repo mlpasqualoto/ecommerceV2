@@ -1136,6 +1136,9 @@ export default function AdminHome() {
                                             <li key={idx}>
                                               - {item.name} — {item.quantity}x (
                                               {formatCurrencyBRL(item.price)})
+                                              <span className="bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full text-[11px] ml-1">
+                                                -{item.discount}%
+                                              </span>
                                             </li>
                                           ))}
                                         </ul>

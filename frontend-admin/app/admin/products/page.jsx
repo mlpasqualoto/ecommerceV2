@@ -827,7 +827,7 @@ export default function ProductsPage() {
                   style={{ animationDelay: "0.7s" }}
                 >
                   <label className="block text-sm font-semibold text-slate-700">
-                    Desconto (R$)
+                    Desconto (%)
                   </label>
                   <input
                     type="number"
@@ -836,6 +836,7 @@ export default function ProductsPage() {
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="0"
+                    max="100"
                     step="0.01"
                   />
                 </div>
@@ -1077,7 +1078,7 @@ export default function ProductsPage() {
                   style={{ animationDelay: "0.7s" }}
                 >
                   <label className="block text-sm font-semibold text-slate-700">
-                    Desconto
+                    Desconto (%)
                   </label>
                   <input
                     type="number"
@@ -1086,6 +1087,7 @@ export default function ProductsPage() {
                     onChange={handleNewProductChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="0"
+                    max="100"
                     placeholder="Digite o desconto do produto (se houver)"
                   />
                 </div>
@@ -1287,9 +1289,28 @@ export default function ProductsPage() {
                           </td>
 
                           <td className="px-6 py-5 text-center">
-                            <div className="text-sm font-semibold text-slate-900 transition-colors duration-200 group-hover:text-emerald-600">
-                              {formatCurrencyBRL(product.price)}
-                            </div>
+                            {product.discount && product.discount > 0 ? (
+                              <div className="flex flex-col items-center">
+                                {/* Preço com desconto (principal) */}
+                                <div className="text-[15px] font-bold text-slate-900 transition-colors duration-200 group-hover:text-emerald-600">
+                                  {formatCurrencyBRL(product.price - (product.price * (product.discount / 100)))}
+                                </div>
+
+                                {/* Preço original + badge de desconto */}
+                                <div className="flex items-center gap-2 mt-1 text-xs">
+                                  <span className="text-slate-400 line-through">
+                                    {formatCurrencyBRL(product.price)}
+                                  </span>
+                                  <span className="bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full text-[11px]">
+                                    -{product.discount}%
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-[15px] font-bold text-slate-900 transition-colors duration-200 group-hover:text-emerald-600">
+                                {formatCurrencyBRL(product.price)}
+                              </div>
+                            )}
                           </td>
 
                           <td className="px-6 py-5 text-center">
@@ -1461,21 +1482,34 @@ export default function ProductsPage() {
                                       </div>
                                       <div>
                                         <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                                          Preço
+                                          Desconto
                                         </label>
-                                        <p className="text-sm text-slate-900 font-semibold">
-                                          {formatCurrencyBRL(product.price)}
-                                        </p>
+                                        {product.discount && product.discount > 0 ? (
+                                          <p className="text-sm text-slate-900 font-semibold">
+                                            {`${product.discount || 0}%`}
+                                          </p>
+                                        ) : (
+                                          <p className="text-sm text-slate-500">
+                                            Sem desconto
+                                          </p>
+                                        )}
                                       </div>
                                       <div>
                                         <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-                                          Desconto
+                                          Preço
                                         </label>
-                                        <p className="text-sm text-slate-900">
-                                          {formatCurrencyBRL(
-                                            product.discount || 0
-                                          )}
-                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-sm text-slate-900 font-semibold">
+                                            {formatCurrencyBRL(product.price * (1 - (product.discount || 0) / 100))}
+                                          </p>
+                                          <p>
+                                            {product.discount && product.discount > 0 ? (
+                                              <span className="text-sm text-slate-500 line-through mr-2">
+                                                {formatCurrencyBRL(product.price)}
+                                              </span>
+                                            ) : null}
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -1801,6 +1835,6 @@ export default function ProductsPage() {
           animation: fadeInRight 0.6s ease-out forwards;
         }
       `}</style>
-    </div>
+    </div >
   );
 }

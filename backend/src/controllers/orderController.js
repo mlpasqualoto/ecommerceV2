@@ -22,12 +22,24 @@ export const createOrder = async (req, res) => {
                 if (!product) {
                     throw new Error(`Produto com ID ${item.productId} não encontrado`);
                 }
+
+                const originalPrice = product.price;
+
+                // Aplica o desconto, se houver
+                const price = product.discount > 0
+                    ? product.price - (product.price * product.discount / 100)
+                    : product.price;
+
                 return {
                     productId: product._id,
                     name: product.name,
                     quantity: item.quantity,
-                    price: product.price,
-                    imageUrl: product.images && product.images.length > 0 ? product.images[0].url : ""
+                    originalPrice,
+                    discount: product.discount,
+                    price,
+                    imageUrl: product.images && product.images.length > 0
+                        ? product.images[0].url
+                        : ""
                 };
             })
         );
@@ -39,7 +51,7 @@ export const createOrder = async (req, res) => {
         // Cria e salva o pedido
         const order = new Order({
             userId: user._id,
-            userName: user.userName, // salva no banco també
+            userName: user.userName, // salva no banco também
             name: user.name,
             items,
             totalAmount,
