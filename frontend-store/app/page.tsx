@@ -4,12 +4,44 @@ import Image from "next/image";
 import Link from "next/link";
 import { cldUrl } from "@/lib/cld.js";
 import { fetchProducts } from "@/lib/api.js";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Star, Truck, Shield, Zap, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Slides do carousel principal
+  const heroSlides = [
+    {
+      id: 1,
+      title: "Coleção Verão 2025",
+      subtitle: "Até 50% OFF",
+      description: "Os melhores produtos para você arrasar no verão",
+      buttonText: "Ver Coleção",
+      image: "/api/placeholder/1200/600",
+      gradient: "from-orange-500 to-pink-600"
+    },
+    {
+      id: 2,
+      title: "Tecnologia de Ponta",
+      subtitle: "Últimos Lançamentos",
+      description: "Descubra os produtos mais inovadores do mercado",
+      buttonText: "Explorar",
+      image: "/api/placeholder/1200/600",
+      gradient: "from-blue-600 to-purple-700"
+    },
+    {
+      id: 3,
+      title: "Frete Grátis",
+      subtitle: "Para Todo Brasil",
+      description: "Em compras acima de R$ 200,00",
+      buttonText: "Aproveitar",
+      image: "/api/placeholder/1200/600",
+      gradient: "from-green-500 to-teal-600"
+    }
+  ];
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -25,7 +57,7 @@ export default function Home() {
 
         const allProducts = data.products || [];
         setProducts(allProducts);
-        setFeaturedProducts(allProducts.slice(0, 4));
+        setFeaturedProducts(allProducts.slice(0, 8));
       } catch (err) {
         console.error("Erro ao buscar produtos:", err);
       } finally {
@@ -35,6 +67,23 @@ export default function Home() {
 
     loadProducts();
   }, []);
+
+  // Auto-slide do carousel
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  };
 
   if (loading) {
     return (
@@ -53,51 +102,72 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}
-        ></div>
-
-        <div className="relative container mx-auto px-6 py-24 lg:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 tracking-tight">
-              Sua <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Loja Online</span>
-            </h1>
-            <p className="text-xl lg:text-2xl text-blue-100 mb-10 leading-relaxed">
-              Descubra produtos incríveis com qualidade excepcional e entrega rápida
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="group bg-white text-slate-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-slate-100 transition-all duration-300 flex items-center gap-2 shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
-                Ver Produtos
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              <button className="border-2 border-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/10 transition-all duration-300 backdrop-blur-sm">
-                Saber Mais
-              </button>
+    <div className="min-h-screen">
+      {/* Hero Carousel */}
+      <section className="relative h-[500px] md:h-[600px] overflow-hidden">
+        {heroSlides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-transform duration-500 ease-in-out ${index === currentSlide ? 'translate-x-0' : index < currentSlide ? '-translate-x-full' : 'translate-x-full'
+              }`}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-r ${slide.gradient}`}>
+              <div className="absolute inset-0 bg-black/20"></div>
+              <div className="container mx-auto px-4 h-full flex items-center">
+                <div className="max-w-2xl text-white">
+                  <h2 className="text-sm md:text-base font-medium mb-2 text-blue-200">
+                    {slide.subtitle}
+                  </h2>
+                  <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
+                    {slide.title}
+                  </h1>
+                  <p className="text-lg md:text-xl mb-8 text-blue-100 leading-relaxed">
+                    {slide.description}
+                  </p>
+                  <button className="bg-white text-slate-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-slate-100 transition-all duration-300 flex items-center gap-2 shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                    {slide.buttonText}
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ))}
 
-        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-slate-50 to-transparent"></div>
+        {/* Carousel Controls */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+        >
+          <ChevronLeft className="w-6 h-6 text-white" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+        >
+          <ChevronRight className="w-6 h-6 text-white" />
+        </button>
+
+        {/* Dots Indicator */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2">
+          {heroSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition-colors ${index === currentSlide ? 'bg-white' : 'bg-white/50'
+                }`}
+            />
+          ))}
+        </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-6">
+      <section className="py-16 px-4 bg-slate-50">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center group cursor-pointer">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
+                <Truck className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-2">Entrega Rápida</h3>
               <p className="text-slate-600">Receba seus produtos em casa com agilidade e segurança</p>
@@ -105,9 +175,7 @@ export default function Home() {
 
             <div className="text-center group cursor-pointer">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
+                <Shield className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-2">Compra Segura</h3>
               <p className="text-slate-600">Suas informações protegidas com a melhor tecnologia</p>
@@ -115,9 +183,7 @@ export default function Home() {
 
             <div className="text-center group cursor-pointer">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+                <Zap className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-2">Qualidade Premium</h3>
               <p className="text-slate-600">Produtos selecionados com os melhores padrões de qualidade</p>
@@ -128,7 +194,7 @@ export default function Home() {
 
       {/* Featured Products */}
       {featuredProducts.length > 0 && (
-        <section className="py-20 px-6 bg-slate-50">
+        <section className="py-20 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-4">
@@ -139,9 +205,9 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product, index) => (
-                <a
+                <Link
                   key={product.id}
                   href={`/product/${product.id}`}
                   className="group bg-white rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-slate-100"
@@ -189,9 +255,7 @@ export default function Home() {
                     <div className="flex items-center gap-2">
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (
-                          <svg key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
+                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                         ))}
                       </div>
                       <span className="text-sm text-slate-500">(4.8)</span>
@@ -199,23 +263,59 @@ export default function Home() {
 
                     <div className="flex items-center justify-between">
                       <div className="text-2xl font-bold text-slate-800">
-                        R$ {product.price.toFixed(2)}
+                        R$ {product.price?.toFixed(2) || '0.00'}
                       </div>
                       <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
                         Comprar
                       </button>
                     </div>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </div>
         </section>
       )}
 
+      {/* Categories Section */}
+      <section className="py-20 px-4 bg-slate-50">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-800 mb-4">Explore por Categoria</h2>
+            <p className="text-xl text-slate-600">Encontre exatamente o que você está procurando</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { name: "Eletrônicos", icon: "📱", color: "from-blue-500 to-cyan-500", items: "150+ produtos" },
+              { name: "Moda", icon: "👕", color: "from-pink-500 to-rose-500", items: "200+ produtos" },
+              { name: "Casa & Jardim", icon: "🏡", color: "from-green-500 to-emerald-500", items: "120+ produtos" },
+              { name: "Esportes", icon: "⚽", color: "from-orange-500 to-amber-500", items: "80+ produtos" },
+              { name: "Beleza", icon: "💄", color: "from-purple-500 to-violet-500", items: "90+ produtos" },
+              { name: "Livros", icon: "📚", color: "from-indigo-500 to-purple-500", items: "300+ produtos" },
+              { name: "Brinquedos", icon: "🧸", color: "from-yellow-500 to-orange-500", items: "75+ produtos" },
+              { name: "Automotivo", icon: "🚗", color: "from-gray-600 to-slate-600", items: "60+ produtos" }
+            ].map((category, index) => (
+              <Link
+                key={category.name}
+                href={`/categoria/${category.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
+                className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 overflow-hidden"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                <div className="relative z-10">
+                  <div className="text-4xl mb-3">{category.icon}</div>
+                  <h3 className="text-lg font-semibold text-slate-800 mb-1">{category.name}</h3>
+                  <p className="text-sm text-slate-500">{category.items}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* All Products */}
-      {products.length > 4 && (
-        <section className="py-20 px-6">
+      {products.length > 8 && (
+        <section className="py-20 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-slate-800 mb-4">Todos os Produtos</h2>
@@ -223,7 +323,7 @@ export default function Home() {
             </div>
 
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {products.slice(4).map((product, index) => (
+              {products.slice(8).map((product, index) => (
                 <Link
                   key={product.id}
                   href={`/product/${product.id}`}
@@ -252,47 +352,73 @@ export default function Home() {
                       {product.name}
                     </h3>
                     <div className="text-lg font-bold text-slate-800">
-                      R$ {product.price.toFixed(2)}
+                      R$ {product.price?.toFixed(2) || '0.00'}
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
+
+            <div className="text-center mt-12">
+              <Link
+                href="/produtos"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              >
+                Ver Todos os Produtos
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
         </section>
       )}
 
-      {/* Newsletter Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-slate-900 to-slate-800 relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}
-        ></div>
+      {/* Testimonials Section */}
+      <section className="py-20 px-4 bg-slate-50">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-800 mb-4">O que nossos clientes dizem</h2>
+            <p className="text-xl text-slate-600">Avaliações reais de quem já comprou conosco</p>
+          </div>
 
-        <div className="container mx-auto text-center relative">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Fique por dentro das <span className="text-blue-400">novidades</span>
-          </h2>
-          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-            Seja o primeiro a saber sobre lançamentos, promoções exclusivas e ofertas especiais
-          </p>
-
-          <div className="max-w-md mx-auto">
-            <div className="flex gap-4">
-              <input
-                type="email"
-                placeholder="Seu melhor e-mail"
-                className="flex-1 px-6 py-4 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-blue-400 text-slate-800"
-              />
-              <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-semibold hover:shadow-lg transition-all duration-300 whitespace-nowrap">
-                Inscrever-se
-              </button>
-            </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Maria Silva",
+                rating: 5,
+                comment: "Excelente atendimento e produtos de qualidade. Recomendo!",
+                avatar: "👩‍💼"
+              },
+              {
+                name: "João Santos",
+                rating: 5,
+                comment: "Entrega rápida e produto exatamente como descrito. Muito satisfeito!",
+                avatar: "👨‍💻"
+              },
+              {
+                name: "Ana Costa",
+                rating: 5,
+                comment: "Melhor loja online que já comprei. Preços justos e qualidade excepcional.",
+                avatar: "👩‍🎨"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg">
+                <div className="flex items-center mb-4">
+                  <div className="text-3xl mr-3">{testimonial.avatar}</div>
+                  <div>
+                    <h4 className="font-semibold text-slate-800">{testimonial.name}</h4>
+                    <div className="flex">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-slate-600 italic">"{testimonial.comment}"</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
