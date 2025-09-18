@@ -1,12 +1,16 @@
-import Order from "../models/Order.js";
-import User from "../models/User.js";
-import Product from "../models/Product.js";
-import { isValidDate } from "../utils/utils.js";
+import Order from "../models/Order";
+import User from "../models/User";
+import Product from "../models/Product";
+import { isValidDate } from "../utils/utils";
+import { Request, Response } from "express";
 
 // Criar um novo pedido (user)
-export const createOrder = async (req, res) => {
+export const createOrder = async (req: Request, res: Response) => {
     try {
         // Pega o ID do usuário autenticado (via token)
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: "Usuário não autenticado" });
+        }
         const userId = req.user.id;
 
         // Busca o usuário no banco para pegar o userName
@@ -17,7 +21,7 @@ export const createOrder = async (req, res) => {
 
         // Monta os items preenchendo name e price do produto
         const items = await Promise.all(
-            req.body.items.map(async (item) => {
+            req.body.items.map(async (item: { productId: string; quantity: number; }) => {
                 const product = await Product.findById(item.productId);
                 if (!product) {
                     throw new Error(`Produto com ID ${item.productId} não encontrado`);
@@ -66,14 +70,19 @@ export const createOrder = async (req, res) => {
             order: savedOrder
         });
     } catch (error) {
-        res.status(400).json({ message: "Erro ao criar pedido", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(400).json({ message: "Erro ao criar pedido", error: errorMessage });
     }
 };
 
 // Listar todos os pedidos do usuário (user)
-export const getOrders = async (req, res) => {
+export const getOrders = async (req: Request, res: Response) => {
     try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: "Usuário não autenticado" });
+        }
         const orders = await Order.find({ userId: req.user.id });
+
         res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
     } catch (error) {
         res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
@@ -81,8 +90,12 @@ export const getOrders = async (req, res) => {
 };
 
 // Obter um pedido por ID (admin ou user)
-export const getOrderById = async (req, res) => {
+export const getOrderById = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.id) {
+            return res.status(400).json({ message: "ID do pedido não fornecido" });
+        }
+
         const order = await Order.findById(req.params.id);
 
         if (!order) {
@@ -90,6 +103,10 @@ export const getOrderById = async (req, res) => {
         }
 
         // Se não for admin e o pedido não for do usuário logado, bloqueia
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: "Usuário não autenticado" });
+        }
+
         if (req.user.role !== "admin" && order.userId.toString() !== req.user.id) {
             return res.status(403).json({ message: "Acesso negado" });
         }
@@ -101,8 +118,11 @@ export const getOrderById = async (req, res) => {
 };
 
 // Obter pedidos pelo status (user)
-export const getOrdersByStatus = async (req, res) => {
+export const getOrdersByStatus = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.status) {
+            return res.status(400).json({ message: "Status não fornecido" });
+        }
         const { status } = req.params;
 
         const allowedStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
@@ -110,7 +130,11 @@ export const getOrdersByStatus = async (req, res) => {
             return res.status(400).json({ message: "Status inválido" });
         }
 
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: "Usuário não autenticado" });
+        }
         const orders = await Order.find({ status, userId: req.user.id });
+
         if (orders.length === 0) {
             return res.status(404).json({ message: "Nenhum pedido encontrado com o status especificado" });
         }
@@ -122,8 +146,11 @@ export const getOrdersByStatus = async (req, res) => {
 };
 
 // Obter pedidos por status (somente admin - todos os pedidos)
-export const getAllOrdersByStatus = async (req, res) => {
+export const getAllOrdersByStatus = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.status) {
+            return res.status(400).json({ message: "Status não fornecido" });
+        }
         const { status } = req.params;
 
         const allowedStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
@@ -144,8 +171,11 @@ export const getAllOrdersByStatus = async (req, res) => {
 };
 
 // Obter pedidos por data (user)
-export const getOrdersByDate = async (req, res) => {
+export const getOrdersByDate = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.date) {
+            return res.status(400).json({ message: "Data não fornecida" });
+        }
         const { date } = req.params;
 
         // Valida a data
@@ -153,7 +183,11 @@ export const getOrdersByDate = async (req, res) => {
             return res.status(400).json({ message: "Data inválida" });
         }
 
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: "Usuário não autenticado" })
+        }
         const orders = await Order.find({ userId: req.user.id, createdAt: { $gte: new Date(date), $lt: new Date(date + "T23:59:59") } });
+
         if (orders.length === 0) {
             return res.status(404).json({ message: "Nenhum pedido encontrado com a data especificada" });
         }
@@ -165,8 +199,11 @@ export const getOrdersByDate = async (req, res) => {
 };
 
 // Obter pedidos por data (somente admin - todos os pedidos)
-export const getAllOrdersByDate = async (req, res) => {
+export const getAllOrdersByDate = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.date) {
+            return res.status(400).json({ message: "Data não fornecida" })
+        }
         const { date } = req.params;
 
         // Valida a data
@@ -187,8 +224,11 @@ export const getAllOrdersByDate = async (req, res) => {
 };
 
 // Atualizar um pedido (somente admin)
-export const updateOrder = async (req, res) => {
+export const updateOrder = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.body) {
+            return res.status(400).json({ message: "Id ou alterações não fornecidas" })
+        }
         const updatedOrder = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
         if (!updatedOrder) {
@@ -202,8 +242,11 @@ export const updateOrder = async (req, res) => {
 };
 
 // Pagar um pedido (somente admin)
-export const payOrder = async (req, res) => {
+export const payOrder = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.id) {
+            return res.status(400).json({ message: "Id não fornecido" });
+        }
         const paidOrder = await Order.findByIdAndUpdate(req.params.id, { status: "paid" }, { new: true });
 
         if (!paidOrder) {
@@ -217,8 +260,11 @@ export const payOrder = async (req, res) => {
 };
 
 // Enviar um pedido (somente admin)
-export const shipOrder = async (req, res) => {
+export const shipOrder = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.id) {
+            return res.status(400).json({ message: "Id não fornecido" });
+        }
         const shippedOrder = await Order.findByIdAndUpdate(req.params.id, { status: "shipped" }, { new: true });
 
         if (!shippedOrder) {
@@ -232,14 +278,20 @@ export const shipOrder = async (req, res) => {
 };
 
 // Cancelar um pedido (admin ou user)
-export const cancelOrder = async (req, res) => {
+export const cancelOrder = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.id) {
+            return res.status(400).json({ message: "Id não fornecido" });
+        }
         const order = await Order.findById(req.params.id);
 
         if (!order) {
             return res.status(404).json({ message: "Pedido não encontrado" });
         }
 
+        if (!req.user || !req.user.role || !req.user.id) {
+            return res.status(401).json({ message: "Usuário não autenticado" });
+        }
         if (req.user.role !== "admin" && order.userId.toString() !== req.user.id) {
             return res.status(403).json({ message: "Acesso negado" });
         }
@@ -254,8 +306,11 @@ export const cancelOrder = async (req, res) => {
 };
 
 // Deletar um pedido (somente admin)
-export const deleteOrder = async (req, res) => {
+export const deleteOrder = async (req: Request, res: Response) => {
     try {
+        if (!req.params || !req.params.id) {
+            return res.status(400).json({ message: "Id não fornecido" });
+        }
         const deletedOrder = await Order.findByIdAndDelete(req.params.id);
 
         if (!deletedOrder) {

@@ -1,5 +1,7 @@
-export const authorizeRole = (requiredRole) => {
-    return (req, res, next) => {
+import express from "express";
+
+export const authorizeRole = (requiredRole: string) => {
+    return (req: express.Request, res: express.Response, next: express.NextFunction) => {
         if (!req.user) {
             return res.status(401).json({ message: "Não autenticado" });
         }

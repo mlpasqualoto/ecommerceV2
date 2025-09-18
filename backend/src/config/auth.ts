@@ -9,7 +9,7 @@ export const JWT_EXPIRES = "1h";
 const SALT_ROUNDS = 10;
 
 // Gera token
-export const generateToken = (user) => {
+export const generateToken = (user: { _id: string; userName: string }) => {
     return jwt.sign(
         { id: user._id, userName: user.userName },
         JWT_SECRET,
@@ -18,7 +18,7 @@ export const generateToken = (user) => {
 };
 
 // Verifica token
-export const verifyToken = (token) => {
+export const verifyToken = (token: string) => {
     try {
         return jwt.verify(token, JWT_SECRET);
     } catch (err) {
@@ -27,11 +27,11 @@ export const verifyToken = (token) => {
 };
 
 // Hash de senha
-export const hashPassword = async (password) => {
+export const hashPassword = async (password: string) => {
     return await bcrypt.hash(password, SALT_ROUNDS);
 };
 
 // Comparar senha
-export const comparePassword = async (password, hash) => {
+export const comparePassword = async (password: string, hash: string) => {
     return await bcrypt.compare(password, hash);
 };

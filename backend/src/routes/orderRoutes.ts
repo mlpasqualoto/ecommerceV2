@@ -12,11 +12,11 @@ import {
   shipOrder,
   cancelOrder,
   deleteOrder
-} from "../controllers/orderController.js";
-import authenticateToken from "../middlewares/authMiddleware.js";
-import { authorizeRole } from "../middlewares/authRoleMiddleware.js"
+} from "../controllers/orderController";
+import authenticateToken from "../middlewares/authMiddleware";
+import { authorizeRole } from "../middlewares/authRoleMiddleware"
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // Criar um novo pedido
 router.post("/create", authenticateToken, createOrder);

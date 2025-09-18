@@ -1,6 +1,17 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const usuarioSchema = new mongoose.Schema({
+export interface IUser extends Document {
+    userName: string;
+    password: string;
+    name: string;
+    email: string;
+    number: number;
+    role: "user" | "admin";
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+const usuarioSchema = new Schema<IUser>({
     userName: {
         type: String,
         required: true,
@@ -39,4 +50,4 @@ const usuarioSchema = new mongoose.Schema({
     timestamps: true // cria automaticamente createdAt e updatedAt
 });
 
-export default mongoose.model("User", usuarioSchema);
+export default mongoose.model<IUser>("User", usuarioSchema);

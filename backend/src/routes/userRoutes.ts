@@ -12,11 +12,11 @@ import {
   updateUser,
   updatePassword,
   deleteUser,
-} from "../controllers/userController.js";
-import authenticateToken from "../middlewares/authMiddleware.js";
-import { authorizeRole } from "../middlewares/authRoleMiddleware.js";
+} from "../controllers/userController";
+import authenticateToken from "../middlewares/authMiddleware";
+import { authorizeRole } from "../middlewares/authRoleMiddleware";
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // Rota para obter todos os usuários
 router.get("/", authenticateToken, authorizeRole("admin"), getUsers);
@@ -37,12 +37,7 @@ router.get("/role/:role", authenticateToken, authorizeRole("admin"), getUsersByR
 router.post("/register", createUser);
 
 // Rota protegida para criação de usuário por admin
-router.post(
-  "/admin/register",
-  authenticateToken,
-  authorizeRole("admin"),
-  createUserByAdmin
-);
+router.post("/admin/register", authenticateToken, authorizeRole("admin"), createUserByAdmin);
 
 // Rota para login de usuário
 router.post("/login", loginUser);
@@ -57,11 +52,6 @@ router.put("/update", authenticateToken, updateUser);
 router.put("/update-password", authenticateToken, updatePassword);
 
 // Rota para deletar usuário
-router.delete(
-  "/:id/delete",
-  authenticateToken,
-  authorizeRole("admin"),
-  deleteUser
-);
+router.delete("/:id/delete", authenticateToken, authorizeRole("admin"), deleteUser);
 
 export default router;

@@ -7,14 +7,14 @@ import {
   updateProduct,
   updateProductStatus,
   deleteProduct
-} from "../controllers/productController.js";
-import authenticateToken from "../middlewares/authMiddleware.js";
-import { authorizeRole } from "../middlewares/authRoleMiddleware.js";
+} from "../controllers/productController";
+import authenticateToken from "../middlewares/authMiddleware";
+import { authorizeRole } from "../middlewares/authRoleMiddleware";
 import multer from "multer";
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload: multer.Multer = multer({ storage: multer.memoryStorage() });
 
 // Criar novo produto
 router.post("/create", authenticateToken, authorizeRole("admin"), upload.array("images", 5), createProduct);
