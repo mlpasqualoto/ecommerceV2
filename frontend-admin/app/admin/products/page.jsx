@@ -239,7 +239,9 @@ export default function ProductsPage() {
     const loadProducts = async () => {
       setLoading(true);
       try {
+        console.log("Buscando produtos com status:", statusFilter);
         const data = await fetchProducts(statusFilter);
+        console.log("Produtos encontrados:", data);
 
         if (
           data?.message?.toLowerCase().includes("não autenticado") ||

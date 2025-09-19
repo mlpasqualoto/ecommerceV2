@@ -1,4 +1,3 @@
-
 import Product from "../models/Product";
 import cloudinary from "../config/cloudinary";
 import { Request, Response } from "express";
@@ -113,25 +112,26 @@ export const getProducts = async (req: Request, res: Response) => {
 
   try {
     if (!req.query || Object.keys(req.query).length === 0) {
-      const { category, brand, minPrice, maxPrice, status } = req.query;
-
-      const filter: { [key: string]: any } = {};
-
-      if (category) filter.category = category;
-      if (brand) filter.brand = brand;
-      if (status) filter.status = status;
-      if (minPrice || maxPrice) {
-        filter.price = {};
-        if (minPrice) filter.price.$gte = Number(minPrice);
-        if (maxPrice) filter.price.$lte = Number(maxPrice);
-      }
-
-      const products = await Product.find(filter);
-      res.json({
-        message: "Produtos encontrados com sucesso",
-        products: products,
-      });
+      return res.status(400).json({ message: "Nenhum filtro fornecido" });
     }
+    const { category, brand, minPrice, maxPrice, status } = req.query;
+
+    const filter: { [key: string]: any } = {};
+
+    if (category) filter.category = category;
+    if (brand) filter.brand = brand;
+    if (status) filter.status = status;
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
+
+    const products = await Product.find(filter);
+    res.json({
+      message: "Produtos encontrados com sucesso",
+      products: products,
+    });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     res.status(500).json({ message: "Erro ao listar produtos", error: errorMessage });
