@@ -4,6 +4,14 @@ import Product from "../models/Product";
 import { isValidDate } from "../utils/utils";
 import { Request, Response } from "express";
 
+declare global {
+    namespace Express {
+        interface Request {
+            files?: { [fieldname: string]: Express.Multer.File[] } | Express.Multer.File[];
+        }
+    }
+}
+
 // Criar um novo pedido (user)
 export const createOrder = async (req: Request, res: Response) => {
     try {
@@ -20,9 +28,15 @@ export const createOrder = async (req: Request, res: Response) => {
         }
 
         // Monta os items preenchendo name e price do produto
+        let filesArray: Express.Multer.File[] = [];
+        if (Array.isArray(req.files)) {
+            filesArray = req.files;
+        } else if (req.files && typeof req.files === 'object') {
+            filesArray = Object.values(req.files).flat();
+        }
         const items = await Promise.all(
             req.body.items.map(async (item: { productId: string; quantity: number; }) => {
-                const product = await Product.findById(item.productId);
+                const product: any = await Product.findById(item.productId);
                 if (!product) {
                     throw new Error(`Produto com ID ${item.productId} não encontrado`);
                 }
@@ -85,7 +99,8 @@ export const getOrders = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
     } catch (error) {
-        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: errorMessage });
     }
 };
 
@@ -113,7 +128,8 @@ export const getOrderById = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedido encontrado com sucesso", order: order });
     } catch (error) {
-        res.status(500).json({ message: "Erro ao buscar pedido", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ message: "Erro ao buscar pedido", error: errorMessage });
     }
 };
 
@@ -141,7 +157,8 @@ export const getOrdersByStatus = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
     } catch (error) {
-        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: errorMessage });
     }
 };
 
@@ -166,7 +183,8 @@ export const getAllOrdersByStatus = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedidos encontrados com sucesso", orders });
     } catch (error) {
-        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: errorMessage });
     }
 };
 
@@ -194,7 +212,8 @@ export const getOrdersByDate = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
     } catch (error) {
-        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: errorMessage });
     }
 };
 
@@ -219,7 +238,8 @@ export const getAllOrdersByDate = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedidos encontrados com sucesso", orders: orders });
     } catch (error) {
-        res.status(500).json({ message: "Erro ao buscar pedidos", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ message: "Erro ao buscar pedidos", error: errorMessage });
     }
 };
 
@@ -237,7 +257,8 @@ export const updateOrder = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedido atualizado com sucesso", order: updatedOrder });
     } catch (error) {
-        res.status(400).json({ message: "Erro ao atualizar pedido", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(400).json({ message: "Erro ao atualizar pedido", error: errorMessage });
     }
 };
 
@@ -255,7 +276,8 @@ export const payOrder = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedido pago com sucesso", order: paidOrder });
     } catch (error) {
-        res.status(400).json({ message: "Erro ao pagar pedido", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(400).json({ message: "Erro ao pagar pedido", error: errorMessage });
     }
 };
 
@@ -273,7 +295,8 @@ export const shipOrder = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedido enviado com sucesso", order: shippedOrder });
     } catch (error) {
-        res.status(400).json({ message: "Erro ao enviar pedido", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(400).json({ message: "Erro ao enviar pedido", error: errorMessage });
     }
 };
 
@@ -301,7 +324,8 @@ export const cancelOrder = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedido cancelado com sucesso", order: order });
     } catch (error) {
-        res.status(400).json({ message: "Erro ao cancelar pedido", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(400).json({ message: "Erro ao cancelar pedido", error: errorMessage });
     }
 };
 
@@ -319,6 +343,7 @@ export const deleteOrder = async (req: Request, res: Response) => {
 
         res.json({ message: "Pedido deletado com sucesso" });
     } catch (error) {
-        res.status(500).json({ message: "Erro ao deletar pedido", error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ message: "Erro ao deletar pedido", error: errorMessage });
     }
 };
