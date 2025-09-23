@@ -2,6 +2,7 @@ import Order from "../models/Order";
 import User from "../models/User";
 import Product from "../models/Product";
 import { OrderServiceResult } from "../controllers/orderController";
+import { isValidDate } from "../utils/utils";
 
 export async function createOrderService(userId: string, items: any[]): Promise<OrderServiceResult> {
     // Busca o usuário no banco para pegar o userName
@@ -103,4 +104,105 @@ export async function getOrdersByStatusService(status: string, user: { id: strin
     }
 
     return { status: 200, message: "Pedidos encontrados com sucesso", orders: orders };
+}
+
+export async function getAllOrdersByStatusService(status: string): Promise<OrderServiceResult> {
+    // Valida o status
+    const allowedStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
+    if (!allowedStatuses.includes(status)) {
+        return { status: 400, message: "Status inválido" };
+    }
+
+    // Busca todos os pedidos com o status informado
+    const orders = await Order.find({ status });
+    if (orders.length === 0) {
+        return { status: 404, message: "Nenhum pedido encontrado com o status especificado" };
+    }
+
+    return { status: 200, message: "Pedidos encontrados com sucesso", orders: orders };
+}
+
+export async function getOrdersByDateService(date: string, user: { id: string } | undefined): Promise<OrderServiceResult> {
+    // Valida a data
+    if (!isValidDate(date)) {
+        return { status: 400, message: "Data inválida" };
+    }
+
+    if (!user || !user.id) {
+        return { status: 401, message: "Usuário não autenticado" };
+    }
+    const orders = await Order.find({ userId: user.id, createdAt: { $gte: new Date(date), $lt: new Date(date + "T23:59:59") } });
+
+    if (orders.length === 0) {
+        return { status: 404, message: "Nenhum pedido encontrado com a data especificada" };
+    }
+
+    return { status: 200, message: "Pedidos encontrados com sucesso", orders: orders };
+}
+
+export async function getAllOrdersByDateService(date: string): Promise<OrderServiceResult> {
+    // Valida a data
+    if (!isValidDate(date)) {
+        return { status: 400, message: "Data inválida" };
+    }
+
+    // Busca todos os pedidos com a data informada
+    const orders = await Order.find({ createdAt: { $gte: new Date(date), $lt: new Date(date + "T23:59:59") } });
+    if (orders.length === 0) {
+        return { status: 404, message: "Nenhum pedido encontrado com a data especificada" };
+    }
+
+    return { status: 200, message: "Pedidos encontrados com sucesso", orders: orders };
+}
+
+export async function updateOrderService(orderId: string, updates: any): Promise<OrderServiceResult> {
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, updates, { new: true });
+    if (!updatedOrder) {
+        return { status: 404, message: "Pedido não encontrado" };
+    }
+
+    return { status: 200, message: "Pedido atualizado com sucesso", order: updatedOrder };
+}
+
+export async function payOrderService(orderId: string): Promise<OrderServiceResult> {
+    const paidOrder = await Order.findByIdAndUpdate(orderId, { status: "paid" }, { new: true });
+    if (!paidOrder) {
+        return { status: 404, message: "Pedido não encontrado" };
+    }
+
+    return { status: 200, message: "Pedido pago com sucesso", order: paidOrder };
+}
+
+export async function shipOrderService(orderId: string): Promise<OrderServiceResult> {
+    const shippedOrder = await Order.findByIdAndUpdate(orderId, { status: "shipped" }, { new: true });
+    if (!shippedOrder) {
+        return { status: 404, message: "Pedido não encontrado" };
+    }
+
+    return { status: 200, message: "Pedido enviado com sucesso", order: shippedOrder };
+}
+
+export async function cancelOrderService(orderId: string, user: { id: string; role: string }): Promise<OrderServiceResult> {
+    // Primeiro busca o pedido para validar permissões
+    const order = await Order.findById(orderId);
+    if (!order) {
+        return { status: 404, message: "Pedido não encontrado" };
+    }
+
+    if (user.role !== "admin" && order.userId.toString() !== user.id) {
+        return { status: 403, message: "Acesso negado" };
+    }
+
+    // Atualiza o status diretamente
+    const cancelledOrder = await Order.findByIdAndUpdate(orderId, { status: "cancelled" }, { new: true });
+    return { status: 200, message: "Pedido cancelado com sucesso", order: cancelledOrder };
+}
+
+export async function deleteOrderService(orderId: string): Promise<OrderServiceResult> {
+    const deletedOrder = await Order.findByIdAndDelete(orderId);
+    if (!deletedOrder) {
+        return { status: 404, message: "Pedido não encontrado" };
+    }
+
+    return { status: 200, message: "Pedido deletado com sucesso" };
 }

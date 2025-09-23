@@ -1,3 +1,8 @@
+import {
+  createProductService,
+  deleteProductImageService,
+  getProductsService,
+} from "../services/productService";
 import Product from "../models/Product";
 import cloudinary from "../config/cloudinary";
 import { Request, Response } from "express";
@@ -8,6 +13,13 @@ declare global {
       files?: { [fieldname: string]: Express.Multer.File[] } | Express.Multer.File[];
     }
   }
+}
+
+export interface ProductServiceResult {
+  status: number;
+  message: string;
+  product?: any;
+  products?: any[];
 }
 
 const uploadToCloudinary = (fileBuffer: Buffer, folder = "ecommerce/products") => {
@@ -37,51 +49,31 @@ const uploadToCloudinary = (fileBuffer: Buffer, folder = "ecommerce/products") =
 
 // Criar novo produto
 export const createProduct = async (req: Request, res: Response) => {
+  if (!req.files || (Array.isArray(req.files) && req.files.length === 0) || (typeof req.files === 'object' && Object.keys(req.files).length === 0)) {
+    return res.status(400).json({ message: "Nenhuma imagem enviada" });
+  }
+  if (!req.body) {
+    return res.status(400).json({ message: "Dados do produto não fornecidos" });
+  }
   try {
-    // Normaliza req.files para array
-    let filesArray: Express.Multer.File[] = [];
-    if (Array.isArray(req.files)) {
-      filesArray = req.files;
-    } else if (req.files && typeof req.files === 'object') {
-      filesArray = Object.values(req.files).flat();
-    }
-    if (!filesArray.length) {
-      return res.status(400).json({ message: "Nenhuma imagem enviada" });
-    }
-
-    const product = req.body;
-
-    const uploads = await Promise.all(
-      filesArray.map((f) => uploadToCloudinary(f.buffer))
-    );
-
-    product.images = uploads;
-    const savedProduct = await Product.create(product);
-
-    res.status(201).json({ message: "Produto criado com sucesso", product: savedProduct });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    const createdProduct = await createProductService(req.body, req.files as Express.Multer.File[]);
+    res.status(createdProduct.status).json({ message: createdProduct.message, product: createdProduct.product ? createdProduct.product : null });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(400).json({ message: "Erro ao criar produto", error: errorMessage });
   }
 };
 
 // Deletar imagem do produto
 export const deleteProductImage = async (req: Request, res: Response) => {
+  if (!req.params || !req.params.productId || !req.params.publicId) {
+    return res.status(400).json({ message: "ID do produto ou publicId não fornecidos" });
+  }
   try {
-    if (!req.params || !req.params.productId || !req.params.publicId) {
-      return res.status(400).json({ message: "ID do produto ou publicId não fornecidos" });
-    }
-    const { productId, publicId } = req.params;
-
-    await cloudinary.uploader.destroy(publicId);
-    const updated = await Product.findByIdAndUpdate(
-      productId,
-      { $pull: { images: { public_id: publicId } } },
-      { new: true }
-    );
-    res.json({ message: "Imagem do produto removida com sucesso", product: updated });
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
+    const updatedProduct = await deleteProductImageService(req.params.productId, req.params.publicId);
+    res.status(updatedProduct.status).json({ message: updatedProduct.message, product: updatedProduct.product ? updatedProduct.product : null });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao remover imagem", error: errorMessage });
   }
 };
@@ -110,28 +102,12 @@ export const getProducts = async (req: Request, res: Response) => {
     }
   }
 
+  if (!req.query || Object.keys(req.query).length === 0) {
+    return res.status(400).json({ message: "Nenhum filtro fornecido" });
+  }
   try {
-    if (!req.query || Object.keys(req.query).length === 0) {
-      return res.status(400).json({ message: "Nenhum filtro fornecido" });
-    }
-    const { category, brand, minPrice, maxPrice, status } = req.query;
-
-    const filter: { [key: string]: any } = {};
-
-    if (category) filter.category = category;
-    if (brand) filter.brand = brand;
-    if (status) filter.status = status;
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
-    }
-
-    const products = await Product.find(filter);
-    res.json({
-      message: "Produtos encontrados com sucesso",
-      products: products,
-    });
+    const productsResult = await getProductsService(req.user, req.query);
+    res.status(productsResult.status).json({ message: productsResult.message, products: productsResult.products ? productsResult.products : null });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     res.status(500).json({ message: "Erro ao listar produtos", error: errorMessage });
