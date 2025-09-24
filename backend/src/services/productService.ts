@@ -106,3 +106,110 @@ export async function getProductsService(user: any, query: any): Promise<Product
     const products = await Product.find(filter);
     return { status: 200, message: "Produtos encontrados com sucesso", products: products };
 }
+
+export async function getProductByIdService(productId: string): Promise<ProductServiceResult> {
+    // Verifica se o produto existe
+    const product = await Product.findById(productId);
+    if (!product) {
+        return { status: 404, message: "Produto não encontrado" };
+    }
+
+    return { status: 200, message: "Produto encontrado com sucesso", product: product };
+}
+
+export async function updateProductService(productId: string, body: any, files: Express.Multer.File[]): Promise<ProductServiceResult> {
+    // Pega os campos do body
+    const {
+        name,
+        price,
+        description,
+        category,
+        stock,
+        status,
+        discount,
+        existingImages,
+    } = body;
+
+    // Começa com as imagens existentes
+    let finalImages = [];
+    if (existingImages) {
+        // pode vir como JSON string ou como múltiplos campos
+        try {
+            finalImages = JSON.parse(existingImages);
+        } catch {
+            if (Array.isArray(existingImages)) {
+                finalImages = existingImages;
+            } else {
+                finalImages = [existingImages];
+            }
+        }
+    }
+
+    // Se houver novos arquivos, faz upload para o Cloudinary
+    let filesArray: Express.Multer.File[] = [];
+    if (Array.isArray(files)) {
+        filesArray = files;
+    } else if (files && typeof files === 'object') {
+        filesArray = Object.values(files).flat() as Express.Multer.File[];
+    }
+    if (filesArray.length > 0) {
+        const uploads = await Promise.all(
+            filesArray.map((f) => uploadToCloudinary(f.buffer))
+        );
+        finalImages = [...finalImages, ...uploads];
+    }
+
+    // Monta os campos atualizados
+    const updateData = {
+        name,
+        price,
+        description,
+        category,
+        stock,
+        status,
+        discount,
+        images: finalImages,
+    };
+
+    // Atualiza no banco
+    const updatedProduct = await Product.findByIdAndUpdate(productId, updateData, {
+        new: true,
+    });
+
+    if (!updatedProduct) {
+        return { status: 404, message: "Produto não encontrado" };
+    }
+
+    return { status: 200, message: "Produto atualizado com sucesso", product: updatedProduct };
+}
+
+export async function updateProductStatusService(status: string, productId: string): Promise<ProductServiceResult> {
+    const allowedStatuses = [
+        "active",
+        "inactive",
+        "out_of_stock",
+        "archived",
+        "draft",
+    ];
+    if (!allowedStatuses.includes(status)) {
+        return { status: 400, message: "Status inválido" };
+    }
+
+    const product = await Product.findByIdAndUpdate(productId, { status: status }, { new: true });
+
+    if (!product) {
+        return { status: 404, message: "Produto não encontrado" };
+    }
+
+    return { status: 200, message: "Status do produto atualizado com sucesso", product: product };
+}
+
+export async function deleteProductService(productId: string): Promise<ProductServiceResult> {
+    // Verifica se o produto existe e deleta
+    const product = await Product.findByIdAndDelete(productId);
+    if (!product) {
+        return { status: 404, message: "Produto não encontrado" };
+    }
+
+    return { status: 200, message: "Produto removido com sucesso" };
+}
