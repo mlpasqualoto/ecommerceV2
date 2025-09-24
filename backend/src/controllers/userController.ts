@@ -1,10 +1,13 @@
 import User from "../models/User";
 import {
+  getUsersService,
+  getUserProfileService,
+} from "../services/userService";
+import {
   generateToken,
   hashPassword,
   comparePassword
 } from "../config/auth";
-import authenticateToken from "../middlewares/authMiddleware";
 import { Request, Response } from "express";
 
 interface IUserPayload {
@@ -13,34 +16,35 @@ interface IUserPayload {
   role: "user" | "admin";
 }
 
+export interface UserServiceResult {
+  status: number;
+  message: string;
+  user?: any;
+  users?: any[];
+}
+
 // Obter todos os usuários
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find({}, "-password"); // exclui o campo password
+    const users = await getUsersService();
 
-    res.json({ message: "Usuários encontrados com sucesso", users: users });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    res.status(users.status).json({ message: users.message, users: users.users });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao buscar usuários", error: errorMessage });
   }
 };
 
 // Obter perfil do usuário
 export const getUserProfile = async (req: Request, res: Response) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Não autenticado" });
+  }
   try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: "Não autenticado" });
-    }
-    const user = await User.findById(req.user.id, "-password");
-    if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
-    }
-    res.json({
-      message: "Perfil do usuário encontrado com sucesso",
-      user: user,
-    });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    const userProfile = await getUserProfileService(req.user.id);
+    res.status(userProfile.status).json({ message: userProfile.message, user: userProfile.user ? userProfile.user : null });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao buscar perfil", error: errorMessage });
   }
 };

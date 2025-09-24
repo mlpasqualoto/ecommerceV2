@@ -126,8 +126,8 @@ export const deleteProduct = async (req: Request, res: Response) => {
   try {
     const deleteResult = await deleteProductService(req.params.id);
     res.status(deleteResult.status).json({ message: deleteResult.message });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao remover produto", error: errorMessage });
   }
 };
