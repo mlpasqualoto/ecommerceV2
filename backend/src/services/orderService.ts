@@ -1,10 +1,15 @@
 import Order from "../models/Order";
 import User from "../models/User";
 import Product from "../models/Product";
-import { OrderServiceResult } from "../controllers/orderController";
+import {
+    OrderServiceResult,
+    UpdateOrderDTO,
+    IOrder,
+    CreateOrderDTO
+} from "../types/orderTypes";
 import { isValidDate } from "../utils/utils";
 
-export async function createOrderService(userId: string, items: any[]): Promise<OrderServiceResult> {
+export async function createOrderService(userId: string, items: CreateOrderDTO[]): Promise<OrderServiceResult> {
     // Busca o usuário no banco para pegar o userName
     const user = await User.findById(userId);
     if (!user) {
@@ -22,9 +27,7 @@ export async function createOrderService(userId: string, items: any[]): Promise<
             const originalPrice = product.price;
 
             // Aplica o desconto, se houver
-            const price = product.discount > 0
-                ? product.price - (product.price * product.discount / 100)
-                : product.price;
+            const price = product.discount > 0 ? product.price - (product.price * product.discount / 100) : product.price;
 
             return {
                 productId: product._id,
@@ -155,7 +158,7 @@ export async function getAllOrdersByDateService(date: string): Promise<OrderServ
     return { status: 200, message: "Pedidos encontrados com sucesso", orders: orders };
 }
 
-export async function updateOrderService(orderId: string, updates: any): Promise<OrderServiceResult> {
+export async function updateOrderService(orderId: string, updates: UpdateOrderDTO): Promise<OrderServiceResult> {
     const updatedOrder = await Order.findByIdAndUpdate(orderId, updates, { new: true });
     if (!updatedOrder) {
         return { status: 404, message: "Pedido não encontrado" };

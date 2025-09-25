@@ -2,26 +2,20 @@ import User from "../models/User";
 import {
   getUsersService,
   getUserProfileService,
+  getUserByIdService,
+  getUserByRoleService,
+  createUserService,
+  createUserByAdminService,
 } from "../services/userService";
 import {
   generateToken,
   hashPassword,
   comparePassword
 } from "../config/auth";
+import {
+  IUserPayload
+} from "../types/userTypes"
 import { Request, Response } from "express";
-
-interface IUserPayload {
-  _id: string;
-  userName: string;
-  role: "user" | "admin";
-}
-
-export interface UserServiceResult {
-  status: number;
-  message: string;
-  user?: any;
-  users?: any[];
-}
 
 // Obter todos os usuários
 export const getUsers = async (req: Request, res: Response) => {
@@ -51,132 +45,76 @@ export const getUserProfile = async (req: Request, res: Response) => {
 
 // Obter usuário por ID
 export const getUserById = async (req: Request, res: Response) => {
+  if (!req.params || !req.params.id) {
+    return res.status(404).json({ message: "ID do usuário não fornecido" });
+  }
   try {
-    if (!req.params || !req.params.id) {
-      return res.status(400).json({ message: "ID do usuário não fornecido" });
-    }
-    const user = await User.findById(req.params.id, "-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
-    }
-    res.json({
-      message: "Usuário encontrado com sucesso",
-      user: user,
-    });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    const userResult = await getUserByIdService(req.params.id);
+    res.status(userResult.status).json({ message: userResult.message, user: userResult.user ? userResult.user : null });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao buscar usuário", error: errorMessage });
   }
 };
 
 // Obter usuários por função (role)
 export const getUsersByRole = async (req: Request, res: Response) => {
+  if (!req.params || !req.params.role) {
+    return res.status(404).json({ message: "Função (role) não fornecida" });
+  }
   try {
-    if (!req.params || !req.params.role) {
-      return res.status(400).json({ message: "Função (role) não fornecida" });
-    }
-    const role = req.params.role;
-
-    const users = await User.find({ role }, "-password");
-    res.json({
-      message: "Usuários encontrados com sucesso",
-      users: users,
-    });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    const usersResult = await getUserByRoleService(req.params.role)
+    res.status(usersResult.status).json({ message: usersResult.message, users: usersResult });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao buscar usuários", error: errorMessage });
   }
 };
 
 // Rota para obter informações do usuário logado
 export const getCurrentUser = async (req: Request, res: Response) => {
+  if (!req.user || !req.user.id || !req.user.userName || !req.user.role) {
+    return res.status(401).json({ message: "Não autenticado" });
+  }
   try {
-    if (!req.user || !req.user.id || !req.user.userName || !req.user.role) {
-      return res.status(401).json({ message: "Não autenticado" });
-    }
-
-    res.json({
-      id: req.user.id,
-      userName: req.user.userName,
-      role: req.user.role,
-    });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    res.json({ id: req.user.id, userName: req.user.userName, role: req.user.role });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao obter usuário", error: errorMessage });
   }
 };
 
 // Criação de usuário público (sempre role: "user")
 export const createUser = async (req: Request, res: Response) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).json({ message: "Dados do usuário não fornecidos" });
+  }
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ message: "Dados do usuário não fornecidos" });
-    }
-    const { userName, password, name, email, number } = req.body;
-
-    // Verifica se já existe username ou email
-    const existingUser = await User.findOne({ $or: [{ userName }, { email }] });
-    if (existingUser) {
-      return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
-    }
-
-    // Criptografa a senha
-    const hashedPassword = await hashPassword(password);
-
-    const newUser = new User({
-      userName,
-      password: hashedPassword,
-      name,
-      email,
-      number,
-      role: "user",
-    });
-
-    const savedNewUser = await newUser.save();
-    res.status(201).json({ message: "Usuário criado com sucesso", user: savedNewUser });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    const savedNewUser = await createUserService(req.body)
+    res.status(savedNewUser.status).json({ message: savedNewUser.message, user: savedNewUser.user ? savedNewUser.user : null })
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(400).json({ message: "Erro ao criar usuário", error: errorMessage });
   }
 };
 
 // Criação de usuário protegida (somente admin pode criar outro admin)
 export const createUserByAdmin = async (req: Request, res: Response) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).json({ message: "Dados do usuário não fornecidos" });
+  }
+
+  const { role } = req.body;
+  // 🔒 só admins podem criar admins
+  if (!req.user || !req.user.role) {
+    return res.status(401).json({ message: "Não autenticado" });
+  }
+  if (role === "admin" && req.user.role !== "admin") {
+    return res.status(403).json({ message: "Somente administradores podem criar outros administradores" });
+  }
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ message: "Dados do usuário não fornecidos" });
-    }
-    const { userName, password, name, email, number, role } = req.body;
-
-    // 🔒 só admins podem criar admins
-    if (!req.user || !req.user.role) {
-      return res.status(401).json({ message: "Não autenticado" });
-    }
-    if (role === "admin" && req.user.role !== "admin") {
-      return res.status(403).json({ message: "Somente administradores podem criar outros administradores" });
-    }
-
-    // Verifica se já existe username ou email
-    const existingUser = await User.findOne({ $or: [{ userName }, { email }] });
-    if (existingUser) {
-      return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
-    }
-
-    // Criptografa a senha
-    const hashedPassword = await hashPassword(password);
-
-    const newUser = new User({
-      userName,
-      password: hashedPassword,
-      name,
-      email,
-      number,
-      role: role,
-    });
-
-    const savedNewUser = await newUser.save();
-    res.status(201).json({ message: "Usuário criado com sucesso", user: savedNewUser });
+    const savedNewUser = await createUserByAdminService(req.body);
+    res.status(savedNewUser.status).json({ message: savedNewUser.message, user: savedNewUser.user ? savedNewUser.user : null });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     res.status(400).json({ message: "Erro ao criar usuário", error: errorMessage });

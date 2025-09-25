@@ -14,13 +14,6 @@ import {
 } from "../services/orderService";
 import { Request, Response } from "express";
 
-export interface OrderServiceResult {
-    status: number;
-    message: string;
-    order?: any;
-    orders?: any[];
-}
-
 // Criar um novo pedido (user)
 export const createOrder = async (req: Request, res: Response) => {
     if (!req.user || !req.user.id) {

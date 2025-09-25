@@ -1,26 +1,5 @@
-import mongoose, { Document, Schema } from "mongoose";
-
-export interface IOrderItem {
-    productId: mongoose.Types.ObjectId;
-    name: string;
-    quantity: number;
-    originalPrice: number;
-    discount: number;
-    price: number;
-    imageUrl: string;
-}
-
-export interface IOrder extends Document {
-    userId: mongoose.Types.ObjectId;
-    userName: string;
-    name: string;
-    items: IOrderItem[];
-    totalAmount: number;
-    totalQuantity: number;
-    status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
-    createdAt?: Date;
-    updatedAt?: Date;
-}
+import mongoose, { Schema } from "mongoose";
+import { IOrder } from "../types/orderTypes"
 
 const orderSchema = new Schema<IOrder>({
     userId: {

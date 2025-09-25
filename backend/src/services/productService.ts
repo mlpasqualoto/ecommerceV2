@@ -1,8 +1,13 @@
 import Product from "../models/Product";
 import cloudinary from "../config/cloudinary";
-import { ProductServiceResult } from "../controllers/productController";
+import {
+    ProductServiceResult,
+    IProductImage,
+    CreateProductDTO,
+    UpdateProductDTO
+} from "../types/productTypes";
 
-const uploadToCloudinary = (fileBuffer: Buffer, folder = "ecommerce/products") => {
+const uploadToCloudinary = (fileBuffer: Buffer, folder = "ecommerce/products"): Promise<IProductImage> => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
             {
@@ -27,7 +32,7 @@ const uploadToCloudinary = (fileBuffer: Buffer, folder = "ecommerce/products") =
     });
 };
 
-export async function createProductService(productData: any, files: Express.Multer.File[]): Promise<ProductServiceResult> {
+export async function createProductService(productData: CreateProductDTO, files: Express.Multer.File[]): Promise<ProductServiceResult> {
     // Normaliza req.files para array
     let filesArray: Express.Multer.File[] = [];
     if (Array.isArray(files)) {
@@ -43,7 +48,7 @@ export async function createProductService(productData: any, files: Express.Mult
         filesArray.map((f) => uploadToCloudinary(f.buffer))
     );
 
-    productData.images = uploads;
+    productData.images = uploads as IProductImage[];
     const savedProduct = await Product.create(productData);
 
     return { status: 201, message: "Produto criado com sucesso", product: savedProduct };
@@ -57,7 +62,7 @@ export async function deleteProductImageService(productId: string, publicId: str
     }
 
     // Verifica se a imagem existe no produto
-    const imageExists = product.images.some(img => img.public_id === publicId);
+    const imageExists = Array.isArray(product.images) && product.images.some(img => img.public_id === publicId);
     if (!imageExists) {
         return { status: 404, message: "Imagem não encontrada" };
     }
@@ -117,7 +122,7 @@ export async function getProductByIdService(productId: string): Promise<ProductS
     return { status: 200, message: "Produto encontrado com sucesso", product: product };
 }
 
-export async function updateProductService(productId: string, body: any, files: Express.Multer.File[]): Promise<ProductServiceResult> {
+export async function updateProductService(productId: string, body: UpdateProductDTO, files: Express.Multer.File[]): Promise<ProductServiceResult> {
     // Pega os campos do body
     const {
         name,
@@ -131,17 +136,19 @@ export async function updateProductService(productId: string, body: any, files: 
     } = body;
 
     // Começa com as imagens existentes
-    let finalImages = [];
+    let finalImages: IProductImage[] = [];
     if (existingImages) {
-        // pode vir como JSON string ou como múltiplos campos
-        try {
-            finalImages = JSON.parse(existingImages);
-        } catch {
-            if (Array.isArray(existingImages)) {
-                finalImages = existingImages;
-            } else {
-                finalImages = [existingImages];
+        if (typeof existingImages === "string") {
+            // pode vir como JSON string ou como múltiplos campos
+            try {
+                finalImages = JSON.parse(existingImages);
+            } catch {
+                finalImages = [existingImages]
             }
+        } else if (Array.isArray(existingImages)) {
+            finalImages = existingImages;
+        } else {
+            finalImages = [existingImages];
         }
     }
 

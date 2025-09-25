@@ -17,13 +17,6 @@ declare global {
   }
 }
 
-export interface ProductServiceResult {
-  status: number;
-  message: string;
-  product?: any;
-  products?: any[];
-}
-
 // Criar um novo produto (admin)
 export const createProduct = async (req: Request, res: Response) => {
   if (!req.files || (Array.isArray(req.files) && req.files.length === 0) || (typeof req.files === 'object' && Object.keys(req.files).length === 0)) {

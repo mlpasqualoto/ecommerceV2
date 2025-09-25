@@ -1,27 +1,5 @@
-import mongoose, { Document, Schema } from "mongoose";
-
-export interface IProductImage {
-    public_id: string;
-    url: string;
-    width: number;
-    height: number;
-    format: string;
-    bytes: number;
-}
-
-export interface IProduct extends Document {
-    name: string;
-    price: number;
-    images: IProductImage[];
-    description?: string;
-    category: string;
-    stock: number;
-    status: "active" | "inactive" | "out_of_stock" | "archived" | "draft";
-    discount: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-}
-
+import mongoose, { Schema } from "mongoose";
+import { IProduct, IProductImage } from "../types/productTypes";
 
 const imageSchema = new Schema<IProductImage>({
     public_id: String,
@@ -62,6 +40,7 @@ const productSchema = new Schema<IProduct>({
     status: {
         type: String,
         enum: ["active", "inactive", "out_of_stock", "archived", "draft"],
+        required: true,
         default: "active",
     },
     discount: {
