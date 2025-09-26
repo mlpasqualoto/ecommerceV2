@@ -42,7 +42,7 @@ export const getOrders = async (req: Request, res: Response) => {
     }
 };
 
-// Obter um pedido por ID (admin ou user)
+// Obter um pedido por ID (user)
 export const getOrderById = async (req: Request, res: Response) => {
     if (!req.params || !req.params.id) {
         return res.status(400).json({ message: "ID do pedido não fornecido" });
@@ -70,7 +70,7 @@ export const getOrdersByStatus = async (req: Request, res: Response) => {
     }
 };
 
-// Obter pedidos por status (somente admin - todos os pedidos)
+// Obter pedidos por status (admin - todos os pedidos)
 export const getAllOrdersByStatus = async (req: Request, res: Response) => {
     if (!req.params || !req.params.status) {
         return res.status(400).json({ message: "Status não fornecido" });
@@ -98,7 +98,7 @@ export const getOrdersByDate = async (req: Request, res: Response) => {
     }
 };
 
-// Obter pedidos por data (somente admin - todos os pedidos)
+// Obter pedidos por data (admin - todos os pedidos)
 export const getAllOrdersByDate = async (req: Request, res: Response) => {
     if (!req.params || !req.params.date) {
         return res.status(400).json({ message: "Data não fornecida" })
@@ -112,7 +112,7 @@ export const getAllOrdersByDate = async (req: Request, res: Response) => {
     }
 };
 
-// Atualizar um pedido (somente admin)
+// Atualizar um pedido (admin)
 export const updateOrder = async (req: Request, res: Response) => {
     if (!req.params || !req.body) {
         return res.status(400).json({ message: "Id ou alterações não fornecidas" })
@@ -126,7 +126,7 @@ export const updateOrder = async (req: Request, res: Response) => {
     }
 };
 
-// Pagar um pedido (somente admin)
+// Pagar um pedido (admin)
 export const payOrder = async (req: Request, res: Response) => {
     if (!req.params || !req.params.id) {
         return res.status(400).json({ message: "Id não fornecido" });
@@ -140,7 +140,7 @@ export const payOrder = async (req: Request, res: Response) => {
     }
 };
 
-// Enviar um pedido (somente admin)
+// Enviar um pedido (admin)
 export const shipOrder = async (req: Request, res: Response) => {
     if (!req.params || !req.params.id) {
         return res.status(400).json({ message: "Id não fornecido" });
@@ -154,7 +154,7 @@ export const shipOrder = async (req: Request, res: Response) => {
     }
 };
 
-// Cancelar um pedido (admin ou user)
+// Cancelar um pedido (user)
 export const cancelOrder = async (req: Request, res: Response) => {
     if (!req.params || !req.params.id) {
         return res.status(400).json({ message: "Id não fornecido" });
@@ -171,7 +171,7 @@ export const cancelOrder = async (req: Request, res: Response) => {
     }
 };
 
-// Deletar um pedido (somente admin)
+// Deletar um pedido (admin)
 export const deleteOrder = async (req: Request, res: Response) => {
     if (!req.params || !req.params.id) {
         return res.status(400).json({ message: "Id não fornecido" });

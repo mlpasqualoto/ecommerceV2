@@ -1,10 +1,19 @@
 import User from "../models/User";
 import {
     UserServiceResult,
+    UserLoginServiceResult,
     CreateUserDTO,
-    CreateUserByAdminDTO
+    CreateUserByAdminDTO,
+    IUserPayload,
+    LoginUserDTO,
+    UpdateUserDTO,
+    UpdatePasswordDTO
 } from "../types/userTypes";
-import { hashPassword } from "../config/auth"
+import {
+    hashPassword,
+    generateToken,
+    comparePassword
+} from "../config/auth"
 
 export async function getUsersService(): Promise<UserServiceResult> {
     // Obtem todos os usuários e exclui o campo password na consulta
@@ -87,4 +96,72 @@ export async function createUserByAdminService(body: CreateUserByAdminDTO): Prom
     const savedNewUser = await newUser.save();
 
     return { status: 201, message: "Usuário criado com sucesso", user: savedNewUser };
+}
+
+export async function loginUserService(body: LoginUserDTO): Promise<UserLoginServiceResult> {
+    const { userName, password } = body;
+
+    // Busca usuário pelo userName
+    const user = await User.findOne({ userName });
+    if (!user || !(await comparePassword(password, user.password))) {
+        return { status: 401, message: "Credenciais inválidas" };
+    }
+
+    // Gera token
+    const token = generateToken(user as IUserPayload);
+
+    return { status: 201, message: "Login realizado com sucesso", user: user, token: token };
+}
+
+export async function updateUserService(body: UpdateUserDTO, userId: string): Promise<UserServiceResult> {
+    const { userName, name, email, number } = body;
+
+    // Verifica se já existe username ou email em outro usuário
+    const existingUser = await User.findOne({
+        $or: [{ userName }, { email }],
+        _id: { $ne: userId }, // ignora o próprio usuário
+    });
+    if (existingUser) {
+        return { status: 400, message: "Usuário ou e-mail já cadastrado" };
+    }
+
+    // Atualiza somente os campos enviados (evita sobrescrever com undefined)
+    const updatedUser = await User.findByIdAndUpdate(userId, { userName, name, email, number }, { new: true, select: "-password" });
+
+    if (!updatedUser) {
+        return { status: 404, message: "Usuário não encontrado" };
+    }
+
+    return { status: 201, message: "Dados atualizados com sucesso", user: updatedUser };
+}
+
+export async function updatePasswordService(body: UpdatePasswordDTO, userId: string): Promise<UserServiceResult> {
+    const { currentPassword, newPassword } = body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+        return { status: 404, message: "Usuário não encontrado" };
+    }
+
+    // Verifica se a senha atual está correta
+    const isMatch = await comparePassword(currentPassword, user.password);
+    if (!isMatch) {
+        return { status: 400, message: "Senha atual incorreta" };
+    }
+
+    // Atualiza a senha
+    const hashedNewPassword = await hashPassword(newPassword);
+    user.password = hashedNewPassword;
+    await user.save();
+
+    return { status: 201, message: "Senha alterada com sucesso" };
+}
+
+export async function deleteUserService(userId: string): Promise<UserServiceResult> {
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+        return { status: 404, message: "Usuário não encontrado" }
+    }
+
+    return { status: 204, message: "Usuário deletado com sucesso" };
 }

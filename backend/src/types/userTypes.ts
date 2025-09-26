@@ -24,6 +24,10 @@ export interface UserServiceResult {
     users?: any[];
 }
 
+export interface UserLoginServiceResult extends UserServiceResult {
+    token?: string;
+}
+
 export interface CreateUserDTO {
     userName: string;
     password: string;
@@ -34,4 +38,21 @@ export interface CreateUserDTO {
 
 export interface CreateUserByAdminDTO extends CreateUserDTO {
     role: "user" | "admin";
+}
+
+export interface LoginUserDTO {
+    userName: string;
+    password: string;
+}
+
+export interface UpdateUserDTO {
+    userName: string;
+    name: string;
+    email: string;
+    number: string;
+}
+
+export interface UpdatePasswordDTO {
+    currentPassword: string;
+    newPassword: string;
 }

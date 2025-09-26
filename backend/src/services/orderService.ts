@@ -4,7 +4,6 @@ import Product from "../models/Product";
 import {
     OrderServiceResult,
     UpdateOrderDTO,
-    IOrder,
     CreateOrderDTO
 } from "../types/orderTypes";
 import { isValidDate } from "../utils/utils";

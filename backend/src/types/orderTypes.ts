@@ -1,6 +1,5 @@
 import { Types, Document } from "mongoose"
 
-// Interface para criação da Order
 export interface IOrderItem {
     productId: Types.ObjectId;
     name: string;
@@ -11,7 +10,6 @@ export interface IOrderItem {
     imageUrl: string;
 }
 
-// Interface p/ criação da Order
 export interface IOrder extends Document {
     userId: Types.ObjectId;
     userName: string;

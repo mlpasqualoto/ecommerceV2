@@ -34,7 +34,7 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 };
 
-// Deletar imagem do produto
+// Deletar imagem do produto (admin)
 export const deleteProductImage = async (req: Request, res: Response) => {
   if (!req.params || !req.params.productId || !req.params.publicId) {
     return res.status(400).json({ message: "ID do produto ou publicId não fornecidos" });
@@ -48,6 +48,7 @@ export const deleteProductImage = async (req: Request, res: Response) => {
   }
 };
 
+// Listar produtos com filtros (user e admin)
 /**
  * Listar produtos com filtros
  * Filtros disponíveis: category, brand, minPrice, maxPrice, status
@@ -66,7 +67,7 @@ export const getProducts = async (req: Request, res: Response) => {
   }
 };
 
-// Obter produto por ID
+// Obter produto por ID (public)
 export const getProductById = async (req: Request, res: Response) => {
   if (!req.params || !req.params.id) {
     return res.status(400).json({ message: "ID do produto não fornecido" });
@@ -80,7 +81,7 @@ export const getProductById = async (req: Request, res: Response) => {
   }
 };
 
-// Atualizar produto
+// Atualizar produto (admin)
 export const updateProduct = async (req: Request, res: Response) => {
   if (!req.params || !req.params.id) {
     return res.status(400).json({ message: "ID do produto não fornecido" });
@@ -94,7 +95,7 @@ export const updateProduct = async (req: Request, res: Response) => {
   }
 };
 
-// Atualizar status do produto
+// Atualizar status do produto (admin)
 export const updateProductStatus = async (req: Request, res: Response) => {
   if (!req.body || !req.body.status) {
     return res.status(400).json({ message: "Status do produto não fornecido" });
@@ -111,7 +112,7 @@ export const updateProductStatus = async (req: Request, res: Response) => {
   }
 };
 
-// Deletar produto
+// Deletar produto (admin)
 export const deleteProduct = async (req: Request, res: Response) => {
   if (!req.params || !req.params.id) {
     return res.status(400).json({ message: "ID do produto não fornecido" });

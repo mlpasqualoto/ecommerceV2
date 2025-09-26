@@ -1,4 +1,3 @@
-import User from "../models/User";
 import {
   getUsersService,
   getUserProfileService,
@@ -6,18 +5,14 @@ import {
   getUserByRoleService,
   createUserService,
   createUserByAdminService,
+  loginUserService,
+  updateUserService,
+  updatePasswordService,
+  deleteUserService
 } from "../services/userService";
-import {
-  generateToken,
-  hashPassword,
-  comparePassword
-} from "../config/auth";
-import {
-  IUserPayload
-} from "../types/userTypes"
 import { Request, Response } from "express";
 
-// Obter todos os usuários
+// Obter todos os usuários (admin)
 export const getUsers = async (req: Request, res: Response) => {
   try {
     const users = await getUsersService();
@@ -29,7 +24,7 @@ export const getUsers = async (req: Request, res: Response) => {
   }
 };
 
-// Obter perfil do usuário
+// Obter perfil do usuário (user)
 export const getUserProfile = async (req: Request, res: Response) => {
   if (!req.user || !req.user.id) {
     return res.status(401).json({ message: "Não autenticado" });
@@ -43,7 +38,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
   }
 };
 
-// Obter usuário por ID
+// Obter usuário por ID (admin)
 export const getUserById = async (req: Request, res: Response) => {
   if (!req.params || !req.params.id) {
     return res.status(404).json({ message: "ID do usuário não fornecido" });
@@ -57,7 +52,7 @@ export const getUserById = async (req: Request, res: Response) => {
   }
 };
 
-// Obter usuários por função (role)
+// Obter usuários por função (admin)
 export const getUsersByRole = async (req: Request, res: Response) => {
   if (!req.params || !req.params.role) {
     return res.status(404).json({ message: "Função (role) não fornecida" });
@@ -71,7 +66,8 @@ export const getUsersByRole = async (req: Request, res: Response) => {
   }
 };
 
-// Rota para obter informações do usuário logado
+// Rota para obter informações do usuário logado (user)
+// Lógica no controller
 export const getCurrentUser = async (req: Request, res: Response) => {
   if (!req.user || !req.user.id || !req.user.userName || !req.user.role) {
     return res.status(401).json({ message: "Não autenticado" });
@@ -84,7 +80,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
   }
 };
 
-// Criação de usuário público (sempre role: "user")
+// Criação de usuário (public)
 export const createUser = async (req: Request, res: Response) => {
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({ message: "Dados do usuário não fornecidos" });
@@ -98,7 +94,7 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-// Criação de usuário protegida (somente admin pode criar outro admin)
+// Criação de usuário protegida (admin)
 export const createUserByAdmin = async (req: Request, res: Response) => {
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({ message: "Dados do usuário não fornecidos" });
@@ -115,139 +111,95 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
   try {
     const savedNewUser = await createUserByAdminService(req.body);
     res.status(savedNewUser.status).json({ message: savedNewUser.message, user: savedNewUser.user ? savedNewUser.user : null });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(400).json({ message: "Erro ao criar usuário", error: errorMessage });
   }
 };
 
-// Login do usuário
+// Login do usuário (public)
 export const loginUser = async (req: Request, res: Response) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).json({ message: "Dados de login não fornecidos" });
+  }
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ message: "Dados de login não fornecidos" });
-    }
-    const { userName, password } = req.body;
+    const loginResult = await loginUserService(req.body)
 
-    // Busca usuário pelo userName
-    const user = await User.findOne({ userName });
-    if (!user || !(await comparePassword(password, user.password))) {
-      return res.status(401).json({ message: "Credenciais inválidas" });
+    if (loginResult.status !== 200 || !loginResult.token) {
+      return res.status(loginResult.status).json({ message: loginResult.message })
     }
-
-    // Gera token
-    const token = generateToken(user as IUserPayload);
 
     // Envia o token como cookie HTTP-only
-    res.cookie("token", token, {
+    res.cookie("token", loginResult.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 3600000, // 1 hora
     });
 
-    res.json({ message: "Login realizado com sucesso", token: token });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    res.status(loginResult.status).json({ message: loginResult.message, user: loginResult.user, token: loginResult.token });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao fazer login", error: errorMessage });
   }
 };
 
-// Logout do usuário
+// Logout do usuário (public)
+// Lógica no controller
 export const logoutUser = async (req: Request, res: Response) => {
   try {
     res.clearCookie("token");
     res.json({ message: "Logout realizado com sucesso" });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao fazer logout", error: errorMessage });
   }
 };
 
-// Atualização de usuário
+// Atualização de usuário (user)
 export const updateUser = async (req: Request, res: Response) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).json({ message: "Dados para atualização não fornecidos" });
+  }
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Não autenticado" });
+  }
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ message: "Dados para atualização não fornecidos" });
-    }
-    const { userName, name, email, number } = req.body;
-
-    // Verifica se já existe username ou email em outro usuário
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: "Não autenticado" });
-    }
-    const existingUser = await User.findOne({
-      $or: [{ userName }, { email }],
-      _id: { $ne: req.user.id }, // ignora o próprio usuário
-    });
-
-    if (existingUser) {
-      return res.status(400).json({ message: "Usuário ou e-mail já cadastrado" });
-    }
-
-    // Atualiza somente os campos enviados (evita sobrescrever com undefined)
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      { userName, name, email, number },
-      { new: true, select: "-password" }
-    );
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
-    }
-
-    res.json({ message: "Dados atualizados com sucesso", user: updatedUser });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    const updatedUser = await updateUserService(req.body, req.user.id)
+    res.status(updatedUser.status).json({ message: updatedUser.message, user: updatedUser.user ? updatedUser.user : null });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(400).json({ message: "Erro ao atualizar usuário", error: errorMessage });
   }
 };
 
-// Atualização de senha
+// Atualização de senha (user)
 export const updatePassword = async (req: Request, res: Response) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).json({ message: "Dados para atualização não fornecidos" });
+  }
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Não autenticado" });
+  }
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ message: "Dados para atualização não fornecidos" });
-    }
-    const { currentPassword, newPassword } = req.body;
-
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: "Não autenticado" });
-    }
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
-    }
-
-    // Verifica se a senha atual está correta
-    const isMatch = await comparePassword(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Senha atual incorreta" });
-    }
-
-    // Atualiza a senha
-    const hashedNewPassword = await hashPassword(newPassword);
-    user.password = hashedNewPassword;
-    await user.save();
-
-    res.json({ message: "Senha alterada com sucesso" });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    const updatedPassword = await updatePasswordService(req.body, req.user.id)
+    res.status(updatedPassword.status).json({ message: updatedPassword.message });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(400).json({ message: "Erro ao alterar senha", error: errorMessage });
   }
 };
 
-// Deletar usuário
+// Deletar usuário (admin)
 export const deleteUser = async (req: Request, res: Response) => {
+  if (!req.params || !req.params.id) {
+    return res.status(400).json({ message: "Dado não fornecido" })
+  }
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user)
-      return res.status(404).json({ message: "Usuário não encontrado" });
-
-    res.json({ message: "Usuário deletado com sucesso" });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    const deletedUser = await deleteUserService(req.params.id);
+    res.status(deletedUser.status).json({ message: deletedUser.message });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao deletar usuário", error: errorMessage });
   }
 };
