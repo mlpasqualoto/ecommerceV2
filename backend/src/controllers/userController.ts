@@ -125,7 +125,7 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const loginResult = await loginUserService(req.body)
 
-    if (loginResult.status !== 200 || !loginResult.token) {
+    if (loginResult.status !== 201 || !loginResult.token) {
       return res.status(loginResult.status).json({ message: loginResult.message })
     }
 

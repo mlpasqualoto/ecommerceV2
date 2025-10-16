@@ -39,7 +39,7 @@ export default function UsersPage() {
           return;
         }
 
-        setUsers(data.users || []);
+        setUsers(data.users.users || []);
       } catch (err) {
         console.error("Erro ao buscar usuários:", err);
       } finally {
