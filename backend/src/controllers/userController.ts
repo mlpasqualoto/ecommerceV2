@@ -59,7 +59,7 @@ export const getUsersByRole = async (req: Request, res: Response) => {
   }
   try {
     const usersResult = await getUserByRoleService(req.params.role)
-    res.status(usersResult.status).json({ message: usersResult.message, users: usersResult });
+    res.status(usersResult.status).json({ message: usersResult.message, users: usersResult.users });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ message: "Erro ao buscar usuários", error: errorMessage });
