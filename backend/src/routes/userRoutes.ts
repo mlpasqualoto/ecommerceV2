@@ -15,6 +15,9 @@ import {
 } from "../controllers/userController";
 import authenticateToken from "../middlewares/authMiddleware";
 import { authorizeRole } from "../middlewares/authRoleMiddleware";
+import { 
+  loginLimiter,
+} from "../middlewares/rateLimitMiddleware"
 
 const router: express.Router = express.Router();
 
@@ -40,7 +43,7 @@ router.post("/register", createUser);
 router.post("/admin/register", authenticateToken, authorizeRole("admin"), createUserByAdmin);
 
 // Rota para login de usuário (public)
-router.post("/login", loginUser);
+router.post("/login", loginLimiter, loginUser);
 
 // Rota para logout de usuário (public)
 router.post("/logout", logoutUser);

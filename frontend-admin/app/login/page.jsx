@@ -23,9 +23,23 @@ export default function LoginPage() {
         body: JSON.stringify({ userName, password }),
       });
 
-      if (!loginRes.ok) {
-        const data = await loginRes.json();
-        setError(data.message || "Erro ao fazer login");
+      // parse com fallback para text (evita erro quando resposta é text/plain, ex: 429)
+      let loginData;
+      const contentType = loginRes.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        loginData = await loginRes.json();
+      } else {
+        const text = await loginRes.text();
+        loginData = { message: text };
+      }
+
+      // trata caso de erro (incluindo rate limit 429)
+      if (!loginRes.ok || !loginData.token) {
+        if (loginRes.status === 429) {
+          setError(loginData.message || "Muitas requisições. Tente novamente mais tarde.");
+        } else {
+          setError(loginData.message || "Erro ao fazer login");
+        }
         return;
       }
 

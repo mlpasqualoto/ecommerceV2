@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
+import { globalLimiter } from "./src/middlewares/rateLimitMiddleware";
 import connectDB from "./src/config/db";
 import orderRoutes from "./src/routes/orderRoutes";
 import productRoutes from "./src/routes/productRoutes";
@@ -64,6 +65,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(globalLimiter); // insere middleware express-rate-limit globalmente
 
 connectDB();
 
