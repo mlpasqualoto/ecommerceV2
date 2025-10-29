@@ -1,59 +1,95 @@
 const API_URL = "http://localhost:5500";
 
+// Tratador comum de resposta: tenta parsear JSON, trata 429 exibindo toast
+async function handleResponse(res) {
+  if (res.status === 429) {
+    try {
+      const text = await res.text();
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        parsed = null;
+      }
+      const serverMessage = parsed?.message || parsed?.error || text || '';
+      const message = serverMessage
+        ? `Limite de requisições atingido: ${serverMessage}`
+        : 'Você excedeu o limite de requisições. Tente novamente mais tarde.';
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('show-toast', { detail: { type: 'error', message } }));
+      }
+    } catch (e) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('show-toast', { detail: { type: 'error', message: 'Você excedeu o limite de requisições. Tente novamente mais tarde.' } }));
+      }
+    }
+
+    return { status: 429, error: 'Too Many Requests', message: 'Limite de requisições atingido' };
+  }
+
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: res.ok, raw: text };
+  }
+}
+
 export async function fetchOrders(status) {
   const res = await fetch(`${API_URL}/api/orders/${status}/get-all-by-status`, {
     credentials: "include", // envia o cookie junto
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchProducts(status) {
   const res = await fetch(`${API_URL}/api/products/admin?status=${status}`, {
     credentials: "include", // envia o cookie junto
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchUsers() {
   const res = await fetch(`${API_URL}/api/users/`, {
     credentials: "include", // envia o cookie junto
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchOrderById(orderId) {
   const res = await fetch(`${API_URL}/api/orders/${orderId}`, {
     credentials: "include", // envia o cookie junto
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchOrderByDate(date) {
   const res = await fetch(`${API_URL}/api/orders/${date}/get-all-by-date`, {
     credentials: "include", // envia o cookie junto
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchProductById(productId) {
   const res = await fetch(`${API_URL}/api/products/${productId}`, {
     credentials: "include", // envia o cookie junto
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchUserById(userId) {
   const res = await fetch(`${API_URL}/api/users/${userId}`, {
     credentials: "include", // envia o cookie junto
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchUsersByRole(role) {
   const res = await fetch(`${API_URL}/api/users/role/${role}`, {
     credentials: "include", // envia o cookie junto
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchCreateOrder(orderData) {
@@ -65,7 +101,7 @@ export async function fetchCreateOrder(orderData) {
     },
     body: JSON.stringify(orderData),
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchCreateProduct(formData) {
@@ -75,12 +111,7 @@ export async function fetchCreateProduct(formData) {
     body: formData,
   });
 
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { ok: res.ok, raw: text };
-  }
+  return handleResponse(res);
 };
 
 export async function fetchCreateUser(userData) {
@@ -92,7 +123,7 @@ export async function fetchCreateUser(userData) {
     },
     body: JSON.stringify(userData),
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchUpdateOrder(orderId, updatedData) {
@@ -104,7 +135,7 @@ export async function fetchUpdateOrder(orderId, updatedData) {
     },
     body: JSON.stringify(updatedData),
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchUpdateProduct(productId, formData) {
@@ -114,12 +145,7 @@ export async function fetchUpdateProduct(productId, formData) {
     body: formData,
   });
 
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { ok: res.ok, raw: text };
-  }
+  return handleResponse(res);
 };
 
 export async function fetchStatusProduct(productId, status) {
@@ -131,7 +157,7 @@ export async function fetchStatusProduct(productId, status) {
     },
     body: JSON.stringify(status),
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchPayOrder(orderId) {
@@ -139,7 +165,7 @@ export async function fetchPayOrder(orderId) {
     method: "PATCH",
     credentials: "include",
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchShipOrder(orderId) {
@@ -147,7 +173,7 @@ export async function fetchShipOrder(orderId) {
     method: "PATCH",
     credentials: "include",
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchCancelOrder(orderId) {
@@ -155,7 +181,7 @@ export async function fetchCancelOrder(orderId) {
     method: "PATCH",
     credentials: "include",
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchDeleteOrder(orderId) {
@@ -163,7 +189,7 @@ export async function fetchDeleteOrder(orderId) {
     method: "DELETE",
     credentials: "include",
   });
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function fetchDeleteProduct(productId) {
@@ -171,5 +197,5 @@ export async function fetchDeleteProduct(productId) {
     method: "DELETE",
     credentials: "include",
   });
-  return res.json();
+  return handleResponse(res);
 }

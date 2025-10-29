@@ -40,7 +40,6 @@ export default function UsersPage() {
         }
 
         setUsers(data.users || []);
-        console.log("Usuários carregados:", data.users);
       } catch (err) {
         console.error("Erro ao buscar usuários:", err);
       } finally {
