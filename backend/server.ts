@@ -8,6 +8,7 @@ import orderRoutes from "./src/routes/orderRoutes";
 import productRoutes from "./src/routes/productRoutes";
 import userRoutes from "./src/routes/userRoutes";
 import cookieParser from "cookie-parser";
+import { errorMiddleware } from "./src/middlewares/errorMiddleware"
 
 dotenv.config();
 
@@ -69,9 +70,13 @@ app.use(globalLimiter); // insere middleware express-rate-limit globalmente
 
 connectDB();
 
+// Rotas
 app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
+
+// Middleware global de erro
+app.use(errorMiddleware);
 
 app.get("/", (req: express.Request, res: express.Response) => {
   res.send("API do E-commerce rodando 🚀");

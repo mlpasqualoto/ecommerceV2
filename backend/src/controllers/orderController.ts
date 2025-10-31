@@ -12,19 +12,24 @@ import {
     cancelOrderService,
     deleteOrderService
 } from "../services/orderService";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 // Criar um novo pedido (user)
-export const createOrder = async (req: Request, res: Response) => {
+export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !req.user.id) {
         return res.status(401).json({ message: "Usuário não autenticado" });
     }
     try {
         const order = await createOrderService(req.user.id, req.body.items);
+        if (!order) {
+            const error = new Error("Erro ao criar pedido.");
+            (error as any).statusCode = 400;
+            throw error;
+        }
+        
         res.status(order.status).json({ message: order.message, order: order.order ? order.order : null });
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        res.status(400).json({ message: "Erro ao criar pedido", error: errorMessage });
+        next(error);
     }
 };
 
