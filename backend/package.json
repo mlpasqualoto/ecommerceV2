@@ -1,6 +1,7 @@
 {
   "name": "ecommercev2",
   "version": "1.0.0",
+  "type": "commonjs",
   "main": "dist/server.js",
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",
@@ -11,6 +12,7 @@
     "@types/node": "^24.5.2",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
@@ -21,15 +23,23 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
+    "express-winston": "^4.2.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "winston": "^3.18.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc && node dist/server.js",
-    "dev": "nodemon --watch server.ts --watch src --ext ts --exec ts-node server.ts"
+    "dev": "nodemon --watch src --ext ts,js --exec \"ts-node -r tsconfig-paths/register --transpile-only server.ts\""
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs"
+    }
   },
   "keywords": [],
   "author": "",

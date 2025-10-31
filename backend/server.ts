@@ -8,7 +8,9 @@ import orderRoutes from "./src/routes/orderRoutes";
 import productRoutes from "./src/routes/productRoutes";
 import userRoutes from "./src/routes/userRoutes";
 import cookieParser from "cookie-parser";
-import { errorMiddleware } from "./src/middlewares/errorMiddleware"
+import { errorMiddleware } from "./src/middlewares/errorMiddleware";
+import expressWinston from "express-winston";
+const logger = require("./src/utils/logger");
 
 dotenv.config();
 
@@ -67,6 +69,16 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use(globalLimiter); // insere middleware express-rate-limit globalmente
+
+// Middleware de logging
+app.use(
+  expressWinston.logger({
+    winstonInstance: logger,
+    meta: false,
+    msg: "{{req.method}} {{req.url}} {{res.statusCode}} - {{res.responseTime}}ms",
+    colorize: false,
+  })
+);
 
 connectDB();
 
