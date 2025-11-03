@@ -1,0 +1,12 @@
+[2025-11-02 23:33:54] INFO: GET /api/users/me 304 - 27ms
+[2025-11-02 23:33:54] INFO: GET /api/users/role/user 200 - 104ms
+[2025-11-02 23:33:56] INFO: GET /api/users/me 304 - 19ms
+[2025-11-02 23:33:56] INFO: GET /api/orders/paid/get-all-by-status 304 - 48ms
+[2025-11-02 23:33:57] INFO: GET /api/users/me 304 - 19ms
+[2025-11-02 23:33:57] INFO: GET /api/products/admin?status=active 200 - 53ms
+[2025-11-02 23:33:58] INFO: GET /api/users/me 304 - 20ms
+[2025-11-02 23:33:58] INFO: GET /api/products/admin?status=active 304 - 46ms
+[2025-11-02 23:47:55] INFO: GET /api/users/me 304 - 18ms
+[2025-11-02 23:47:55] INFO: GET /api/products/admin?status=active 304 - 44ms
+[2025-11-02 23:47:59] INFO: GET /api/users/me 304 - 17ms
+[2025-11-02 23:47:59] INFO: GET /api/orders/paid/get-all-by-status 304 - 41ms

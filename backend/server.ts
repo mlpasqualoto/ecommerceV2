@@ -10,7 +10,7 @@ import userRoutes from "./src/routes/userRoutes";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./src/middlewares/errorMiddleware";
 import expressWinston from "express-winston";
-const logger = require("./src/utils/logger");
+import logger from "./src/utils/logger"
 
 dotenv.config();
 
@@ -70,7 +70,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(globalLimiter); // insere middleware express-rate-limit globalmente
 
-// Middleware de logging
+// middleware de logging
 app.use(
   expressWinston.logger({
     winstonInstance: logger,
@@ -80,20 +80,23 @@ app.use(
   })
 );
 
+// conexao com db
 connectDB();
 
-// Rotas
+// rotas
 app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 
-// Middleware global de erro
+// middleware global de erro
 app.use(errorMiddleware);
 
+// rota de teste
 app.get("/", (req: express.Request, res: express.Response) => {
   res.send("API do E-commerce rodando 🚀");
 });
 
+// porta
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);

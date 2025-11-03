@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\.680518e977c8d2d24db43aa8c8cc5a49bb145cd0-audit.json",
+    "files": [
+        {
+            "date": 1761961179115,
+            "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-10-31.log",
+            "hash": "6034b9c1aca71774dbeef45e7331c6ed65a407aefd222ed9ff3fdb4c162d436f"
+        },
+        {
+            "date": 1762135548932,
+            "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-11-02.log",
+            "hash": "177671a608224405b73662bac2ab0153d608493fee7802d611aaa259e0558bdb"
+        }
+    ],
+    "hashType": "sha256"
+}

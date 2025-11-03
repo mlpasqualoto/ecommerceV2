@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-const logger = require("./src/utils/logger");
+import logger from "../utils/logger"
 
 export function errorMiddleware(error: any, req: Request, res: Response, next: NextFunction): void {
     console.error("Erro capturado: ", error);
