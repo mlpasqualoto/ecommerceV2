@@ -34,30 +34,40 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 };
 
 // Listar todos os pedidos do usuário (user)
-export const getOrders = async (req: Request, res: Response) => {
+export const getOrders = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !req.user.id) {
         return res.status(401).json({ message: "Usuário não autenticado" });
     }
     try {
         const orders = await getOrdersService(req.user.id);
+        if (!orders) {
+            const error = new Error("Erro ao buscar pedidos.");
+            (error as any).statusCode = 500;
+            throw error;
+        }
+
         res.status(orders.status).json({ message: orders.message, orders: orders.orders });
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ message: "Erro ao buscar pedidos", error: errorMessage });
+        next(error);
     }
 };
 
 // Obter um pedido por ID (user)
-export const getOrderById = async (req: Request, res: Response) => {
+export const getOrderById = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.params || !req.params.id) {
         return res.status(400).json({ message: "ID do pedido não fornecido" });
     }
     try {
         const order = await getOrderByIdService(req.params.id, req.user);
+        if (!order) {
+            const error = new Error("Erro ao buscar pedido.");
+            (error as any).statusCode = 500;
+            throw error;
+        }
+
         res.status(order.status).json({ message: order.message, order: order.order ? order.order : null });
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ message: "Erro ao buscar pedido", error: errorMessage });
+        next(error);
     }
 };
 
