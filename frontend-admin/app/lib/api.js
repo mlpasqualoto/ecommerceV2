@@ -2,6 +2,13 @@ const API_URL = "http://localhost:5500";
 
 // Tratador comum de resposta: tenta parsear JSON, trata 429 exibindo toast
 async function handleResponse(res) {
+  if (res.success === false) {
+    const errorMessage = res.message;
+    const statusError = res.status;
+
+    alert(`Status: ${statusError}. Erro: ${errorMessage}`)
+  }
+
   if (res.status === 429) {
     try {
       const text = await res.text();
