@@ -10,123 +10,174 @@ import {
   updatePasswordService,
   deleteUserService
 } from "../services/userService";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 // Obter todos os usuários (admin)
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = await getUsersService();
+    const users = 0;
+    if (!users) {
+      const error = new Error("Erro ao buscar usuários.");
+      (error as any).statusCode = 500;
+      return next(error);
+    }
 
-    res.status(users.status).json({ message: users.message, users: users.users });
+    return res.status(users.status ?? 200).json({ message: users.message, users: users.users ?? null });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Erro ao buscar usuários", error: errorMessage });
+    return next(error);
   }
 };
 
 // Obter perfil do usuário (user)
-export const getUserProfile = async (req: Request, res: Response) => {
+export const getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: "Não autenticado" });
+    const error = new Error("Não autenticado.");
+    (error as any).statusCode = 401;
+    return next(error);
   }
   try {
     const userProfile = await getUserProfileService(req.user.id);
-    res.status(userProfile.status).json({ message: userProfile.message, user: userProfile.user ? userProfile.user : null });
+    if (!userProfile) {
+      const error = new Error("Erro ao buscar perfil.");
+      (error as any).statusCode = 500;
+      return next(error);
+    }
+
+    return res.status(userProfile.status ?? 200).json({ message: userProfile.message, user: userProfile.user ?? null });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Erro ao buscar perfil", error: errorMessage });
+    return next(error);
   }
 };
 
 // Obter usuário por ID (admin)
-export const getUserById = async (req: Request, res: Response) => {
-  if (!req.params || !req.params.id) {
-    return res.status(404).json({ message: "ID do usuário não fornecido" });
+export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.params.id) {
+    const error = new Error("Id do usuário não fornecido.");
+    (error as any).statusCode = 404;
+    return next(error);
   }
   try {
     const userResult = await getUserByIdService(req.params.id);
-    res.status(userResult.status).json({ message: userResult.message, user: userResult.user ? userResult.user : null });
+    if (!userResult) {
+      const error = new Error("Erro ao buscar usuário.");
+      (error as any).statusCode = 500;
+      return next(error);
+    }
+
+    return res.status(userResult.status ?? 200).json({ message: userResult.message, user: userResult.user ?? null });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Erro ao buscar usuário", error: errorMessage });
+    return next(error);
   }
 };
 
 // Obter usuários por função (admin)
-export const getUsersByRole = async (req: Request, res: Response) => {
-  if (!req.params || !req.params.role) {
-    return res.status(404).json({ message: "Função (role) não fornecida" });
+export const getUsersByRole = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.params.role) {
+    const error = new Error("Função (role) não fornecida.");
+    (error as any).statusCode = 404;
+    return next(error);
   }
   try {
     const usersResult = await getUserByRoleService(req.params.role)
-    res.status(usersResult.status).json({ message: usersResult.message, users: usersResult.users });
+    if (!usersResult) {
+      const error = new Error("Erro ao buscar usuários.");
+      (error as any).statusCode = 500;
+      return next(error);
+    }
+
+    return res.status(usersResult.status ?? 200).json({ message: usersResult.message, users: usersResult.users ?? null });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Erro ao buscar usuários", error: errorMessage });
+    return next(error);
   }
 };
 
 // Rota para obter informações do usuário logado (user)
 // Lógica no controller
-export const getCurrentUser = async (req: Request, res: Response) => {
+export const getCurrentUser = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || !req.user.id || !req.user.userName || !req.user.role) {
-    return res.status(401).json({ message: "Não autenticado" });
+    const error = new Error("Não autenticado.");
+    (error as any).statusCode = 401;
+    return next(error);
   }
   try {
-    res.json({ id: req.user.id, userName: req.user.userName, role: req.user.role });
+    return res.status(200).json({ id: req.user.id, userName: req.user.userName, role: req.user.role });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Erro ao obter usuário", error: errorMessage });
+    return next(error);
   }
 };
 
 // Criação de usuário (public)
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).json({ message: "Dados do usuário não fornecidos" });
+    const error = new Error("Dados do usuário não fornecidos.");
+    (error as any).statusCode = 400;
+    return next(error);
   }
   try {
     const savedNewUser = await createUserService(req.body)
-    res.status(savedNewUser.status).json({ message: savedNewUser.message, user: savedNewUser.user ? savedNewUser.user : null })
+    if (!savedNewUser) {
+      const error = new Error("Erro ao criar usuário.");
+      (error as any).statusCode = 400;
+      return next(error);
+    }
+
+    return res.status(savedNewUser.status ?? 200).json({ message: savedNewUser.message, user: savedNewUser.user ?? null })
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(400).json({ message: "Erro ao criar usuário", error: errorMessage });
+    return next(error);
   }
 };
 
 // Criação de usuário protegida (admin)
-export const createUserByAdmin = async (req: Request, res: Response) => {
+export const createUserByAdmin = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).json({ message: "Dados do usuário não fornecidos" });
+    const error = new Error("Dados do usuário não fornecidos.");
+    (error as any).statusCode = 400;
+    return next(error);
   }
 
   const { role } = req.body;
   // 🔒 só admins podem criar admins
   if (!req.user || !req.user.role) {
-    return res.status(401).json({ message: "Não autenticado" });
+    const error = new Error("Não autenticado.");
+    (error as any).statusCode = 401;
+    return next(error);
   }
   if (role === "admin" && req.user.role !== "admin") {
-    return res.status(403).json({ message: "Somente administradores podem criar outros administradores" });
+    const error = new Error("Somente administradores podem criar outros administradores.");
+    (error as any).statusCode = 403;
+    return next(error);
   }
   try {
     const savedNewUser = await createUserByAdminService(req.body);
-    res.status(savedNewUser.status).json({ message: savedNewUser.message, user: savedNewUser.user ? savedNewUser.user : null });
+    if (!savedNewUser) {
+      const error = new Error("Error ao criar usuário.");
+      (error as any).statusCode = 400;
+      return next(error);
+    }
+
+    return res.status(savedNewUser.status ?? 200).json({ message: savedNewUser.message, user: savedNewUser.user ?? null });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(400).json({ message: "Erro ao criar usuário", error: errorMessage });
+    return next(error);
   }
 };
 
 // Login do usuário (public)
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).json({ message: "Dados de login não fornecidos" });
+    const error = new Error("Dados de login não fornecidos.");
+    (error as any).statusCode = 400;
+    return next(error);
   }
   try {
     const loginResult = await loginUserService(req.body)
+    if (!loginResult) {
+      const error = new Error("Erro ao fazer login.");
+      (error as any).statusCode = 500;
+      return next(error);
+    }
 
     if (loginResult.status !== 201 || !loginResult.token) {
-      return res.status(loginResult.status).json({ message: loginResult.message })
+      return res.status(loginResult.status ?? 500).json({ message: loginResult.message })
     }
 
     // Envia o token como cookie HTTP-only
@@ -137,69 +188,92 @@ export const loginUser = async (req: Request, res: Response) => {
       maxAge: 3600000, // 1 hora
     });
 
-    res.status(loginResult.status).json({ message: loginResult.message, user: loginResult.user, token: loginResult.token });
+    return res.status(loginResult.status ?? 200).json({ message: loginResult.message, user: loginResult.user ?? null, token: loginResult.token ?? null });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Erro ao fazer login", error: errorMessage });
+    return next(error);
   }
 };
 
 // Logout do usuário (public)
 // Lógica no controller
-export const logoutUser = async (req: Request, res: Response) => {
+export const logoutUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     res.clearCookie("token");
-    res.json({ message: "Logout realizado com sucesso" });
+    return res.status(200).json({ message: "Logout realizado com sucesso" });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Erro ao fazer logout", error: errorMessage });
+    return next(error);
   }
 };
 
 // Atualização de usuário (user)
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).json({ message: "Dados para atualização não fornecidos" });
+    const error = new Error("Dados para atualização não fornecidos.");
+    (error as any).statusCode = 400;
+    return next(error);
   }
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: "Não autenticado" });
+    const error = new Error("Não autenticado.");
+    (error as any).statusCode = 401;
+    return next(error);
   }
   try {
     const updatedUser = await updateUserService(req.body, req.user.id)
-    res.status(updatedUser.status).json({ message: updatedUser.message, user: updatedUser.user ? updatedUser.user : null });
+    if (!updatedUser) {
+      const error = new Error("Erro ao atualizar usuário.");
+      (error as any).statusCode = 400;
+      return next(error);
+    }
+
+    return res.status(updatedUser.status ?? 200).json({ message: updatedUser.message, user: updatedUser.user ?? null });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(400).json({ message: "Erro ao atualizar usuário", error: errorMessage });
+    return next(error);
   }
 };
 
 // Atualização de senha (user)
-export const updatePassword = async (req: Request, res: Response) => {
+export const updatePassword = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).json({ message: "Dados para atualização não fornecidos" });
+    const error = new Error("Dados para atualização não fornecidos.");
+    (error as any).statusCode = 400;
+    return next(error);
   }
   if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: "Não autenticado" });
+    const error = new Error("Não autenticado.");
+    (error as any).statusCode = 401;
+    return next(error);
   }
   try {
     const updatedPassword = await updatePasswordService(req.body, req.user.id)
-    res.status(updatedPassword.status).json({ message: updatedPassword.message });
+    if (!updatedPassword) {
+      const error = new Error("Erro ao alterar senha.");
+      (error as any).statusCode = 400;
+      return next(error);
+    }
+    
+    return res.status(updatedPassword.status ?? 200).json({ message: updatedPassword.message });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(400).json({ message: "Erro ao alterar senha", error: errorMessage });
+    return next(error);
   }
 };
 
 // Deletar usuário (admin)
-export const deleteUser = async (req: Request, res: Response) => {
-  if (!req.params || !req.params.id) {
-    return res.status(400).json({ message: "Dado não fornecido" })
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.params.id) {
+    const error = new Error("Dado não fornecido.");
+    (error as any).statusCode = 400;
+    return next(error);
   }
   try {
     const deletedUser = await deleteUserService(req.params.id);
-    res.status(deletedUser.status).json({ message: deletedUser.message });
+    if (!deletedUser) {
+      const error = new Error("Erro ao deletar usuário.");
+      (error as any).statusCode = 500;
+      return next(error);
+    }
+
+    return res.status(deletedUser.status ?? 200).json({ message: deletedUser.message });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ message: "Erro ao deletar usuário", error: errorMessage });
+    return next(error);
   }
 };

@@ -1,46 +1,35 @@
 const API_URL = "http://localhost:5500";
 
-// Tratador comum de resposta: tenta parsear JSON, trata 429 exibindo toast
+// Tratador comum de resposta: tenta parsear JSON e sempre usa toast para erros (incluindo 429)
 async function handleResponse(res) {
-  if (res.success === false) {
-    const errorMessage = res.message;
-    const statusError = res.status;
-
-    alert(`Status: ${statusError}. Erro: ${errorMessage}`)
+  const status = res.status;
+  const text = await res.text();
+  let parsed = null;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    parsed = null;
   }
 
-  if (res.status === 429) {
-    try {
-      const text = await res.text();
-      let parsed;
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = null;
-      }
-      const serverMessage = parsed?.message || parsed?.error || text || '';
-      const message = serverMessage
-        ? `Limite de requisições atingido: ${serverMessage}`
-        : 'Você excedeu o limite de requisições. Tente novamente mais tarde.';
+  const serverMessage = parsed?.message || parsed?.error || text || '';
 
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('show-toast', { detail: { type: 'error', message } }));
-      }
-    } catch (e) {
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('show-toast', { detail: { type: 'error', message: 'Você excedeu o limite de requisições. Tente novamente mais tarde.' } }));
-      }
+  if (!res.ok) {
+    const message = status === 429
+      ? (serverMessage ? `Limite de requisições atingido: ${serverMessage}` : 'Você excedeu o limite de requisições. Tente novamente mais tarde.')
+      : `${serverMessage || 'Erro desconhecido'}. Status: ${status}.`;
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('show-toast', { detail: { type: 'error', message } }));
     }
 
-    return { status: 429, error: 'Too Many Requests', message: 'Limite de requisições atingido' };
+    if (status === 429) {
+      return { status: 429, error: 'Too Many Requests', message: serverMessage || 'Limite de requisições atingido' };
+    }
+
+    return parsed ?? { ok: res.ok, status, raw: text };
   }
 
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { ok: res.ok, raw: text };
-  }
+  return parsed ?? { ok: res.ok, raw: text };
 }
 
 export async function fetchOrders(status) {

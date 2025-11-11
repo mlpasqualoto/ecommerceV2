@@ -29,7 +29,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             return next(error);
         }
         
-        res.status(order.status).json({ message: order.message, order: order.order ? order.order : null });
+        return res.status(order.status ?? 200).json({ message: order.message, order: order.order ?? null });
     } catch (error) {
         return next(error);
     }
@@ -50,7 +50,7 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
             return next(error);
         }
 
-        res.status(orders.status).json({ message: orders.message, orders: orders.orders });
+        return res.status(orders.status ?? 200).json({ message: orders.message, orders: orders.orders ?? null });
     } catch (error) {
         return next(error);
     }
@@ -58,7 +58,7 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
 
 // Obter um pedido por ID (user)
 export const getOrderById = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.id) {
+    if (!req.params.id) {
         const error = new Error("ID do pedido não fornecido.");
         (error as any).statusCode = 400;
         return next(error);
@@ -71,7 +71,7 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
             return next(error);
         }
 
-        res.status(order.status).json({ message: order.message, order: order.order ? order.order : null });
+        return res.status(order.status ?? 200).json({ message: order.message, order: order.order ?? null });
     } catch (error) {
         return next(error);
     }
@@ -79,7 +79,7 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
 
 // Obter pedidos pelo status (user)
 export const getOrdersByStatus = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.status) {
+    if (!req.params.status) {
         const error = new Error("Status não fornecido.");
         (error as any).statusCode = 400;
         return next(error)
@@ -92,7 +92,7 @@ export const getOrdersByStatus = async (req: Request, res: Response, next: NextF
             return next(error);
         }
 
-        res.status(orders.status).json({ message: orders.message, orders: orders.orders ? orders.orders : null });
+        return res.status(orders.status ?? 200).json({ message: orders.message, orders: orders.orders ?? null });
     } catch (error) {
         return next(error);
     }
@@ -100,7 +100,7 @@ export const getOrdersByStatus = async (req: Request, res: Response, next: NextF
 
 // Obter pedidos por status (admin - todos os pedidos)
 export const getAllOrdersByStatus = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.status) {
+    if (!req.params.status) {
         const error = new Error("Status não fornecido.");
         (error as any).statusCode = 400;
         return next(error);
@@ -113,7 +113,7 @@ export const getAllOrdersByStatus = async (req: Request, res: Response, next: Ne
             return next(error);
         }
 
-        res.status(orders.status).json({ message: orders.message, orders: orders.orders ? orders.orders : null });
+        return res.status(orders.status ?? 200).json({ message: orders.message, orders: orders.orders ?? null });
     } catch (error) {
         return next(error);
     }
@@ -121,7 +121,7 @@ export const getAllOrdersByStatus = async (req: Request, res: Response, next: Ne
 
 // Obter pedidos por data (user)
 export const getOrdersByDate = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.date) {
+    if (!req.params.date) {
         const error = new Error("Data não fornecida.");
         (error as any).statusCode = 400;
         return next(error);
@@ -134,7 +134,7 @@ export const getOrdersByDate = async (req: Request, res: Response, next: NextFun
             return next(error);
         }
 
-        res.status(orders.status).json({ message: orders.message, orders: orders.orders ? orders.orders : null });
+        return res.status(orders.status ?? 200).json({ message: orders.message, orders: orders.orders ?? null });
     } catch (error) {
         return next(error);
     }
@@ -142,7 +142,7 @@ export const getOrdersByDate = async (req: Request, res: Response, next: NextFun
 
 // Obter pedidos por data (admin - todos os pedidos)
 export const getAllOrdersByDate = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.date) {
+    if (!req.params.date) {
         const error = new Error("Data não fornecida.");
         (error as any).statusCode = 400;
         return next(error);
@@ -155,7 +155,7 @@ export const getAllOrdersByDate = async (req: Request, res: Response, next: Next
             return next(error);
         }
 
-        res.status(orders.status).json({ message: orders.message, orders: orders.orders ? orders.orders : null });
+        return res.status(orders.status ?? 200).json({ message: orders.message, orders: orders.orders ?? null });
     } catch (error) {
         return next(error);
     }
@@ -163,7 +163,7 @@ export const getAllOrdersByDate = async (req: Request, res: Response, next: Next
 
 // Atualizar um pedido (admin)
 export const updateOrder = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.body) {
+    if (!req.body) {
         const error = new Error("Id ou alterações não fornecidas.");
         (error as any).statusCode = 400;
         return next(error);
@@ -176,7 +176,7 @@ export const updateOrder = async (req: Request, res: Response, next: NextFunctio
             return next(error);
         }
 
-        res.status(updatedOrder.status).json({ message: updatedOrder.message, order: updatedOrder.order ? updatedOrder.order : null });
+        return res.status(updatedOrder.status ?? 200).json({ message: updatedOrder.message, order: updatedOrder.order ?? null });
     } catch (error) {
         return next(error);
     }
@@ -184,7 +184,7 @@ export const updateOrder = async (req: Request, res: Response, next: NextFunctio
 
 // Pagar um pedido (admin)
 export const payOrder = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.id) {
+    if (!req.params.id) {
         const error = new Error("Id não fornecido.");
         (error as any).statusCode = 400;
         return next(error);
@@ -197,7 +197,7 @@ export const payOrder = async (req: Request, res: Response, next: NextFunction) 
             return next(error);
         }
 
-        res.status(paidOrder.status).json({ message: paidOrder.message, order: paidOrder.order ? paidOrder.order : null });
+        return res.status(paidOrder.status ?? 200).json({ message: paidOrder.message, order: paidOrder.order ?? null });
     } catch (error) {
         return next(error);
     }
@@ -205,7 +205,7 @@ export const payOrder = async (req: Request, res: Response, next: NextFunction) 
 
 // Enviar um pedido (admin)
 export const shipOrder = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.id) {
+    if (!req.params.id) {
         const error = new Error("Id não fornecido.");
         (error as any).statusCode = 400;
         return next(error);
@@ -218,7 +218,7 @@ export const shipOrder = async (req: Request, res: Response, next: NextFunction)
             return next(error);
         }
 
-        res.status(shippedOrder.status).json({ message: shippedOrder.message, order: shippedOrder.order ? shippedOrder.order : null });
+        return res.status(shippedOrder.status ?? 200).json({ message: shippedOrder.message, order: shippedOrder.order ?? null });
     } catch (error) {
         return next(error);
     }
@@ -226,7 +226,7 @@ export const shipOrder = async (req: Request, res: Response, next: NextFunction)
 
 // Cancelar um pedido (user)
 export const cancelOrder = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.id) {
+    if (!req.params.id) {
         const error = new Error("Id não fornecido.");
         (error as any).statusCode = 400;
         return next(error);
@@ -244,7 +244,7 @@ export const cancelOrder = async (req: Request, res: Response, next: NextFunctio
             return next(error);
         }
 
-        res.status(cancelledOrder.status).json({ message: cancelledOrder.message, order: cancelledOrder.order ? cancelledOrder.order : null });
+        return res.status(cancelledOrder.status ?? 200).json({ message: cancelledOrder.message, order: cancelledOrder.order ?? null });
     } catch (error) {
         return next(error);
     }
@@ -252,7 +252,7 @@ export const cancelOrder = async (req: Request, res: Response, next: NextFunctio
 
 // Deletar um pedido (admin)
 export const deleteOrder = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.params || !req.params.id) {
+    if (!req.params.id) {
         const error = new Error("Id não fornecido.");
         (error as any).statusCode = 400;
         return next(error);
@@ -265,7 +265,7 @@ export const deleteOrder = async (req: Request, res: Response, next: NextFunctio
             return next(error);
         }
 
-        res.status(deletedOrder.status).json({ message: deletedOrder.message });
+        return res.status(deletedOrder.status ?? 200).json({ message: deletedOrder.message });
     } catch (error) {
         return next(error);
     }
