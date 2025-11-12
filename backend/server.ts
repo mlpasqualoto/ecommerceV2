@@ -11,6 +11,8 @@ import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./src/middlewares/errorMiddleware";
 import expressWinston from "express-winston";
 import logger from "./src/utils/logger"
+import { startSchedulers } from "./src/services/integrations/scheduler";
+import { start } from "repl";
 
 dotenv.config();
 
@@ -100,4 +102,7 @@ app.get("/", (req: express.Request, res: express.Response) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
+
+  // Inicia os agendadores
+  startSchedulers();
 });
