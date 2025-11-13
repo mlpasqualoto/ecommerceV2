@@ -1,19 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import logger from "../utils/logger"
+import { errorHandler } from "../utils/errorHandler";
 
 export function errorMiddleware(error: any, req: Request, res: Response, next: NextFunction): void {
-    console.error("Erro capturado: ", error);
+    const method = req.method;
+    const url = req.originalUrl;
 
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || "Erro interno do servidor.";
-
-    // gera log de erro
-    logger.error(`${req.method} ${req.originalUrl} - ${errorMessage}`);
+    const { statusCode, errorMessage } = errorHandler(error, method, url);
     
-    // exibe no console também (apenas dev)
-    if (process.env.NODE_ENV !== "production") {
-        console.log(error);
-    }
-
     res.status(statusCode).json({success: false, status: statusCode, message: errorMessage})
 }

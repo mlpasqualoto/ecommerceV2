@@ -1,6 +1,8 @@
 import axios from "axios";
 import Order from "../../models/Order";
 import dotenv from "dotenv";
+import { errorHandler } from "../../utils/errorHandler";
+import logger from "../../utils/logger";
 
 dotenv.config();
 
@@ -20,43 +22,59 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
       },
     });
 
-    console.log("📦 Pedido obtido com sucesso:");
-    console.log(response.headers["x-limit-api"]);
-    console.log(JSON.stringify(response.data, null, 2));
+    if (response.status !== 200) {
+      const error = new Error(`Erro ao buscar pedidos da Olist: ${response.statusText}`);
+      (error as any).statusCode = response.status;
+      return errorHandler(error, "POST", "/api2/pedidos.pesquisa.php");
+    }
 
+    logger.info("Pedido obtido com sucesso", { endpoint: "pedidos.pesquisa.php", rateLimit: response.headers["x-limit-api"] });
+    logger.debug("Resposta Olist (debug)", { data: response.data }); // só aparece se LOG_LEVEL=debug
+    
     const orders = response.data.retorno.pedidos || [];
 
     for (const order of orders) {
-      // Mapeamento para o formato do seu schema atual
-      const mappedOrder = {
-        userId: "INTEGRAÇÃO OLIST",
-        userName: order.pedido.nome,
-        name: `Pedido Olist Id ${order.pedido.id}, nº Olist ${order.pedido.numero}, nº Ecommerce ${order.pedido.numero_ecommerce}`,
-        items: {
-          productId: null,
-          name: null,
-          quantity: null,
-          originalPrice: null,
-          discount: 0,
-          price: null,
+      // tente extrair um id de usuário válido vindo da Olist (ajuste as chaves conforme payload real)
+      const rawUserId = order.pedido.id_usuario ?? order.pedido.id_cliente ?? null;
+      // se não houver um id válido, OMITIMOS userId para evitar cast para ObjectId inválido
+      const maybeUserId = rawUserId ? String(rawUserId) : undefined;
+
+      const mappedOrder: any = {
+        externalId: order.pedido.id ?? "",
+        ...(maybeUserId ? { userId: maybeUserId } : {}),
+        userName: order.pedido.nome ?? "",
+        name: `Pedido Olist nº ${order.pedido.numero ?? ''}, nº Ecommerce ${order.pedido.numero_ecommerce ?? ''}`,
+        items: (order.pedido.itens ?? []).map((i: any) => ({
+          productId: i.id_produto ?? null,
+          name: i.nome ?? null,
+          quantity: i.quantidade ? Number(i.quantidade) : null,
+          originalPrice: i.preco_unitario ? Number(i.preco_unitario) : null,
+          discount: i.desconto ? Number(i.desconto) : 0,
+          price: i.preco_unitario ? Number(i.preco_unitario) : null,
           imageUrl: "",
-        },
-        totalAmount: order.pedido.valor,
+        })),
+        totalAmount: order.pedido.valor ? Number(order.pedido.valor) : 0,
         totalQuantity: null,
-        status: mapStatus(order.pedido.situacao),
+        status: mapStatus(order.pedido.situacao ?? ""),
+        source: "olist",
       };
 
-      // Evita duplicar pedidos
-      await Order.updateOne(
-        { name: `Pedido Olist Id ${order.pedido.id}, nº Olist ${order.pedido.numero}, nº Ecommerce ${order.pedido.numero_ecommerce}` },
-        { $set: mappedOrder },
-        { upsert: true }
-      );
+      try {
+        await Order.updateOne(
+          { externalId: mappedOrder.externalId },
+          { $set: mappedOrder },
+          { upsert: true }
+        );
+        logger.info("Pedido salvo/atualizado", { externalId: mappedOrder.externalId });
+      } catch (error) {
+        logger.error("Erro salvando pedido Olist", { externalId: mappedOrder.externalId, error: error });
+      }
     }
 
-    console.log(`✅ ${orders.length} pedidos sincronizados da Olist`);
+    logger.info("Pedidos sincronizados da Olist", { count: orders.length });
   } catch (error) {
-    console.error("❌ Erro ao sincronizar pedidos da Olist:", error);
+    logger.error("Erro ao sincronizar pedidos da Olist", { error });
+    return errorHandler(error, "POST", "/api2/pedidos.pesquisa.php");
   }
 }
 
@@ -64,7 +82,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 function mapStatus(olistStatus: string): string {
   switch (olistStatus.toLowerCase()) {
     case "Em aberto":
-    case "Não Entregue":
+    case "Não entregue":
       return "pending";
     case "Aprovado":
     case "Preparando envio":

@@ -15,7 +15,7 @@ import { NextFunction, Request, Response } from "express";
 // Obter todos os usuários (admin)
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = 0;
+    const users = await getUsersService();
     if (!users) {
       const error = new Error("Erro ao buscar usuários.");
       (error as any).statusCode = 500;

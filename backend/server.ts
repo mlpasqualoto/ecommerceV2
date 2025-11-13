@@ -12,7 +12,6 @@ import { errorMiddleware } from "./src/middlewares/errorMiddleware";
 import expressWinston from "express-winston";
 import logger from "./src/utils/logger"
 import { startSchedulers } from "./src/services/integrations/scheduler";
-import { start } from "repl";
 
 dotenv.config();
 

@@ -11,6 +11,7 @@ export interface IOrderItem {
 }
 
 export interface IOrder extends Document {
+    externalId: string;
     userId: Types.ObjectId;
     userName: string;
     name: string;
@@ -18,6 +19,7 @@ export interface IOrder extends Document {
     totalAmount: number;
     totalQuantity: number;
     status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
+    source: "olist" | "ecommerce";
     createdAt?: Date;
     updatedAt?: Date;
 }

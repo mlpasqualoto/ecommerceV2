@@ -2,6 +2,13 @@ import mongoose, { Schema } from "mongoose";
 import { IOrder } from "../types/orderTypes"
 
 const orderSchema = new Schema<IOrder>({
+    externalId: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        default: ""
+    },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -71,7 +78,13 @@ const orderSchema = new Schema<IOrder>({
         required: true,
         enum: ["pending", "paid", "shipped", "delivered", "cancelled"],
         default: "pending"
-    }
+    },
+    source: {
+        type: String,
+        required: true,
+        enum: ["olist", "ecommerce"],
+        default: "ecommerce"
+    },
 }, {
     versionKey: false, // remove o campo "__v" do documento
     timestamps: true // cria automaticamente createdAt e updatedAt
