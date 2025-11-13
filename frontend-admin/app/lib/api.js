@@ -16,7 +16,7 @@ async function handleResponse(res) {
   if (!res.ok) {
     const message = status === 429
       ? (serverMessage ? `Limite de requisições atingido: ${serverMessage}` : 'Você excedeu o limite de requisições. Tente novamente mais tarde.')
-      : `${serverMessage || 'Erro desconhecido'}. Status: ${status}.`;
+      : `${serverMessage || 'Erro desconhecido'} Status: ${status}.`;
 
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('show-toast', { detail: { type: 'error', message } }));
