@@ -28,7 +28,7 @@ export default function AdminHome() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("paid");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, orderId: null });
@@ -38,7 +38,7 @@ export default function AdminHome() {
   const handleRefreshData = async () => {
     setLoading(true);
     try {
-      const data = await fetchOrders(statusFilter);
+      const data = handleFilterByDate(new Date().toISOString().split('T')[0]);
 
       if (
         data?.message?.toLowerCase().includes("não autenticado") ||
@@ -164,7 +164,7 @@ export default function AdminHome() {
     const loadOrders = async () => {
       setLoading(true);
       try {
-        const data = await fetchOrders(statusFilter);
+        const data = await fetchOrderByDate(new Date().toISOString().split('T')[0]);
 
         if (
           data?.message?.toLowerCase().includes("não autenticado") ||
@@ -223,10 +223,14 @@ export default function AdminHome() {
         setOrders([]);
       } else {
         let filteredOrders = [];
-        for (const order of data.orders) {
-          if (order.status === statusFilter) {
-            filteredOrders.push(order);
+        if (statusFilter !== "all") {
+          for (const order of data.orders) {
+            if (order.status === statusFilter) {
+              filteredOrders.push(order);
+            }
           }
+        } else {
+          filteredOrders = data.orders;
         }
         setOrders(filteredOrders);
         toggleOrderDetails();
@@ -497,6 +501,13 @@ export default function AdminHome() {
                     </div>
                     <div className="text-sm text-slate-500 mt-1">
                       {orders.length === 1 ? 'pedido listado' : 'pedidos listados'}
+                    </div>
+                    <div className="mt-1 text-3x3 font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
+                      {new Date().toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
                     </div>
                     <div className="flex items-center justify-end space-x-1 mt-2">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
@@ -859,6 +870,7 @@ export default function AdminHome() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-medium min-w-[140px] text-slate-900 hover:border-slate-300"
                 >
+                  <option value="all">Todos</option>
                   <option value="paid">Pago</option>
                   <option value="pending">Pendente</option>
                   <option value="shipped">Enviado</option>

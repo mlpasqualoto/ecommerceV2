@@ -1,10 +1,31 @@
 import axios from "axios";
 import Order from "../../models/Order";
 import dotenv from "dotenv";
-import { errorHandler } from "../../utils/errorHandler";
 import logger from "../../utils/logger";
 
 dotenv.config();
+
+function parseOlistDateToISO(rawDate?: string): string | null {
+  if (!rawDate) return null;
+
+  // Formato DD/MM/YYYY -> criar um instante seguro (meio-dia UTC) para evitar rollovers
+  const ddmmyyyy = rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (ddmmyyyy) {
+    const day = Number(ddmmyyyy[1]);
+    const month = Number(ddmmyyyy[2]);
+    const year = Number(ddmmyyyy[3]);
+    // usar 12:00 UTC (meio-dia) garante que a data não "ande" para o dia anterior/próximo em diferentes timezones
+    return new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).toISOString();
+  }
+
+  // Tenta interpretar como ISO/Date com offset se vier neste formato
+  const d = new Date(rawDate);
+  if (!Number.isNaN(d.getTime())) {
+    return d.toISOString();
+  }
+
+  return null;
+}
 
 export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: string, situacao: string) {
   try {
@@ -25,19 +46,22 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
     if (response.status !== 200) {
       const error = new Error(`Erro ao buscar pedidos da Olist: ${response.statusText}`);
       (error as any).statusCode = response.status;
-      return errorHandler(error, "POST", "/api2/pedidos.pesquisa.php");
+      logger.error("Erro buscando pedidos Olist", { status: response.status, statusText: response.statusText });
+      throw error; // propagar para o caller decidir o tratamento
     }
 
     logger.info("Pedido obtido com sucesso", { endpoint: "pedidos.pesquisa.php", rateLimit: response.headers["x-limit-api"] });
     logger.debug("Resposta Olist (debug)", { data: response.data }); // só aparece se LOG_LEVEL=debug
-    
+
     const orders = response.data.retorno.pedidos || [];
 
     for (const order of orders) {
-      // tente extrair um id de usuário válido vindo da Olist (ajuste as chaves conforme payload real)
       const rawUserId = order.pedido.id_usuario ?? order.pedido.id_cliente ?? null;
-      // se não houver um id válido, OMITIMOS userId para evitar cast para ObjectId inválido
       const maybeUserId = rawUserId ? String(rawUserId) : undefined;
+
+      // parsear data do pedido (p.ex. data_pedido = "01/01/2013")
+      const rawDate = order.pedido.data_pedido ?? order.pedido.data_criacao ?? order.pedido.data ?? null;
+      const createdAtIso = parseOlistDateToISO(rawDate);
 
       const mappedOrder: any = {
         externalId: order.pedido.id ?? "",
@@ -57,6 +81,8 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
         totalQuantity: null,
         status: mapStatus(order.pedido.situacao ?? ""),
         source: "olist",
+        createdAt: createdAtIso,          // ISO seguro (ou null)
+        createdAtRaw: rawDate ?? null,    // mantém original para auditoria
       };
 
       try {
@@ -74,7 +100,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
     logger.info("Pedidos sincronizados da Olist", { count: orders.length });
   } catch (error) {
     logger.error("Erro ao sincronizar pedidos da Olist", { error });
-    return errorHandler(error, "POST", "/api2/pedidos.pesquisa.php");
+    throw error; // propagar para o scheduler/handler
   }
 }
 

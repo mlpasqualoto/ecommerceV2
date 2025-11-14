@@ -110,13 +110,13 @@ export async function getOrdersByStatusService(status: string, user: { id: strin
 
 export async function getAllOrdersByStatusService(status: string): Promise<OrderServiceResult> {
     // Valida o status
-    const allowedStatuses = ["pending", "paid", "shipped", "delivered", "cancelled"];
+    const allowedStatuses = ["pending", "paid", "shipped", "delivered", "cancelled", "all"];
     if (!allowedStatuses.includes(status)) {
         return { status: 400, message: "Status inválido" };
     }
 
     // Busca todos os pedidos com o status informado
-    const orders = await Order.find({ status });
+    const orders = status === "all" ? await Order.find() : await Order.find({ status });
     if (orders.length === 0) {
         return { status: 404, message: "Nenhum pedido encontrado com o status especificado" };
     }
