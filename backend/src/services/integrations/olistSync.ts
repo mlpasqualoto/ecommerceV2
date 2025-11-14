@@ -81,19 +81,19 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 // Função auxiliar para traduzir status da Olist → seu padrão interno
 function mapStatus(olistStatus: string): string {
   switch (olistStatus.toLowerCase()) {
-    case "Em aberto":
-    case "Não entregue":
+    case "em aberto":
+    case "não entregue":
       return "pending";
-    case "Aprovado":
-    case "Preparando envio":
-    case "Faturado (atendido)":
-    case "Pronto para envio":
+    case "aprovado":
+    case "preparando envio":
+    case "faturado (atendido)":
+    case "pronto para envio":
       return "paid";
-    case "Enviado":
+    case "enviado":
       return "shipped";
-    case "Entregue":
+    case "entregue":
       return "delivered";
-    case "Cancelado":
+    case "cancelado":
       return "cancelled";
     default:
       return "pending";

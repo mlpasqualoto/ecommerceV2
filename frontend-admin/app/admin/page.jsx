@@ -222,7 +222,13 @@ export default function AdminHome() {
       if (!data.orders || data.orders.length === 0) {
         setOrders([]);
       } else {
-        setOrders(data.orders);
+        let filteredOrders = [];
+        for (const order of data.orders) {
+          if (order.status === statusFilter) {
+            filteredOrders.push(order);
+          }
+        }
+        setOrders(filteredOrders);
         toggleOrderDetails();
       }
     }
