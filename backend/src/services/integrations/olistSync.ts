@@ -15,12 +15,29 @@ const productCache = new Map<string, { id: mongoose.Types.ObjectId; image: strin
 function parseOlistDateToISO(rawDate?: string): Date | null {
   if (!rawDate) return null;
 
+  // ⚠️ CORREÇÃO: Formato YYYY-MM-DD HH:mm:ss (timestamp da Olist)
+  const yyyymmddHHmmss = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+  if (yyyymmddHHmmss) {
+    const [_, year, month, day, hour, minute, second] = yyyymmddHHmmss.map(Number);
+    // ⚠️ A Olist envia horário LOCAL (-03:00), então SUBTRAÍMOS 3h para converter para UTC
+    // Exemplo: "2025-11-17 16:44:03" (horário de Brasília) -> UTC = 19:44:03
+    return new Date(Date.UTC(year, month - 1, day, hour - 3, minute, second));
+  }
+
+  // Formato DD/MM/YYYY HH:mm:ss (caso exista)
+  const ddmmyyyyHHmmss = rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/);
+  if (ddmmyyyyHHmmss) {
+    const [_, day, month, year, hour, minute, second] = ddmmyyyyHHmmss.map(Number);
+    return new Date(Date.UTC(year, month - 1, day, hour - 3, minute, second));
+  }
+
+  // Formato DD/MM/YYYY (sem hora)
   const ddmmyyyy = rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (ddmmyyyy) {
     const day = Number(ddmmyyyy[1]);
     const month = Number(ddmmyyyy[2]);
     const year = Number(ddmmyyyy[3]);
-    return new Date(year, month - 1, day, 0, 0, 0);
+    return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
   }
 
   const d = new Date(rawDate);
@@ -57,20 +74,13 @@ async function getOrCreateOlistUser(): Promise<mongoose.Types.ObjectId> {
 
 // Garante que existe um produto ou cria um genérico
 async function getOrCreateProduct(codigo: string, descricao: string, valorUnitario: number, imagemUrl?: string): Promise<{ productId: mongoose.Types.ObjectId; productImage: string }> {
-  // Verifica cache primeiro
-  if (productCache.has(codigo)) {
-    const cached = productCache.get(codigo)!;
-    return { productId: cached.id, productImage: cached.image };
-  }
-
   try {
-    // Busca produto existente pelo código externo
+    // ⚠️ Sempre busca do banco (não usa cache para verificar produto)
     let product = await Product.findOne({ externalId: codigo });
 
     if (!product) {
       logger.info("Criando produto da Olist", { codigo, descricao });
       
-      // Monta array de images conforme schema (IProductImage)
       const images = [];
       if (imagemUrl) {
         images.push({
@@ -89,7 +99,7 @@ async function getOrCreateProduct(codigo: string, descricao: string, valorUnitar
         price: valorUnitario || 0,
         images: images,
         description: descricao || "",
-        category: "Olist", // categoria padrão para produtos da Olist
+        category: "Olist",
         stock: 0,
         status: "active",
         discount: 0
@@ -98,8 +108,12 @@ async function getOrCreateProduct(codigo: string, descricao: string, valorUnitar
       logger.info("Produto criado com sucesso", { codigo, productId: product._id });
     }
 
+    // ⚠️ Sempre pega a imagem ATUAL do banco (reflete alterações manuais)
     const productImage = product.images?.[0]?.url || "";
+    
+    // Atualiza cache com dados frescos
     productCache.set(codigo, { id: product._id as mongoose.Types.ObjectId, image: productImage });
+    
     return { productId: product._id as mongoose.Types.ObjectId, productImage };
   } catch (error) {
     logger.error("Erro ao criar/buscar produto", { codigo, descricao, error });
@@ -154,6 +168,10 @@ async function fetchOlistOrderDetails(orderId: string) {
 
 export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: string, situacao: string) {
   try {
+    // ⚠️ Limpa caches no início para refletir mudanças manuais
+    olistUserCache = null;
+    productCache.clear();
+    
     logger.info("Chamando endpoint pedidos.pesquisa.php", { dataInicial, dataFinal, situacao });
     
     // Garante usuário genérico antes de processar pedidos
@@ -205,11 +223,16 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
         const existing = await Order.findOne({ externalId }).lean();
 
         if (!existing) {
-
-          logger.info("Detalhe do pedido obtido", { externalId });
-
-          const rawDate = detail.data_pedido ?? null;
+          // ⚠️ Remove timestamp do log (não é da API)
+          const rawDate = detail.data_pedido ?? detail.data_criacao ?? null;
           const createdAtDateObj = parseOlistDateToISO(rawDate);
+
+          logger.info("Data parseada (sem hora da API)", { 
+            externalId, 
+            rawDate, 
+            createdAtDateObj: createdAtDateObj?.toISOString(),
+            observacao: "API Tiny não fornece horário, usando 12:00 UTC"
+          });
 
           const endereco_entrega = detail.cliente ? `
             ${detail.cliente.endereco || ''}, 
@@ -295,6 +318,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             status: mapStatus(detail.situacao ?? ""),
             source: "olist" as const,
             createdAt: createdAtDateObj ?? undefined,
+            // ⚠️ updatedAt será preenchido automaticamente pelo Mongoose
           };
 
           if (items.length === 0 || totalQuantity < 1) {
@@ -306,7 +330,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
           logger.info("Pedido criado com sucesso", { externalId, itemsCount: items.length });
 
         } else {
-          // ⚠️ Atualização: usa os mesmos dados do detail que já foram buscados
+          // ⚠️ Na atualização, remove timestamp também
           const rawDate = detail.data_pedido ?? null;
           const createdAtDateObj = parseOlistDateToISO(rawDate);
 

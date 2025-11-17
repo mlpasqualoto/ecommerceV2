@@ -1020,7 +1020,7 @@ export default function AdminHome() {
                               )}
                             </div>
                             <div className="text-xs text-slate-500">
-                              {new Date(order.createdAt).toLocaleString(
+                              {new Date(order.updatedAt).toLocaleString(
                                 "pt-BR",
                                 {
                                   timeZone: "America/Sao_Paulo",
