@@ -24,6 +24,18 @@ const orderSchema = new Schema<IOrder>({
         required: true,
         trim: true
     },
+    shippingAddress: {
+        type: String,
+        required: false,
+        trim: true,
+        default: ""
+    },
+    buyerPhone: {
+        type: String,
+        required: false,
+        trim: true,
+        default: ""
+    },
     items: [
         {
             productId: {

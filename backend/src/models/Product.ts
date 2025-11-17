@@ -48,6 +48,12 @@ const productSchema = new Schema<IProduct>({
         default: 0,
         min: 0
     },
+    externalId: {
+        type: String,
+        unique: true,
+        trim: true,
+        default: ""
+    }
 }, {
     versionKey: false,
     timestamps: true,

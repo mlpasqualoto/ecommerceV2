@@ -6,19 +6,29 @@
     "auditLog": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\.680518e977c8d2d24db43aa8c8cc5a49bb145cd0-audit.json",
     "files": [
         {
-            "date": 1761961179115,
-            "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-10-31.log",
-            "hash": "6034b9c1aca71774dbeef45e7331c6ed65a407aefd222ed9ff3fdb4c162d436f"
-        },
-        {
-            "date": 1762135548932,
-            "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-11-02.log",
-            "hash": "177671a608224405b73662bac2ab0153d608493fee7802d611aaa259e0558bdb"
-        },
-        {
             "date": 1763075220216,
             "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-11-13.log",
             "hash": "9602d53219eb3a2a0929a3cc42f81989d0dafedd864fc951d748f1fc4eae146a"
+        },
+        {
+            "date": 1763166056637,
+            "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-11-14.log",
+            "hash": "094754484bfa29ab9f84b6eef2ea77e125c7503bb0aa7ebba083b2a47bdc793b"
+        },
+        {
+            "date": 1763175600420,
+            "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-11-15.log",
+            "hash": "7f5d493a6bc7c522fa72ae44099d4a606a881317903f1b8c7cad694fd6ad17b1"
+        },
+        {
+            "date": 1763320235093,
+            "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-11-16.log",
+            "hash": "a25b108e0b5a13c3efbf253e54ba2c14faf3c7cec20dc6fa18b4b88f367c6c45"
+        },
+        {
+            "date": 1763348400023,
+            "name": "C:\\Users\\Matheus\\Desktop\\curso_front_end\\ecommerceV2\\backend\\logs\\combined-2025-11-17.log",
+            "hash": "81f076b9be25f3eb1caa5762d143324405c9690f76f7b50ac8090ffe0f13ff46"
         }
     ],
     "hashType": "sha256"

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState, Fragment, useRef } from "react";
 import {
   fetchOrders,
   fetchOrderById,
@@ -32,23 +32,33 @@ export default function AdminHome() {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, orderId: null });
+  
+  // usa data local (YYYY-MM-DD) — evita deslocamento por UTC
+  const getLocalIsoDate = () => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // formato BR para exibição (DD/MM/YYYY)
+  const formatBR = (isoDate) => {
+    if (!isoDate) return "";
+    const [y, m, d] = isoDate.split("-");
+    return `${d}/${m}/${y}`;
+  };
+
+  const hiddenDateRef = useRef(null);
+  const [orderDate, setOrderDate] = useState(getLocalIsoDate());
   const router = useRouter();
 
   // Função para recarregar/atualizar os dados
   const handleRefreshData = async () => {
     setLoading(true);
     try {
-      const data = handleFilterByDate(new Date().toISOString().split('T')[0]);
-
-      if (
-        data?.message?.toLowerCase().includes("não autenticado") ||
-        data?.error === "Unauthorized"
-      ) {
-        router.push("/login");
-        return;
-      }
-
-      setOrders(data.orders || []);
+      // handleFilterByDate já atualiza o estado orders e trata redirect quando necessário
+      await handleFilterByDate(orderDate);
 
       // Feedback visual de sucesso
       const refreshButton = document.querySelector('[data-refresh-btn]');
@@ -164,17 +174,7 @@ export default function AdminHome() {
     const loadOrders = async () => {
       setLoading(true);
       try {
-        const data = await fetchOrderByDate(new Date().toISOString().split('T')[0]);
-
-        if (
-          data?.message?.toLowerCase().includes("não autenticado") ||
-          data?.error === "Unauthorized"
-        ) {
-          router.push("/login");
-          return;
-        }
-
-        setOrders(data.orders || []);
+        await handleFilterByDate(orderDate);
       } catch (err) {
         console.error("Erro ao buscar pedidos:", err);
       } finally {
@@ -184,7 +184,7 @@ export default function AdminHome() {
     };
 
     loadOrders();
-  }, [statusFilter, router]);
+  }, [statusFilter, router, orderDate]);
 
   const handleFilterById = async (e) => {
     e.preventDefault();
@@ -208,34 +208,58 @@ export default function AdminHome() {
     }
   };
 
-  const handleFilterByDate = async (orderDate) => {
-    if (orderDate) {
-      const data = await fetchOrderByDate(orderDate);
-      if (
-        data?.message?.toLowerCase().includes("não autenticado") ||
-        data?.error === "Unauthorized"
-      ) {
-        router.push("/login");
-        return;
-      }
+  const handleFilterByStatus = async (status) => {
+    if (!status) return null;
 
-      if (!data.orders || data.orders.length === 0) {
-        setOrders([]);
-      } else {
-        let filteredOrders = [];
-        if (statusFilter !== "all") {
-          for (const order of data.orders) {
-            if (order.status === statusFilter) {
-              filteredOrders.push(order);
-            }
-          }
-        } else {
-          filteredOrders = data.orders;
-        }
-        setOrders(filteredOrders);
-        toggleOrderDetails();
-      }
+    const data = await fetchOrders(status);
+    if (
+      data?.message?.toLowerCase().includes("não autenticado") ||
+      data?.error === "Unauthorized"
+    ) {
+      router.push("/login");
+      return data;
     }
+
+    if (!data.orders || data.orders.length === 0) {
+      setOrders([]);
+    } else {
+      setOrders(data.orders);
+      toggleOrderDetails();
+    }
+
+    return data;
+  }
+
+  const handleFilterByDate = async (date) => {
+    if (!date) return null;
+    
+    const data = await fetchOrderByDate(date);
+    if (
+      data?.message?.toLowerCase().includes("não autenticado") ||
+      data?.error === "Unauthorized"
+    ) {
+      router.push("/login");
+      return data;
+    }
+
+    if (!data.orders || data.orders.length === 0) {
+      setOrders([]);
+    } else {
+      let filteredOrders = [];
+      if (statusFilter !== "all") {
+        for (const order of data.orders) {
+          if (order.status === statusFilter) {
+            filteredOrders.push(order);
+          }
+        }
+      } else {
+        filteredOrders = data.orders;
+      }
+      setOrders(filteredOrders);
+      toggleOrderDetails();
+    }
+
+    return data;
   };
 
   const handleCreateOrder = async (e) => {
@@ -501,13 +525,6 @@ export default function AdminHome() {
                     </div>
                     <div className="text-sm text-slate-500 mt-1">
                       {orders.length === 1 ? 'pedido listado' : 'pedidos listados'}
-                    </div>
-                    <div className="mt-1 text-3x3 font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
-                      {new Date().toLocaleDateString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
                     </div>
                     <div className="flex items-center justify-end space-x-1 mt-2">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
@@ -887,11 +904,33 @@ export default function AdminHome() {
                 <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
                   Filtrar por Data:
                 </label>
+                {/* campo visível em formato DD/MM/YYYY */}
+                <input
+                  type="text"
+                  name="orderDateDisplay"
+                  value={formatBR(orderDate)}
+                  readOnly
+                  onClick={() => {
+                    const el = hiddenDateRef.current;
+                    if (!el) return;
+                    if (typeof el.showPicker === "function") {
+                      el.showPicker();
+                    } else {
+                      el.click();
+                    }
+                  }}
+                  className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-mono min-w-[140px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300 cursor-pointer"
+                />
+                {/* input nativo escondido mas focável */}
                 <input
                   type="date"
-                  name="orderDate"
-                  onChange={(e) => handleFilterByDate(e.target.value)}
-                  className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-mono min-w-[140px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                  ref={hiddenDateRef}
+                  value={orderDate}
+                  onChange={(e) => {
+                    setOrderDate(e.target.value);
+                    handleFilterByDate(e.target.value);
+                  }}
+                  className="sr-only"
                 />
               </div>
             </div>
@@ -1061,7 +1100,7 @@ export default function AdminHome() {
                                   <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
-                                    strokeWidth="2"
+                                    strokeWidth={2}
                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                                   />
                                 </svg>
@@ -1081,7 +1120,7 @@ export default function AdminHome() {
                                   <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
-                                    strokeWidth="2"
+                                    strokeWidth={2}
                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                   />
                                 </svg>
@@ -1111,7 +1150,7 @@ export default function AdminHome() {
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
-                                  strokeWidth="2"
+                                  strokeWidth={2}
                                   d="M19 9l-7 7-7-7"
                                 />
                               </svg>

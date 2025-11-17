@@ -15,6 +15,8 @@ export interface IOrder extends Document {
     userId: Types.ObjectId;
     userName: string;
     name: string;
+    shippingAddress: string;
+    buyerPhone: string;
     items: IOrderItem[];
     totalAmount: number;
     totalQuantity: number;

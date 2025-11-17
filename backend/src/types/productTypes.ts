@@ -18,6 +18,7 @@ export interface IProduct extends Document {
     stock?: number;
     status: "active" | "inactive" | "out_of_stock" | "archived" | "draft";
     discount: number;
+    externalId?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
