@@ -8,9 +8,9 @@ import logger from "../../utils/logger";
 
 dotenv.config();
 
-// Cache para evitar queries repetidas
+// Cache para evitar queries repetidas DURANTE A MESMA EXECUÇÃO
 let olistUserCache: mongoose.Types.ObjectId | null = null;
-const productCache = new Map<string, mongoose.Types.ObjectId>();
+const productCache = new Map<string, { id: mongoose.Types.ObjectId; image: string }>();
 
 function parseOlistDateToISO(rawDate?: string): Date | null {
   if (!rawDate) return null;
@@ -56,10 +56,11 @@ async function getOrCreateOlistUser(): Promise<mongoose.Types.ObjectId> {
 }
 
 // Garante que existe um produto ou cria um genérico
-async function getOrCreateProduct(codigo: string, descricao: string, valorUnitario: number, imagemUrl?: string): Promise<mongoose.Types.ObjectId> {
+async function getOrCreateProduct(codigo: string, descricao: string, valorUnitario: number, imagemUrl?: string): Promise<{ productId: mongoose.Types.ObjectId; productImage: string }> {
   // Verifica cache primeiro
   if (productCache.has(codigo)) {
-    return productCache.get(codigo)!;
+    const cached = productCache.get(codigo)!;
+    return { productId: cached.id, productImage: cached.image };
   }
 
   try {
@@ -97,8 +98,9 @@ async function getOrCreateProduct(codigo: string, descricao: string, valorUnitar
       logger.info("Produto criado com sucesso", { codigo, productId: product._id });
     }
 
-    productCache.set(codigo, product._id as mongoose.Types.ObjectId);
-    return product._id as mongoose.Types.ObjectId;
+    const productImage = product.images?.[0]?.url || "";
+    productCache.set(codigo, { id: product._id as mongoose.Types.ObjectId, image: productImage });
+    return { productId: product._id as mongoose.Types.ObjectId, productImage };
   } catch (error) {
     logger.error("Erro ao criar/buscar produto", { codigo, descricao, error });
     throw error;
@@ -213,7 +215,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             ${detail.cliente.endereco || ''}, 
             ${detail.cliente.numero || ''}, 
             ${detail.cliente.complemento || ''}, 
-            ${detail.cliente.bairro || ''}, 
+            bairro ${detail.cliente.bairro || ''}, 
             ${detail.cliente.cidade || ''}/${detail.cliente.uf || ''}, 
             CEP: ${detail.cliente.cep || ''}
           `.trim() : "";
@@ -246,7 +248,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               productCode = `OLIST-${i.descricao?.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-') || 'SEM-DESC'}-${i.id_produto || Date.now()}`;
             }
             
-            const productId = await getOrCreateProduct(
+            const productIdImg = await getOrCreateProduct(
               productCode,
               i.descricao || "Produto sem descrição",
               i.valor_unitario ? Number(i.valor_unitario) : 0,
@@ -254,13 +256,13 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             );
 
             const itemProcessado = {
-              productId,
+              productId: productIdImg.productId,
               name: i.descricao || "Produto sem descrição",
               quantity: i.quantidade ? Number(i.quantidade) : 1,
               originalPrice: i.valor_unitario ? Number(i.valor_unitario) : 0,
               price: i.valor_unitario ? Number(i.valor_unitario) : 0,
               discount: i.desconto ? Number(i.desconto) : 0,
-              imageUrl: i.imagem || "https://via.placeholder.com/150",
+              imageUrl: productIdImg.productImage || "https://via.placeholder.com/150",
             };
             
             // ⚠️ LOG DEBUG: Mostra o item processado
@@ -312,14 +314,20 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             ${detail.cliente.endereco || ''}, 
             ${detail.cliente.numero || ''}, 
             ${detail.cliente.complemento || ''}, 
-            ${detail.cliente.bairro || ''}, 
+            bairro ${detail.cliente.bairro || ''}, 
             ${detail.cliente.cidade || ''}/${detail.cliente.uf || ''}, 
             CEP: ${detail.cliente.cep || ''}
           `.trim() : "";
 
+          // ⚠️ ATUALIZAÇÃO: processar items para criar/buscar produtos
+          logger.info("Processando items do pedido para atualização", { 
+            externalId, 
+            itensRecebidos: detail.itens?.length || 0 
+          });
+
           const items = [];
           for (const itemWrapper of detail.itens || []) {
-            const i = itemWrapper.item; // ⚠️ Acessa o objeto item interno
+            const i = itemWrapper.item;
             
             if (!i) {
               logger.warn("Item sem dados internos na atualização, pulando", { externalId, itemWrapper });
@@ -331,24 +339,30 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               codigo: i.codigo,
               descricao: i.descricao,
               quantidade: i.quantidade,
-              valor_unitario: i.valor_unitario
+              valor_unitario: i.valor_unitario,
+              id_produto: i.id_produto
             });
             
-            const productId = await getOrCreateProduct(
-              i.codigo || `OLIST-${Date.now()}`,
+            let productCode = i.codigo?.trim();
+            if (!productCode) {
+              productCode = `OLIST-${i.descricao?.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-') || 'SEM-DESC'}-${i.id_produto || Date.now()}`;
+            }
+            // ⚠️ AQUI: Chama getOrCreateProduct na atualização também
+            const productIdImg = await getOrCreateProduct(
+              productCode,
               i.descricao || "Produto sem descrição",
               i.valor_unitario ? Number(i.valor_unitario) : 0,
               i.imagem
             );
 
             const itemProcessado = {
-              productId,
+              productId: productIdImg.productId,
               name: i.descricao || "Produto sem descrição",
               quantity: i.quantidade ? Number(i.quantidade) : 1,
               originalPrice: i.valor_unitario ? Number(i.valor_unitario) : 0,
               price: i.valor_unitario ? Number(i.valor_unitario) : 0,
               discount: i.desconto ? Number(i.desconto) : 0,
-              imageUrl: i.imagem || "https://via.placeholder.com/150",
+              imageUrl: productIdImg.productImage || "https://via.placeholder.com/150",
             };
             
             logger.debug("Item processado para atualização", { externalId, itemProcessado });
