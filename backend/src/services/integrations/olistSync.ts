@@ -120,8 +120,26 @@ async function fetchOlistOrderDetails(orderId: string) {
     });
 
     logger.info("Resposta detalhe pedido recebida", { orderId, status: resp.status });
+    
+    // ⚠️ LOG DETALHADO: Mostra a estrutura completa da resposta
+    logger.debug("Resposta completa da API de detalhe", { 
+      orderId, 
+      fullResponse: JSON.stringify(resp.data, null, 2) 
+    });
+    
     if (resp.status === 200 && resp.data?.retorno?.pedido) {
-      return resp.data.retorno.pedido;
+      const pedido = resp.data.retorno.pedido;
+      
+      // ⚠️ LOG CRÍTICO: Mostra campos específicos
+      logger.info("Estrutura do pedido detalhado", {
+        orderId,
+        temItens: !!pedido.itens,
+        quantidadeItens: pedido.itens?.length || 0,
+        temCliente: !!pedido.cliente,
+        campos: Object.keys(pedido)
+      });
+      
+      return pedido;
     }
 
     logger.warn("Detalhe de pedido não retornado", { orderId, status: resp.status });
@@ -172,15 +190,19 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
       const externalId = order.pedido.id ?? "";
       
       try {
+        // ⚠️ CORREÇÃO: Sempre busca detalhes primeiro (independente se existe ou não)
+        const detail = await fetchOlistOrderDetails(externalId);
+        
+        if (!detail) {
+          logger.warn("Não foi possível obter detalhes do pedido, pulando", { externalId });
+          continue;
+        }
+
+        logger.info("Detalhe do pedido obtido", { externalId });
+
         const existing = await Order.findOne({ externalId }).lean();
 
         if (!existing) {
-          const detail = await fetchOlistOrderDetails(externalId);
-          
-          if (!detail) {
-            logger.warn("Não foi possível obter detalhes do pedido, pulando criação", { externalId });
-            continue;
-          }
 
           logger.info("Detalhe do pedido obtido", { externalId });
 
@@ -197,16 +219,41 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
           `.trim() : "";
 
           // Processa items criando/buscando produtos
+          // ⚠️ CORREÇÃO: Itens vêm como array de objetos com propriedade "item"
           const items = [];
-          for (const i of detail.itens || []) {
+          for (const itemWrapper of detail.itens || []) {
+            const i = itemWrapper.item; // ⚠️ Acessa o objeto item interno
+            
+            if (!i) {
+              logger.warn("Item sem dados internos, pulando", { externalId, itemWrapper });
+              continue;
+            }
+            
+            // ⚠️ LOG DEBUG: Mostra o que está vindo da API
+            logger.debug("Processando item do pedido", {
+              externalId,
+              codigo: i.codigo,
+              descricao: i.descricao,
+              quantidade: i.quantidade,
+              valor_unitario: i.valor_unitario,
+              id_produto: i.id_produto
+            });
+            
+            // ⚠️ CORREÇÃO: Se código vazio, usa descricao como identificador único
+            let productCode = i.codigo?.trim();
+            if (!productCode) {
+              // Gera código baseado na descrição para manter consistência
+              productCode = `OLIST-${i.descricao?.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-') || 'SEM-DESC'}-${i.id_produto || Date.now()}`;
+            }
+            
             const productId = await getOrCreateProduct(
-              i.codigo || `OLIST-${Date.now()}`,
+              productCode,
               i.descricao || "Produto sem descrição",
               i.valor_unitario ? Number(i.valor_unitario) : 0,
-              i.imagem
+              i.imagem // a API Tiny pode não ter este campo
             );
 
-            items.push({
+            const itemProcessado = {
               productId,
               name: i.descricao || "Produto sem descrição",
               quantity: i.quantidade ? Number(i.quantidade) : 1,
@@ -214,11 +261,24 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               price: i.valor_unitario ? Number(i.valor_unitario) : 0,
               discount: i.desconto ? Number(i.desconto) : 0,
               imageUrl: i.imagem || "https://via.placeholder.com/150",
-            });
+            };
+            
+            // ⚠️ LOG DEBUG: Mostra o item processado
+            logger.debug("Item processado", { externalId, itemProcessado });
+            
+            items.push(itemProcessado);
           }
 
           const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
           const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+          
+          // ⚠️ LOG IMPORTANTE: Mostra totais calculados
+          logger.info("Totais calculados", { 
+            externalId, 
+            itemsCount: items.length,
+            totalQuantity, 
+            totalAmount 
+          });
 
           const mappedOrder = {
             externalId,
@@ -244,13 +304,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
           logger.info("Pedido criado com sucesso", { externalId, itemsCount: items.length });
 
         } else {
-          const detail = await fetchOlistOrderDetails(externalId);
-          
-          if (!detail) {
-            logger.warn("Não foi possível obter detalhes para atualização", { externalId });
-            continue;
-          }
-
+          // ⚠️ Atualização: usa os mesmos dados do detail que já foram buscados
           const rawDate = detail.data_pedido ?? null;
           const createdAtDateObj = parseOlistDateToISO(rawDate);
 
@@ -264,7 +318,22 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
           `.trim() : "";
 
           const items = [];
-          for (const i of detail.itens || []) {
+          for (const itemWrapper of detail.itens || []) {
+            const i = itemWrapper.item; // ⚠️ Acessa o objeto item interno
+            
+            if (!i) {
+              logger.warn("Item sem dados internos na atualização, pulando", { externalId, itemWrapper });
+              continue;
+            }
+            
+            logger.debug("Processando item para atualização", {
+              externalId,
+              codigo: i.codigo,
+              descricao: i.descricao,
+              quantidade: i.quantidade,
+              valor_unitario: i.valor_unitario
+            });
+            
             const productId = await getOrCreateProduct(
               i.codigo || `OLIST-${Date.now()}`,
               i.descricao || "Produto sem descrição",
@@ -272,7 +341,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               i.imagem
             );
 
-            items.push({
+            const itemProcessado = {
               productId,
               name: i.descricao || "Produto sem descrição",
               quantity: i.quantidade ? Number(i.quantidade) : 1,
@@ -280,11 +349,22 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               price: i.valor_unitario ? Number(i.valor_unitario) : 0,
               discount: i.desconto ? Number(i.desconto) : 0,
               imageUrl: i.imagem || "https://via.placeholder.com/150",
-            });
+            };
+            
+            logger.debug("Item processado para atualização", { externalId, itemProcessado });
+            
+            items.push(itemProcessado);
           }
 
           const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
           const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+          
+          logger.info("Totais calculados para atualização", { 
+            externalId, 
+            itemsCount: items.length,
+            totalQuantity, 
+            totalAmount 
+          });
 
           await Order.updateOne(
             { externalId },
@@ -303,7 +383,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               }
             }
           );
-          logger.info("Pedido atualizado com sucesso", { externalId });
+          logger.info("Pedido atualizado com sucesso", { externalId, itemsCount: items.length });
         }
       } catch (error) {
         logger.error("Erro salvando/atualizando pedido Olist", { externalId, error });

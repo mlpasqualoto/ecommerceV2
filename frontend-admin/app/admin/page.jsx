@@ -1233,7 +1233,7 @@ export default function AdminHome() {
                                           Endereço de entrega
                                         </label>
                                         <p className="text-sm text-slate-900 font-semibold">
-                                          {/* endereço de entrega */}
+                                          {order.shippingAddress}
                                         </p>
                                       </div>
                                     </div>
