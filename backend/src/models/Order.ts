@@ -80,6 +80,11 @@ const orderSchema = new Schema<IOrder>({
         required: true,
         min: 0
     },
+    paymentMethod: {
+        type: String,
+        required: false,
+        trim: true
+    },
     totalQuantity: {
         type: Number,
         required: true,

@@ -1020,7 +1020,7 @@ export default function AdminHome() {
                               )}
                             </div>
                             <div className="text-xs text-slate-500">
-                              {new Date(order.updatedAt).toLocaleString(
+                              {new Date(order.createdAt).toLocaleString(
                                 "pt-BR",
                                 {
                                   timeZone: "America/Sao_Paulo",
@@ -1186,9 +1186,17 @@ export default function AdminHome() {
                                       </div>
                                       <div>
                                         <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Descrição do Pedido
+                                        </label>
+                                        <p className="text-sm text-slate-900 space-y-1">
+                                          {order.name}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                                           Produtos
                                         </label>
-                                        <ul className="text-sm text-slate-900 space-y-1">
+                                        <ul className="text-sm text-slate-900 space-y-1 font-semibold">
                                           {order.items.map((item, idx) => (
                                             <li key={idx}>
                                               - {item.name} — {item.quantity}x (
@@ -1225,7 +1233,7 @@ export default function AdminHome() {
                                           Forma de pagamento
                                         </label>
                                         <p className="text-sm text-slate-900 font-semibold">
-                                          {/* forma de pagamento */}
+                                          {order.paymentMethod || "N/A"}
                                         </p>
                                       </div>
                                       <div>

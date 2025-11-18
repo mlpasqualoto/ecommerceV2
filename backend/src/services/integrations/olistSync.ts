@@ -314,6 +314,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             buyerPhone: detail.cliente?.fone ?? "",
             items,
             totalAmount,
+            paymentMethod: detail.forma_envio || "unknown",
             totalQuantity,
             status: mapStatus(detail.situacao ?? ""),
             source: "olist" as const,

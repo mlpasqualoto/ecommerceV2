@@ -19,6 +19,7 @@ export interface IOrder extends Document {
     buyerPhone: string;
     items: IOrderItem[];
     totalAmount: number;
+    paymentMethod?: string;
     totalQuantity: number;
     status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
     source: "olist" | "ecommerce";
