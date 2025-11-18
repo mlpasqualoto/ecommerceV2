@@ -12,42 +12,6 @@ dotenv.config();
 let olistUserCache: mongoose.Types.ObjectId | null = null;
 const productCache = new Map<string, { id: mongoose.Types.ObjectId; image: string }>();
 
-function parseOlistDateToISO(rawDate?: string): Date | null {
-  if (!rawDate) return null;
-
-  // ⚠️ CORREÇÃO: Formato YYYY-MM-DD HH:mm:ss (timestamp da Olist)
-  const yyyymmddHHmmss = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
-  if (yyyymmddHHmmss) {
-    const [_, year, month, day, hour, minute, second] = yyyymmddHHmmss.map(Number);
-    // ⚠️ A Olist envia horário LOCAL (-03:00), então SUBTRAÍMOS 3h para converter para UTC
-    // Exemplo: "2025-11-17 16:44:03" (horário de Brasília) -> UTC = 19:44:03
-    return new Date(Date.UTC(year, month - 1, day, hour - 3, minute, second));
-  }
-
-  // Formato DD/MM/YYYY HH:mm:ss (caso exista)
-  const ddmmyyyyHHmmss = rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/);
-  if (ddmmyyyyHHmmss) {
-    const [_, day, month, year, hour, minute, second] = ddmmyyyyHHmmss.map(Number);
-    return new Date(Date.UTC(year, month - 1, day, hour - 3, minute, second));
-  }
-
-  // Formato DD/MM/YYYY (sem hora)
-  const ddmmyyyy = rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (ddmmyyyy) {
-    const day = Number(ddmmyyyy[1]);
-    const month = Number(ddmmyyyy[2]);
-    const year = Number(ddmmyyyy[3]);
-    return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-  }
-
-  const d = new Date(rawDate);
-  if (!Number.isNaN(d.getTime())) {
-    return d;
-  }
-
-  return null;
-}
-
 // Garante que existe um usuário genérico "Olist"
 async function getOrCreateOlistUser(): Promise<mongoose.Types.ObjectId> {
   if (olistUserCache) return olistUserCache;
@@ -171,6 +135,10 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
     // ⚠️ Limpa caches no início para refletir mudanças manuais
     olistUserCache = null;
     productCache.clear();
+
+    // Garante data atual em UTC-3
+    const currentDate = new Date();
+    const currentDateBr = currentDate.setHours(currentDate.getHours() - 3); // Ajusta para o fuso horário de Brasília (UTC-3)
     
     logger.info("Chamando endpoint pedidos.pesquisa.php", { dataInicial, dataFinal, situacao });
     
@@ -223,16 +191,6 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
         const existing = await Order.findOne({ externalId }).lean();
 
         if (!existing) {
-          // ⚠️ Remove timestamp do log (não é da API)
-          const rawDate = detail.data_pedido ?? detail.data_criacao ?? null;
-          const createdAtDateObj = parseOlistDateToISO(rawDate);
-
-          logger.info("Data parseada (sem hora da API)", { 
-            externalId, 
-            rawDate, 
-            createdAtDateObj: createdAtDateObj?.toISOString(),
-            observacao: "API Tiny não fornece horário, usando 12:00 UTC"
-          });
 
           const endereco_entrega = detail.cliente ? `
             ${detail.cliente.endereco || ''}, 
@@ -314,12 +272,11 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             buyerPhone: detail.cliente?.fone ?? "",
             items,
             totalAmount,
-            paymentMethod: detail.forma_envio || "unknown",
+            paymentMethod: detail.meio_pagamento || "unknown",
             totalQuantity,
             status: mapStatus(detail.situacao ?? ""),
             source: "olist" as const,
-            createdAt: createdAtDateObj ?? undefined,
-            // ⚠️ updatedAt será preenchido automaticamente pelo Mongoose
+            createdAt: currentDateBr ?? undefined,
           };
 
           if (items.length === 0 || totalQuantity < 1) {
@@ -331,9 +288,6 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
           logger.info("Pedido criado com sucesso", { externalId, itemsCount: items.length });
 
         } else {
-          // ⚠️ Na atualização, remove timestamp também
-          const rawDate = detail.data_pedido ?? null;
-          const createdAtDateObj = parseOlistDateToISO(rawDate);
 
           const endereco_entrega = detail.cliente ? `
             ${detail.cliente.endereco || ''}, 
@@ -418,7 +372,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
                 totalAmount,
                 totalQuantity,
                 status: mapStatus(detail.situacao ?? ""),
-                createdAt: createdAtDateObj ?? undefined,
+                createdAt: currentDateBr ?? undefined,
               }
             }
           );

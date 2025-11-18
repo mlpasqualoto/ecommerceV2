@@ -12,6 +12,7 @@ export interface IProductImage {
 export interface IProduct extends Document {
     name: string;
     price: number;
+    cost: number;
     images?: IProductImage[];
     description?: string;
     category: string;

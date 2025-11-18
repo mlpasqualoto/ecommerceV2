@@ -89,16 +89,24 @@ export default function AdminHome() {
         'Total de Itens': order.totalQuantity
       }));
 
+      // ⚠️ CORREÇÃO: Detecta o sistema e usa o separador adequado
+      const isWindows = navigator.platform.toLowerCase().includes('win');
+      const delimiter = isWindows ? ';' : ',';
+
       // Converter para CSV
       const csvContent = [
         // Cabeçalhos
-        Object.keys(exportData[0] || {}).join(';'),
+        Object.keys(exportData[0] || {}).join(delimiter),
         // Dados
-        ...exportData.map(row => Object.values(row).join(';'))
+        ...exportData.map(row => Object.values(row).join(delimiter))
       ].join('\n');
 
+      // ⚠️ CORREÇÃO: Adiciona BOM UTF-8 para Excel reconhecer encoding
+      const BOM = '\uFEFF';
+      const csvWithBOM = BOM + csvContent;
+
       // Criar e baixar arquivo
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
@@ -1023,9 +1031,9 @@ export default function AdminHome() {
                               {new Date(order.createdAt).toLocaleString(
                                 "pt-BR",
                                 {
-                                  timeZone: "America/Sao_Paulo",
                                   hour: "2-digit",
                                   minute: "2-digit",
+                                  timeZone: "UTC" // Exibe a hora UTC SEM conversão
                                 }
                               )}
                             </div>
@@ -1283,6 +1291,7 @@ export default function AdminHome() {
                                             year: "numeric",
                                             hour: "2-digit",
                                             minute: "2-digit",
+                                            timeZone: "UTC" // Exibe a hora UTC SEM conversão
                                           })}
                                         </p>
                                       </div>
