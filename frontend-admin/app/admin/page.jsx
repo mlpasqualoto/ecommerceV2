@@ -32,6 +32,7 @@ export default function AdminHome() {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, orderId: null });
+  const [showRevenue, setShowRevenue] = useState(true);
   
   // usa data local (YYYY-MM-DD) — evita deslocamento por UTC
   const getLocalIsoDate = () => {
@@ -57,10 +58,8 @@ export default function AdminHome() {
   const handleRefreshData = async () => {
     setLoading(true);
     try {
-      // handleFilterByDate já atualiza o estado orders e trata redirect quando necessário
       await handleFilterByDate(orderDate);
 
-      // Feedback visual de sucesso
       const refreshButton = document.querySelector('[data-refresh-btn]');
       refreshButton?.classList.add('animate-spin');
       setTimeout(() => {
@@ -78,7 +77,6 @@ export default function AdminHome() {
   // Função para exportar dados
   const handleExportData = () => {
     try {
-      // Preparar dados para exportação
       const exportData = orders.map(order => ({
         ID: order._id,
         Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
@@ -89,23 +87,45 @@ export default function AdminHome() {
         'Total de Itens': order.totalQuantity
       }));
 
-      // ⚠️ CORREÇÃO: Detecta o sistema e usa o separador adequado
-      const isWindows = navigator.platform.toLowerCase().includes('win');
-      const delimiter = isWindows ? ';' : ',';
+      const totalPaid = orders
+        .filter(order => order.status === 'paid')
+        .reduce((sum, order) => sum + order.totalAmount, 0);
+      
+      const totalShipped = orders
+        .filter(order => order.status === 'shipped')
+        .reduce((sum, order) => sum + order.totalAmount, 0);
+      
+      const totalDelivered = orders
+        .filter(order => order.status === 'delivered')
+        .reduce((sum, order) => sum + order.totalAmount, 0);
+      
+      const totalConfirmed = totalPaid + totalShipped + totalDelivered;
 
-      // Converter para CSV
+      const delimiter = ',';
+      
+      const escapeCSV = (value) => {
+        if (value == null) return '""';
+        const str = String(value);
+        if (str.includes(delimiter) || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return `"${str}"`;
+      };
+
       const csvContent = [
-        // Cabeçalhos
-        Object.keys(exportData[0] || {}).join(delimiter),
-        // Dados
-        ...exportData.map(row => Object.values(row).join(delimiter))
+        Object.keys(exportData[0] || {}).map(escapeCSV).join(delimiter),
+        ...exportData.map(row => Object.values(row).map(escapeCSV).join(delimiter)),
+        '',
+        escapeCSV('RESUMO FINANCEIRO') + delimiter.repeat(6),
+        escapeCSV('Total Pedidos Pagos') + delimiter.repeat(3) + escapeCSV(`R$ ${totalPaid.toFixed(2).replace('.', ',')}`),
+        escapeCSV('Total Pedidos Enviados') + delimiter.repeat(3) + escapeCSV(`R$ ${totalShipped.toFixed(2).replace('.', ',')}`),
+        escapeCSV('Total Pedidos Entregues') + delimiter.repeat(3) + escapeCSV(`R$ ${totalDelivered.toFixed(2).replace('.', ',')}`),
+        escapeCSV('RECEITA CONFIRMADA') + delimiter.repeat(3) + escapeCSV(`R$ ${totalConfirmed.toFixed(2).replace('.', ',')}`)
       ].join('\n');
 
-      // ⚠️ CORREÇÃO: Adiciona BOM UTF-8 para Excel reconhecer encoding
       const BOM = '\uFEFF';
       const csvWithBOM = BOM + csvContent;
 
-      // Criar e baixar arquivo
       const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
@@ -116,7 +136,6 @@ export default function AdminHome() {
       link.click();
       document.body.removeChild(link);
 
-      // Feedback visual
       const exportButton = document.querySelector('[data-export-btn]');
       exportButton?.classList.add('bg-green-200', 'text-green-700');
       setTimeout(() => {
@@ -129,7 +148,6 @@ export default function AdminHome() {
     }
   };
 
-  // Animação de entrada da página
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsPageLoaded(true);
@@ -137,12 +155,10 @@ export default function AdminHome() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Toggle detalhes do pedido
   const toggleOrderDetails = (orderId) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
-  // Abre modal e preenche dados do pedido
   const openEditModal = (order) => {
     setEditOrder(order);
     setEditForm({
@@ -153,19 +169,16 @@ export default function AdminHome() {
     });
   };
 
-  // Fecha modal
   const closeEditModal = () => {
     setEditOrder(null);
     setEditForm({ productId: "", quantity: "", status: "", totalAmount: "" });
   };
 
-  // Atualiza campos do formulário
   const handleEditFormChange = (e) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Envia atualização
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!editOrder) return;
@@ -305,7 +318,6 @@ export default function AdminHome() {
     setNewOrder((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Atualiza campos do item do pedido
   const handleNewOrderItemChange = (index, e) => {
     const { name, value } = e.target;
     setNewOrder((prev) => {
@@ -315,7 +327,6 @@ export default function AdminHome() {
     });
   };
 
-  // Adiciona um novo produto ao pedido
   const handleAddItem = () => {
     setNewOrder((prev) => ({
       ...prev,
@@ -323,7 +334,6 @@ export default function AdminHome() {
     }));
   };
 
-  // Remove um produto do pedido
   const handleRemoveItem = (index) => {
     setNewOrder((prev) => ({
       ...prev,
@@ -463,7 +473,6 @@ export default function AdminHome() {
         <div className="max-w-[1400px] mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="animate-fadeInLeft">
-              {/* Título com ícone */}
               <div className="flex items-center space-x-3 mb-2">
                 <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
                   <svg
@@ -490,7 +499,6 @@ export default function AdminHome() {
                 Visualize, edite e gerencie o status de cada transação.
               </p>
 
-              {/* Indicadores visuais */}
               <div className="flex items-center space-x-6 mt-4">
                 <div className="flex items-center space-x-2 text-sm text-slate-500">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -506,10 +514,9 @@ export default function AdminHome() {
             </div>
 
             <div className="flex items-center space-x-6 animate-fadeInRight">
-              {/* Card de estatísticas melhorado */}
+              {/* Card de estatísticas */}
               <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center space-x-4">
-                  {/* Ícone de pedidos */}
                   <div className="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-xl">
                     <svg
                       className="w-7 h-7 text-blue-600"
@@ -526,7 +533,6 @@ export default function AdminHome() {
                     </svg>
                   </div>
 
-                  {/* Números e descrição */}
                   <div className="text-right">
                     <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
                       {orders.length}
@@ -542,9 +548,95 @@ export default function AdminHome() {
                 </div>
               </div>
 
-              {/* Botão de ações rápidas (opcional) */}
+              {/* Card de receita total COM OLHO */}
+              <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center justify-center w-14 h-14 bg-emerald-100 rounded-xl">
+                    <svg
+                      className="w-7 h-7 text-emerald-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+
+                  <div className="flex-1 text-right">
+                    <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-emerald-600 leading-none">
+                      {showRevenue ? (
+                        formatCurrencyBRL(
+                          orders
+                            .filter(order => ['paid', 'shipped', 'delivered'].includes(order.status))
+                            .reduce((sum, order) => sum + order.totalAmount, 0)
+                        )
+                      ) : (
+                        <span className="tracking-wider">R$ ••••••</span>
+                      )}
+                    </div>
+                    <div className="text-sm text-slate-500 mt-1">
+                      receita confirmada
+                    </div>
+                    <div className="flex items-center justify-end space-x-1 mt-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-emerald-600 font-medium">
+                        {orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length} pedidos
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* BOTÃO DO OLHO */}
+                  <button
+                    onClick={() => setShowRevenue(!showRevenue)}
+                    className="cursor-pointer flex items-center justify-center w-10 h-10 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition-all duration-200 group"
+                    title={showRevenue ? "Ocultar receita" : "Mostrar receita"}
+                  >
+                    {showRevenue ? (
+                      <svg
+                        className="w-5 h-5 text-emerald-600 group-hover:text-emerald-700"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-5 h-5 text-emerald-600 group-hover:text-emerald-700"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Botões de ação */}
               <div className="flex flex-col gap-4 items-center">
-                {/* Botão de atualizar dados */}
                 <button
                   onClick={handleRefreshData}
                   data-refresh-btn
@@ -567,7 +659,6 @@ export default function AdminHome() {
                   </svg>
                 </button>
 
-                {/* Botão de exportar dados */}
                 <button
                   onClick={handleExportData}
                   data-export-btn
