@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, Fragment } from "react";
-import { fetchUsers, fetchUserById, fetchUsersByRole, fetchCreateUser } from "@/app/lib/api.js";
+import { fetchUsers, fetchUserById, fetchUsersByRole, fetchCreateUser } from "../../lib/api.js";
 import { useRouter } from "next/navigation";
 
 export default function UsersPage() {

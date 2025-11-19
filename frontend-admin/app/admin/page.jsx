@@ -77,12 +77,30 @@ export default function AdminHome() {
   // Função para exportar dados
   const handleExportData = () => {
     try {
+      // ⚠️ CORREÇÃO: Detecta formato de número do sistema via Intl
+      const testNumber = (234.56).toLocaleString();
+      const usesComma = testNumber.includes(','); // true = vírgula decimal (BR/EU)
+      
+      console.log('🔢 Teste de número:', testNumber);
+      console.log('💱 Usa vírgula?', usesComma);
+      
+      // Define separadores baseado no formato detectado
+      const decimalSeparator = usesComma ? ',' : '.';
+      const columnDelimiter = usesComma ? ';' : ',';
+
+      console.log('📊 Separadores finais:', { decimal: decimalSeparator, coluna: columnDelimiter });
+
+      // Função helper para formatar números
+      const formatNumber = (value) => {
+        return value.toFixed(2).replace('.', decimalSeparator);
+      };
+
       const exportData = orders.map(order => ({
         ID: order._id,
         Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
         Cliente: order.name,
         Status: getStatusText(order.status),
-        Total: `R$ ${order.totalAmount.toFixed(2).replace('.', ',')}`,
+        "Total": formatNumber(order.totalAmount),
         Produtos: order.items.map(item => `${item.name} (${item.quantity}x)`).join(', '),
         'Total de Itens': order.totalQuantity
       }));
@@ -101,28 +119,27 @@ export default function AdminHome() {
       
       const totalConfirmed = totalPaid + totalShipped + totalDelivered;
 
-      const delimiter = ',';
-      
       const escapeCSV = (value) => {
         if (value == null) return '""';
         const str = String(value);
-        if (str.includes(delimiter) || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        if (str.includes(columnDelimiter) || str.includes('"') || str.includes('\n') || str.includes('\r')) {
           return `"${str.replace(/"/g, '""')}"`;
         }
         return `"${str}"`;
       };
 
       const csvContent = [
-        Object.keys(exportData[0] || {}).map(escapeCSV).join(delimiter),
-        ...exportData.map(row => Object.values(row).map(escapeCSV).join(delimiter)),
+        Object.keys(exportData[0] || {}).map(escapeCSV).join(columnDelimiter),
+        ...exportData.map(row => Object.values(row).map(escapeCSV).join(columnDelimiter)),
         '',
-        escapeCSV('RESUMO FINANCEIRO') + delimiter.repeat(6),
-        escapeCSV('Total Pedidos Pagos') + delimiter.repeat(3) + escapeCSV(`R$ ${totalPaid.toFixed(2).replace('.', ',')}`),
-        escapeCSV('Total Pedidos Enviados') + delimiter.repeat(3) + escapeCSV(`R$ ${totalShipped.toFixed(2).replace('.', ',')}`),
-        escapeCSV('Total Pedidos Entregues') + delimiter.repeat(3) + escapeCSV(`R$ ${totalDelivered.toFixed(2).replace('.', ',')}`),
-        escapeCSV('RECEITA CONFIRMADA') + delimiter.repeat(3) + escapeCSV(`R$ ${totalConfirmed.toFixed(2).replace('.', ',')}`)
+        escapeCSV('RESUMO FINANCEIRO') + columnDelimiter.repeat(6),
+        escapeCSV('Total Pedidos Pagos') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalPaid)),
+        escapeCSV('Total Pedidos Enviados') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalShipped)),
+        escapeCSV('Total Pedidos Entregues') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalDelivered)),
+        escapeCSV('RECEITA CONFIRMADA') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed))
       ].join('\n');
 
+      // ⚠️ Adiciona BOM UTF-8 para Excel reconhecer encoding
       const BOM = '\uFEFF';
       const csvWithBOM = BOM + csvContent;
 

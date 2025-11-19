@@ -12,7 +12,7 @@ export interface IProductImage {
 export interface IProduct extends Document {
     name: string;
     price: number;
-    cost: number;
+    cost?: number;
     images?: IProductImage[];
     description?: string;
     category: string;
@@ -33,6 +33,7 @@ export interface ProductServiceResult {
 
 export interface UpdateProductDTO {
     name?: string;
+    cost?: number;
     price?: number;
     description?: string;
     category?: string;
@@ -45,6 +46,7 @@ export interface UpdateProductDTO {
 export interface CreateProductDTO {
     name: string;
     price: number;
+    cost: number;
     description?: string;
     category: string;
     stock?: number;

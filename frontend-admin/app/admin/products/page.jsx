@@ -7,8 +7,8 @@ import {
   fetchCreateProduct,
   fetchStatusProduct,
   fetchDeleteProduct,
-} from "@/app/lib/api.js";
-import { formatCurrencyBRL } from "@/app/utils/utils.js";
+} from "../../lib/api.js";
+import { formatCurrencyBRL } from "../../utils/utils.js";
 import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
@@ -18,6 +18,7 @@ export default function ProductsPage() {
   const [editForm, setEditForm] = useState({
     name: "",
     price: "",
+    cost: "",
     description: "",
     images: [],
     newImages: [],
@@ -29,6 +30,7 @@ export default function ProductsPage() {
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
+    cost: "",
     images: [],
     description: "",
     category: "",
@@ -136,6 +138,7 @@ export default function ProductsPage() {
     setEditForm({
       name: product.name,
       price: product.price,
+      cost: product.cost,
       images: product.images || [],
       newImages: [],
       description: product.description,
@@ -152,6 +155,7 @@ export default function ProductsPage() {
     setEditForm({
       name: "",
       price: "",
+      cost: "",
       images: [],
       newImages: [],
       description: "",
@@ -182,6 +186,7 @@ export default function ProductsPage() {
     const formData = new FormData();
     formData.append("name", editForm.name || "");
     formData.append("price", Number(editForm.price) || 0);
+    formData.append("cost", Number(editForm.cost) || 0);
     formData.append("description", editForm.description || "");
     formData.append("category", editForm.category || "");
     formData.append("stock", Number(editForm.stock) || 0);
@@ -292,6 +297,7 @@ export default function ProductsPage() {
     const formData = new FormData();
     formData.append("name", newProduct.name);
     formData.append("price", newProduct.price);
+    formData.append("cost", newProduct.cost);
     formData.append("description", newProduct.description);
     formData.append("category", newProduct.category);
     formData.append("stock", newProduct.stock);
@@ -322,6 +328,7 @@ export default function ProductsPage() {
     setNewProduct({
       name: "",
       price: "",
+      cost: "",
       images: [],
       description: "",
       category: "",
@@ -418,7 +425,7 @@ export default function ProductsPage() {
         </div>
       </div>
     );
-  }
+  };
 
   return (
     <div
@@ -616,6 +623,23 @@ export default function ProductsPage() {
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
+                  />
+                </div>
+
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.2s" }}
+                >
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Preço de custo
+                  </label>
+                  <input
+                    name="cost"
+                    type="number"
+                    value={editForm.cost || ""}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                    min="0"
                   />
                 </div>
 
@@ -901,6 +925,25 @@ export default function ProductsPage() {
                     onChange={handleNewProductChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300 auto-complete-"
                     placeholder="Digite o nome do produto"
+                    required
+                  />
+                </div>
+
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.2s" }}
+                >
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Custo
+                  </label>
+                  <input
+                    type="text"
+                    name="cost"
+                    value={newProduct.cost}
+                    onChange={handleNewProductChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                    min="0"
+                    placeholder="Digite o custo do produto"
                     required
                   />
                 </div>
@@ -1495,6 +1538,16 @@ export default function ProductsPage() {
                                             Sem desconto
                                           </p>
                                         )}
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Preço de custo
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-sm text-slate-900 font-semibold">
+                                            {formatCurrencyBRL(product.cost)}
+                                          </p>
+                                        </div>
                                       </div>
                                       <div>
                                         <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
