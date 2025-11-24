@@ -68,6 +68,11 @@ const orderSchema = new Schema<IOrder>({
                 required: true,
                 min: 0
             },
+            cost: {
+                type: Number,
+                default: 0,
+                min: 0
+            },
             imageUrl: {
                 type: String,
                 required: true,
@@ -78,6 +83,11 @@ const orderSchema = new Schema<IOrder>({
     totalAmount: {
         type: Number,
         required: true,
+        min: 0
+    },
+    totalCost: {
+        type: Number,
+        default: 0,
         min: 0
     },
     paymentMethod: {

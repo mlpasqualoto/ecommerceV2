@@ -6,6 +6,7 @@ export interface IOrderItem {
     quantity: number;
     originalPrice: number;
     discount: number;
+    cost?: number;
     price: number;
     imageUrl: string;
 }
@@ -18,6 +19,7 @@ export interface IOrder extends Document {
     shippingAddress: string;
     buyerPhone: string;
     items: IOrderItem[];
+    totalCost?: number;
     totalAmount: number;
     paymentMethod?: string;
     totalQuantity: number;

@@ -81,9 +81,6 @@ export default function AdminHome() {
       const testNumber = (234.56).toLocaleString();
       const usesComma = testNumber.includes(','); // true = vírgula decimal (BR/EU)
       
-      console.log('🔢 Teste de número:', testNumber);
-      console.log('💱 Usa vírgula?', usesComma);
-      
       // Define separadores baseado no formato detectado
       const decimalSeparator = usesComma ? ',' : '.';
       const columnDelimiter = usesComma ? ';' : ',';
@@ -101,6 +98,7 @@ export default function AdminHome() {
         Cliente: order.name,
         Status: getStatusText(order.status),
         "Total": formatNumber(order.totalAmount),
+        "Total Custo": formatNumber(order.totalCost || 0),
         Produtos: order.items.map(item => `${item.name} (${item.quantity}x)`).join(', '),
         'Total de Itens': order.totalQuantity
       }));
@@ -119,6 +117,18 @@ export default function AdminHome() {
       
       const totalConfirmed = totalPaid + totalShipped + totalDelivered;
 
+      // Soma custo de produção (usa order.totalCost se já vier do backend; senão calcula pelos itens)
+      const totalProductionCost = orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).reduce((sum, order) => {
+        if (typeof order.totalCost === 'number') {
+          return sum + order.totalCost;
+        }
+        const orderCost = (order.items || []).reduce(
+          (s, item) => s + (Number(item.cost) || 0) * (Number(item.quantity) || 0),
+          0
+        );
+        return sum + orderCost;
+      }, 0);
+
       const escapeCSV = (value) => {
         if (value == null) return '""';
         const str = String(value);
@@ -136,7 +146,13 @@ export default function AdminHome() {
         escapeCSV('Total Pedidos Pagos') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalPaid)),
         escapeCSV('Total Pedidos Enviados') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalShipped)),
         escapeCSV('Total Pedidos Entregues') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalDelivered)),
-        escapeCSV('RECEITA CONFIRMADA') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed))
+        escapeCSV('RECEITA CONFIRMADA') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed)),
+        escapeCSV('LUCRO BRUTO (RECEITA - TAXA SHOPEE - CUSTOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(
+          totalConfirmed 
+          - (totalConfirmed * 0.20) 
+          - (orders.length * 5.00)
+          - totalProductionCost
+        )),
       ].join('\n');
 
       // ⚠️ Adiciona BOM UTF-8 para Excel reconhecer encoding
@@ -1336,6 +1352,14 @@ export default function AdminHome() {
                                       Total, Pagamento e Endereço
                                     </h4>
                                     <div className="space-y-3">
+                                      <div>
+                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                          Total preço de custo
+                                        </label>
+                                        <p className="text-sm text-slate-900 font-semibold">
+                                          {formatCurrencyBRL(order.totalCost)}
+                                        </p>
+                                      </div>
                                       <div>
                                         <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                                           Total a pagar

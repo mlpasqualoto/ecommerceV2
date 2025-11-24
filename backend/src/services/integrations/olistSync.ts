@@ -37,7 +37,7 @@ async function getOrCreateOlistUser(): Promise<mongoose.Types.ObjectId> {
 }
 
 // Garante que existe um produto ou cria um genérico
-async function getOrCreateProduct(codigo: string, descricao: string, valorUnitario: number, imagemUrl?: string): Promise<{ productId: mongoose.Types.ObjectId; productImage: string }> {
+async function getOrCreateProduct(codigo: string, descricao: string, valorUnitario: number, imagemUrl?: string): Promise<{ productId: mongoose.Types.ObjectId; productImage: string; productCost: number }> {
   try {
     // ⚠️ Sempre busca do banco (não usa cache para verificar produto)
     let product = await Product.findOne({ externalId: codigo });
@@ -74,11 +74,14 @@ async function getOrCreateProduct(codigo: string, descricao: string, valorUnitar
 
     // ⚠️ Sempre pega a imagem ATUAL do banco (reflete alterações manuais)
     const productImage = product.images?.[0]?.url || "";
+
+    // Pega preço de custo atual
+    const productCost = product.cost || 0;
     
     // Atualiza cache com dados frescos
     productCache.set(codigo, { id: product._id as mongoose.Types.ObjectId, image: productImage });
     
-    return { productId: product._id as mongoose.Types.ObjectId, productImage };
+    return { productId: product._id as mongoose.Types.ObjectId, productImage, productCost };
   } catch (error) {
     logger.error("Erro ao criar/buscar produto", { codigo, descricao, error });
     throw error;
@@ -229,7 +232,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               productCode = `OLIST-${i.descricao?.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-') || 'SEM-DESC'}-${i.id_produto || Date.now()}`;
             }
             
-            const productIdImg = await getOrCreateProduct(
+            const productIdImgCost = await getOrCreateProduct(
               productCode,
               i.descricao || "Produto sem descrição",
               i.valor_unitario ? Number(i.valor_unitario) : 0,
@@ -237,13 +240,14 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             );
 
             const itemProcessado = {
-              productId: productIdImg.productId,
+              productId: productIdImgCost.productId,
               name: i.descricao || "Produto sem descrição",
               quantity: i.quantidade ? Number(i.quantidade) : 1,
               originalPrice: i.valor_unitario ? Number(i.valor_unitario) : 0,
               price: i.valor_unitario ? Number(i.valor_unitario) : 0,
+              cost: productIdImgCost.productCost || 0,
               discount: i.desconto ? Number(i.desconto) : 0,
-              imageUrl: productIdImg.productImage || "https://via.placeholder.com/150",
+              imageUrl: productIdImgCost.productImage || "https://via.placeholder.com/150",
             };
             
             // ⚠️ LOG DEBUG: Mostra o item processado
@@ -252,6 +256,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             items.push(itemProcessado);
           }
 
+          const totalCost = items.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
           const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
           const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
           
@@ -271,6 +276,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             shippingAddress: endereco_entrega,
             buyerPhone: detail.cliente?.fone ?? "",
             items,
+            totalCost,
             totalAmount,
             paymentMethod: detail.meio_pagamento || "unknown",
             totalQuantity,

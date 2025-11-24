@@ -635,7 +635,7 @@ export default function ProductsPage() {
                   </label>
                   <input
                     name="cost"
-                    type="number"
+                    type="text"
                     value={editForm.cost || ""}
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
