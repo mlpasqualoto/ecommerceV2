@@ -7,8 +7,8 @@ export function startSchedulers() {
     console.log("⏱️ Iniciando sincronização da Olist...", new Date().toISOString());
     try {
       // ajuste o formato das datas conforme a API (ex: "2025-11-15" se a API esperar YYYY-MM-DD)
-      const dataInicial = "24/11/2025";
-      const dataFinal = "24/11/2025";
+      const dataInicial = "25/11/2025";
+      const dataFinal = "25/11/2025";
       await syncOlistShopeeOrders(dataInicial, dataFinal, "");
       console.log("✅ Sincronização da Olist finalizada", new Date().toISOString());
     } catch (error) {

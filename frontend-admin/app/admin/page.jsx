@@ -52,13 +52,32 @@ export default function AdminHome() {
 
   const hiddenDateRef = useRef(null);
   const [orderDate, setOrderDate] = useState(getLocalIsoDate());
+  const [systemStatus, setSystemStatus] = useState("loading"); // loading | online | unstable
   const router = useRouter();
 
-  // Função para recarregar/atualizar os dados
-  const handleRefreshData = async () => {
+  // Atualiza dados periodicamente
+  useEffect(() => {
+    // intervalo de 60s para atualizar só os dados
+    const intervalId = setInterval(() => {
+      handleRefreshData();
+    }, 60000);
+
+    return () => clearInterval(intervalId); // cleanup
+  }, [orderDate, statusFilter]);
+
+  // Função para recarregar/atualizar os dados manualmente
+  async function handleRefreshData() {
     setLoading(true);
+    setSystemStatus("loading");
     try {
-      await handleFilterByDate(orderDate);
+      const data = await handleFilterByDate(orderDate);
+
+      // Define status do sistema baseado na resposta
+      if (data && Array.isArray(data.orders)) {
+        setSystemStatus("online");
+      } else {
+        setSystemStatus("unstable");
+      }
 
       const refreshButton = document.querySelector('[data-refresh-btn]');
       refreshButton?.classList.add('animate-spin');
@@ -68,11 +87,12 @@ export default function AdminHome() {
 
     } catch (err) {
       console.error("Erro ao atualizar pedidos:", err);
+      setSystemStatus("unstable");
     } finally {
       setLoading(false);
       toggleOrderDetails();
     }
-  };
+  }
 
   // Função para exportar dados
   const handleExportData = () => {
@@ -92,12 +112,14 @@ export default function AdminHome() {
         return value.toFixed(2).replace('.', decimalSeparator);
       };
 
+      let count = 0;
       const exportData = orders.map(order => ({
+        Qte: ++count,
         ID: order._id,
         Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
         Cliente: order.name,
         Status: getStatusText(order.status),
-        "Total": formatNumber(order.totalAmount),
+        "Total Recebido": formatNumber(order.totalAmount),
         "Total Custo": formatNumber(order.totalCost || 0),
         Produtos: order.items.map(item => `${item.name} (${item.quantity}x)`).join(', '),
         'Total de Itens': order.totalQuantity
@@ -139,7 +161,11 @@ export default function AdminHome() {
       };
 
       const commissionShopee = totalConfirmed * 0.20;
-      const shopeeRatePerOrder = orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length * 5.00;
+      // Soma a quantidade total de produtos vendidos para calcular a taxa fixa por pedido
+      const quantityProducts = orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).reduce((sum, order) => {
+        return sum + (order.totalQuantity || 0);
+      }, 0);
+      const shopeeRatePerOrder = quantityProducts * 5.00;
 
       const csvContent = [
         Object.keys(exportData[0] || {}).map(escapeCSV).join(columnDelimiter),
@@ -150,7 +176,7 @@ export default function AdminHome() {
         escapeCSV('Total Pedidos Enviados') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalShipped)),
         escapeCSV('Total Pedidos Entregues') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalDelivered)),
         escapeCSV('RECEITA CONFIRMADA') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed)),
-        escapeCSV('LUCRO BRUTO (RECEITA - TAXA SHOPEE - CUSTOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(
+        escapeCSV('LUCRO BRUTO (+ RECEITA - TAXA SHOPEE - CUSTOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(
           totalConfirmed 
           - commissionShopee
           - shopeeRatePerOrder
@@ -166,7 +192,12 @@ export default function AdminHome() {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `pedidos_${new Date().toISOString().split('T')[0]}.csv`);
+
+      // Garante data atual em UTC-3
+      const currentDate = new Date();
+      const currentDateBr = currentDate.setHours(currentDate.getHours() - 3); // Ajusta para o fuso horário de Brasília (UTC-3)
+
+      link.setAttribute('download', `pedidos_${orders[0].createdAt.split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -498,6 +529,31 @@ export default function AdminHome() {
     );
   }
 
+  const renderSystemStatus = () => {
+    if (systemStatus === "loading") {
+      return (
+        <div className="flex items-center space-x-2 text-sm text-slate-500">
+          <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
+          <span>Verificando...</span>
+        </div>
+      );
+    }
+    if (systemStatus === "online") {
+      return (
+        <div className="flex items-center space-x-2 text-sm text-slate-500">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <span>Sistema Online</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center space-x-2 text-sm text-slate-500">
+        <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+        <span>Instabilidade detectada</span>
+      </div>
+    );
+  };
+
   return (
     <div
       className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"
@@ -537,8 +593,7 @@ export default function AdminHome() {
 
               <div className="flex items-center space-x-6 mt-4">
                 <div className="flex items-center space-x-2 text-sm text-slate-500">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span>Sistema Online</span>
+                  {renderSystemStatus()}
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-slate-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -699,7 +754,7 @@ export default function AdminHome() {
                   onClick={handleExportData}
                   data-export-btn
                   className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group cursor-pointer"
-                  title="Exportar dados (CSV)"
+                  title="Extrair relatório (CSV)"
                   disabled={orders.length === 0}
                 >
                   <svg
