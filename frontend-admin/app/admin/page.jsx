@@ -138,6 +138,9 @@ export default function AdminHome() {
         return `"${str}"`;
       };
 
+      const commissionShopee = totalConfirmed * 0.20;
+      const shopeeRatePerOrder = orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length * 5.00;
+
       const csvContent = [
         Object.keys(exportData[0] || {}).map(escapeCSV).join(columnDelimiter),
         ...exportData.map(row => Object.values(row).map(escapeCSV).join(columnDelimiter)),
@@ -149,8 +152,8 @@ export default function AdminHome() {
         escapeCSV('RECEITA CONFIRMADA') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed)),
         escapeCSV('LUCRO BRUTO (RECEITA - TAXA SHOPEE - CUSTOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(
           totalConfirmed 
-          - (totalConfirmed * 0.20) 
-          - (orders.length * 5.00)
+          - commissionShopee
+          - shopeeRatePerOrder
           - totalProductionCost
         )),
       ].join('\n');
