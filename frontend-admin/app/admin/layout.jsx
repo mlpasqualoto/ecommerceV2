@@ -11,7 +11,8 @@ export default function AdminLayout({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:5500/api/users/me", {
+        const res = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/me", {
+          method: "GET",
           credentials: "include",
         });
 
@@ -42,7 +43,7 @@ export default function AdminLayout({ children }) {
     setIsLoggingOut(true);
 
     try {
-      const res = await fetch("http://localhost:5500/api/users/logout", {
+      const res = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/logout", {
         method: "POST",
         credentials: "include",
       });
