@@ -16,7 +16,7 @@ export default function LoginPage() {
 
     try {
       // 1️⃣ Faz login
-      const loginRes = await fetch("http://localhost:5500/api/users/login", {
+      const loginRes = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // para receber cookie HTTP-only
@@ -44,7 +44,7 @@ export default function LoginPage() {
       }
 
       // 2️⃣ Verifica role após login
-      const meRes = await fetch("http://localhost:5500/api/users/me", {
+      const meRes = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/me", {
         credentials: "include",
       });
 

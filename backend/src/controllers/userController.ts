@@ -183,8 +183,8 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     // Envia o token como cookie HTTP-only
     res.cookie("token", loginResult.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
       maxAge: 3600000, // 1 hora
     });
 

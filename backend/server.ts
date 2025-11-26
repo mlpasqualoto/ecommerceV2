@@ -17,6 +17,9 @@ dotenv.config();
 
 const app = express();
 
+// para apps atrás de um proxy (ex: Render.com)
+app.set("trust proxy", 1);
+
 // ativar em produção
 /*
 app.use(
@@ -50,22 +53,9 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }))
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://192.168.25.110:3000" // seu IP da rede
-];
-
 app.use(cors({
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    // Permite requisições sem "origin" (como apps mobile ou Postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
+  origin: ["http://localhost:3000"],
+  credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());

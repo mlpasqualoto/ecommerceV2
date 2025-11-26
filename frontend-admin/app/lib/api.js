@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5500";
+const API_URL = "https://ecommercev2-rg6c.onrender.com:5500";
 
 // Tratador comum de resposta: tenta parsear JSON e sempre usa toast para erros (incluindo 429)
 async function handleResponse(res) {
