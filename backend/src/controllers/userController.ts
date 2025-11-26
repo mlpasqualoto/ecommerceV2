@@ -186,6 +186,8 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
       secure: true,
       sameSite: "none",
       maxAge: 3600000, // 1 hora
+      domain: "ecommercev2-rg6c.onrender.com"
+      //domain: "localhost" para testes locais
     });
 
     return res.status(loginResult.status ?? 200).json({ message: loginResult.message, user: loginResult.user ?? null, token: loginResult.token ?? null });

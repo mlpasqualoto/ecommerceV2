@@ -20,7 +20,7 @@ const authenticateToken = async (req: express.Request, res: express.Response, ne
   const token = req.cookies?.token;
 
   if (!token) {
-    return res.status(403).json({ message: "Token não fornecido" });
+    return res.status(401).json({ message: "Token não fornecido" });
   }
 
   try {
