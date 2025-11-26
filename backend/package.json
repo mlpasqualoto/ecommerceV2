@@ -35,7 +35,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc && node dist/server.js",
+    "build": "tsc",
+    "start": "npm install && node dist/server.js",
     "dev": "nodemon --watch src --ext ts,js --exec \"ts-node -r tsconfig-paths/register --transpile-only server.ts\"",
     "script:clean-products": "ts-node scripts/cleanDuplicateProducts.ts",
     "script:delete-olist-products": "ts-node scripts/deleteOlistProducts.ts"
