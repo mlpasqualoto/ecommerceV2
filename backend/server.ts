@@ -55,9 +55,10 @@ app.use(helmet({
 
 app.use(cors({
   origin: [
-    "https://ecommercev2-1.onrender.com",
-    "https://ecommercev2-1.onrender.com/login",
+    "https://ecommercev2-1.onrender.com", // FRONTEND
   ],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
 app.use(express.json());
