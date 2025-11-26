@@ -54,7 +54,10 @@ app.use(helmet({
 }))
 
 app.use(cors({
-  origin: true,
+  origin: [
+    "https://ecommercev2-1.onrender.com",
+    "https://ecommercev2-1.onrender.com/login",
+  ],
   credentials: true,
 }));
 app.use(express.json());

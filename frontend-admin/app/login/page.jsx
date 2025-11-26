@@ -45,6 +45,7 @@ export default function LoginPage() {
 
       // 2️⃣ Verifica role após login
       const meRes = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/me", {
+        method: "GET",
         credentials: "include",
       });
 
