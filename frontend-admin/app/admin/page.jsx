@@ -13,7 +13,6 @@ import {
 } from "../lib/api.js";
 import { formatCurrencyBRL } from "../utils/utils.js";
 import { useRouter } from "next/navigation";
-import { escape } from "querystring";
 
 export default function AdminHome() {
   const [editOrder, setEditOrder] = useState(null);
@@ -176,59 +175,67 @@ export default function AdminHome() {
       const grossProfit = totalConfirmed - commissionShopee - shopeeRatePerOrder - totalProductionCost;
 
       const csvContent = [
-        // Cabeçalho da tabela
+        // Cabeçalho da tabela de pedidos
         Object.keys(exportData[0] || {}).map(escapeCSV).join(columnDelimiter),
         ...exportData.map(row => Object.values(row).map(escapeCSV).join(columnDelimiter)),
         '',
         '',
         // ═══════════════════════════════════════════════════════════
-        // RESUMO FINANCEIRO
+        // RESUMO FINANCEIRO - LAYOUT HORIZONTAL
         // ═══════════════════════════════════════════════════════════
         escapeCSV('═══════════════════════════════════════════════════════════'),
         escapeCSV('RESUMO FINANCEIRO - ANÁLISE COMPLETA'),
         escapeCSV('═══════════════════════════════════════════════════════════'),
         '',
-        // BLOCO 1: VOLUME DE PEDIDOS
-        escapeCSV('┌─ VOLUME DE PEDIDOS'),
-        escapeCSV('│'),
-        escapeCSV('│  Total de Pedidos Confirmados') + columnDelimiter.repeat(3) + escapeCSV(orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 0),
-        escapeCSV('│  └─ Status: Pago + Enviado + Entregue'),
+        // Cabeçalhos das colunas
+        [
+          escapeCSV('VOLUME DE PEDIDOS'),
+          escapeCSV('RECEITAS'),
+          escapeCSV('CUSTOS OPERACIONAIS'),
+          escapeCSV('RESULTADO FINAL'),
+          escapeCSV('MÉDIAS E INDICADORES')
+        ].join(columnDelimiter),
         '',
-        // BLOCO 2: RECEITAS
-        escapeCSV('┌─ RECEITAS'),
-        escapeCSV('│'),
-        escapeCSV('│  Receita Bruta Total') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed)),
-        escapeCSV('│  └─ Soma de todos os pedidos confirmados'),
-        '',
-        // BLOCO 3: CUSTOS OPERACIONAIS
-        escapeCSV('┌─ CUSTOS OPERACIONAIS'),
-        escapeCSV('│'),
-        escapeCSV('│  Taxa Shopee (Comissão 20%)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(commissionShopee)),
-        escapeCSV('│  Taxa Shopee (Fixa R$5,00/item)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(shopeeRatePerOrder)),
-        escapeCSV('│  Subtotal Taxas Shopee') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(commissionShopee + shopeeRatePerOrder)),
-        escapeCSV('│'),
-        escapeCSV('│  Custo de Produtos (Estoque)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalProductionCost)),
-        escapeCSV('│'),
-        escapeCSV('│  TOTAL DE CUSTOS') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(commissionShopee + shopeeRatePerOrder + totalProductionCost)),
-        '',
-        // BLOCO 4: RESULTADO FINAL
-        escapeCSV('┌─ RESULTADO FINAL'),
-        escapeCSV('│'),
-        escapeCSV('│  LUCRO BRUTO') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(grossProfit)),
-        escapeCSV('│  └─ (Receita - Taxas - Custos)'),
-        escapeCSV('│'),
-        escapeCSV('│  Margem de Lucro') + columnDelimiter.repeat(3) + escapeCSV(formatNumber((grossProfit / totalConfirmed) * 100) + '%'),
-        '',
-        // BLOCO 5: MÉDIAS E INDICADORES
-        escapeCSV('┌─ MÉDIAS E INDICADORES'),
-        escapeCSV('│'),
-        escapeCSV('│  Ticket Médio') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
-        escapeCSV('│  └─ (Receita Total / Qtd Pedidos)'),
-        escapeCSV('│'),
-        escapeCSV('│  Lucro Médio por Pedido') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(grossProfit / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
-        escapeCSV('│  └─ (Lucro Bruto / Qtd Pedidos)'),
-        escapeCSV('│'),
-        escapeCSV('│  Custo Médio por Pedido') + columnDelimiter.repeat(3) + escapeCSV(formatNumber((commissionShopee + shopeeRatePerOrder + totalProductionCost) / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
+        // Linha 1
+        [
+          escapeCSV('Total de Pedidos Confirmados: ' + (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 0)),
+          escapeCSV('Receita Bruta Total: ' + formatNumber(totalConfirmed)),
+          escapeCSV('Taxa Shopee (20%): ' + formatNumber(commissionShopee)),
+          escapeCSV('LUCRO BRUTO: ' + formatNumber(grossProfit)),
+          escapeCSV('Ticket Médio: ' + formatNumber(totalConfirmed / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1)))
+        ].join(columnDelimiter),
+        // Linha 2
+        [
+          escapeCSV('└─ Status: Pago + Enviado + Entregue'),
+          escapeCSV('└─ Soma de todos os pedidos confirmados'),
+          escapeCSV('Taxa Shopee Fixa (R$5,00/item): ' + formatNumber(shopeeRatePerOrder)),
+          escapeCSV('└─ (Receita - Taxas - Custos)'),
+          escapeCSV('└─ (Receita Total / Qtd Pedidos)')
+        ].join(columnDelimiter),
+        // Linha 3
+        [
+          escapeCSV(''),
+          escapeCSV(''),
+          escapeCSV('Subtotal Taxas Shopee: ' + formatNumber(commissionShopee + shopeeRatePerOrder)),
+          escapeCSV('Margem de Lucro: ' + formatNumber((grossProfit / totalConfirmed) * 100) + '%'),
+          escapeCSV('Lucro Médio por Pedido: ' + formatNumber(grossProfit / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1)))
+        ].join(columnDelimiter),
+        // Linha 4
+        [
+          escapeCSV(''),
+          escapeCSV(''),
+          escapeCSV('Custo de Produtos (Estoque): ' + formatNumber(totalProductionCost)),
+          escapeCSV(''),
+          escapeCSV('└─ (Lucro Bruto / Qtd Pedidos)')
+        ].join(columnDelimiter),
+        // Linha 5
+        [
+          escapeCSV(''),
+          escapeCSV(''),
+          escapeCSV('TOTAL DE CUSTOS: ' + formatNumber(commissionShopee + shopeeRatePerOrder + totalProductionCost)),
+          escapeCSV(''),
+          escapeCSV('Custo Médio por Pedido: ' + formatNumber((commissionShopee + shopeeRatePerOrder + totalProductionCost) / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1)))
+        ].join(columnDelimiter),
         '',
         escapeCSV('═══════════════════════════════════════════════════════════'),
         escapeCSV('Relatório gerado em: ' + new Date().toLocaleString('pt-BR')),
