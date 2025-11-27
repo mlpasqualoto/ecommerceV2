@@ -13,6 +13,7 @@ import {
 } from "../lib/api.js";
 import { formatCurrencyBRL } from "../utils/utils.js";
 import { useRouter } from "next/navigation";
+import { escape } from "querystring";
 
 export default function AdminHome() {
   const [editOrder, setEditOrder] = useState(null);
@@ -124,7 +125,7 @@ export default function AdminHome() {
           (['paid', 'shipped', 'delivered'].includes(order.status) ? order.totalAmount * 0.20 : 0) + 
           (['paid', 'shipped', 'delivered'].includes(order.status) ? order.totalQuantity * 5.00 : 0)
         ),
-        "Total Custo": formatNumber(order.totalCost || 0),
+        "Total Custo": formatNumber(['paid', 'shipped', 'delivered'].includes(order.status) ? order.totalCost || 0 : 0),
         Produtos: order.items.map(item => `${item.name} (${item.quantity}x)`).join(', '),
         'Total de Itens': order.totalQuantity
       }));
@@ -175,19 +176,65 @@ export default function AdminHome() {
       const grossProfit = totalConfirmed - commissionShopee - shopeeRatePerOrder - totalProductionCost;
 
       const csvContent = [
+        // Cabeçalho da tabela
         Object.keys(exportData[0] || {}).map(escapeCSV).join(columnDelimiter),
         ...exportData.map(row => Object.values(row).map(escapeCSV).join(columnDelimiter)),
         '',
-        escapeCSV('*** RESUMO FINANCEIRO ***') + columnDelimiter.repeat(6),
-        escapeCSV('--> TOTAL DE PEDIDOS CONFIRMADOS (PAGO/ENVIADO/ENTREGUE)') + columnDelimiter.repeat(3) + escapeCSV(orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 0),
-        escapeCSV('--> RECEITA CONFIRMADA') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed)),
-        escapeCSV('--> TAXA SHOPEE (20% + R$5,00 POR ITEM)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(commissionShopee + shopeeRatePerOrder)),
-        escapeCSV('--> CUSTO DE PRODUTOS TOTAL') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalProductionCost)),
-        escapeCSV('--> TICKET MÉDIO (REC / QTD PEDIDOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
-        escapeCSV('--> LUCRO BRUTO MÉDIO POR PEDIDO') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(grossProfit / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
-        escapeCSV('--> LUCRO BRUTO (+ RECEITA - TAXA SHOPEE - CUSTOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(grossProfit)),
+        '',
+        // ═══════════════════════════════════════════════════════════
+        // RESUMO FINANCEIRO
+        // ═══════════════════════════════════════════════════════════
+        escapeCSV('═══════════════════════════════════════════════════════════'),
+        escapeCSV('RESUMO FINANCEIRO - ANÁLISE COMPLETA'),
+        escapeCSV('═══════════════════════════════════════════════════════════'),
+        '',
+        // BLOCO 1: VOLUME DE PEDIDOS
+        escapeCSV('┌─ VOLUME DE PEDIDOS'),
+        escapeCSV('│'),
+        escapeCSV('│  Total de Pedidos Confirmados') + columnDelimiter.repeat(3) + escapeCSV(orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 0),
+        escapeCSV('│  └─ Status: Pago + Enviado + Entregue'),
+        '',
+        // BLOCO 2: RECEITAS
+        escapeCSV('┌─ RECEITAS'),
+        escapeCSV('│'),
+        escapeCSV('│  Receita Bruta Total') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed)),
+        escapeCSV('│  └─ Soma de todos os pedidos confirmados'),
+        '',
+        // BLOCO 3: CUSTOS OPERACIONAIS
+        escapeCSV('┌─ CUSTOS OPERACIONAIS'),
+        escapeCSV('│'),
+        escapeCSV('│  Taxa Shopee (Comissão 20%)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(commissionShopee)),
+        escapeCSV('│  Taxa Shopee (Fixa R$5,00/item)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(shopeeRatePerOrder)),
+        escapeCSV('│  Subtotal Taxas Shopee') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(commissionShopee + shopeeRatePerOrder)),
+        escapeCSV('│'),
+        escapeCSV('│  Custo de Produtos (Estoque)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalProductionCost)),
+        escapeCSV('│'),
+        escapeCSV('│  TOTAL DE CUSTOS') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(commissionShopee + shopeeRatePerOrder + totalProductionCost)),
+        '',
+        // BLOCO 4: RESULTADO FINAL
+        escapeCSV('┌─ RESULTADO FINAL'),
+        escapeCSV('│'),
+        escapeCSV('│  LUCRO BRUTO') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(grossProfit)),
+        escapeCSV('│  └─ (Receita - Taxas - Custos)'),
+        escapeCSV('│'),
+        escapeCSV('│  Margem de Lucro') + columnDelimiter.repeat(3) + escapeCSV(formatNumber((grossProfit / totalConfirmed) * 100) + '%'),
+        '',
+        // BLOCO 5: MÉDIAS E INDICADORES
+        escapeCSV('┌─ MÉDIAS E INDICADORES'),
+        escapeCSV('│'),
+        escapeCSV('│  Ticket Médio') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
+        escapeCSV('│  └─ (Receita Total / Qtd Pedidos)'),
+        escapeCSV('│'),
+        escapeCSV('│  Lucro Médio por Pedido') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(grossProfit / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
+        escapeCSV('│  └─ (Lucro Bruto / Qtd Pedidos)'),
+        escapeCSV('│'),
+        escapeCSV('│  Custo Médio por Pedido') + columnDelimiter.repeat(3) + escapeCSV(formatNumber((commissionShopee + shopeeRatePerOrder + totalProductionCost) / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
+        '',
+        escapeCSV('═══════════════════════════════════════════════════════════'),
+        escapeCSV('Relatório gerado em: ' + new Date().toLocaleString('pt-BR')),
+        escapeCSV('═══════════════════════════════════════════════════════════'),
       ].join('\n');
-
+      
       // ⚠️ Adiciona BOM UTF-8 para Excel reconhecer encoding
       const BOM = '\uFEFF';
       const csvWithBOM = BOM + csvContent;
