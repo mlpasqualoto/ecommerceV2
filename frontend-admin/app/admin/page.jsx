@@ -120,6 +120,10 @@ export default function AdminHome() {
         Cliente: order.name,
         Status: getStatusText(order.status),
         "Total Recebido": formatNumber(order.totalAmount),
+        "Taxa Shopee": formatNumber(
+          (['paid', 'shipped', 'delivered'].includes(order.status) ? order.totalAmount * 0.20 : 0) + 
+          (['paid', 'shipped', 'delivered'].includes(order.status) ? order.totalQuantity * 5.00 : 0)
+        ),
         "Total Custo": formatNumber(order.totalCost || 0),
         Produtos: order.items.map(item => `${item.name} (${item.quantity}x)`).join(', '),
         'Total de Itens': order.totalQuantity
@@ -167,21 +171,21 @@ export default function AdminHome() {
       }, 0);
       const shopeeRatePerOrder = quantityProducts * 5.00;
 
+      // Cálculo do lucro bruto
+      const grossProfit = totalConfirmed - commissionShopee - shopeeRatePerOrder - totalProductionCost;
+
       const csvContent = [
         Object.keys(exportData[0] || {}).map(escapeCSV).join(columnDelimiter),
         ...exportData.map(row => Object.values(row).map(escapeCSV).join(columnDelimiter)),
         '',
-        escapeCSV('RESUMO FINANCEIRO') + columnDelimiter.repeat(6),
-        escapeCSV('Total Pedidos Pagos') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalPaid)),
-        escapeCSV('Total Pedidos Enviados') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalShipped)),
-        escapeCSV('Total Pedidos Entregues') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalDelivered)),
-        escapeCSV('RECEITA CONFIRMADA') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed)),
-        escapeCSV('LUCRO BRUTO (+ RECEITA - TAXA SHOPEE - CUSTOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(
-          totalConfirmed 
-          - commissionShopee
-          - shopeeRatePerOrder
-          - totalProductionCost
-        )),
+        escapeCSV('*** RESUMO FINANCEIRO ***') + columnDelimiter.repeat(6),
+        escapeCSV('--> TOTAL DE PEDIDOS CONFIRMADOS (PAGO/ENVIADO/ENTREGUE)') + columnDelimiter.repeat(3) + escapeCSV(orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 0),
+        escapeCSV('--> RECEITA CONFIRMADA') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed)),
+        escapeCSV('--> TAXA SHOPEE (20% + R$5,00 POR ITEM)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(commissionShopee + shopeeRatePerOrder)),
+        escapeCSV('--> CUSTO DE PRODUTOS TOTAL') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalProductionCost)),
+        escapeCSV('--> TICKET MÉDIO (REC / QTD PEDIDOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(totalConfirmed / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
+        escapeCSV('--> LUCRO BRUTO MÉDIO POR PEDIDO') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(grossProfit / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1))),
+        escapeCSV('--> LUCRO BRUTO (+ RECEITA - TAXA SHOPEE - CUSTOS)') + columnDelimiter.repeat(3) + escapeCSV(formatNumber(grossProfit)),
       ].join('\n');
 
       // ⚠️ Adiciona BOM UTF-8 para Excel reconhecer encoding
@@ -508,6 +512,16 @@ export default function AdminHome() {
       cancelled: "Cancelado",
     };
     return texts[status] || status;
+  };
+
+  // Utilitário para formatar createdAt exatamente (sem deslocar fuso)
+  const formatCreatedAtDate = (createdAt) => {
+    if (!createdAt) return "";
+    // Usa a própria string ISO para pegar a parte da data (YYYY-MM-DD)
+    // e exibir em DD/MM/YY
+    const iso = String(createdAt);
+    const [yyyy, mm, dd] = iso.split('T')[0].split('-');
+    return `${dd}/${mm}/${yyyy.slice(2)}`;
   };
 
   if (loading) {
@@ -1200,14 +1214,7 @@ export default function AdminHome() {
                         >
                           <td className="px-6 py-5">
                             <div className="text-sm font-semibold text-slate-900 transition-colors duration-200 group-hover:text-blue-600">
-                              {new Date(order.createdAt).toLocaleDateString(
-                                "pt-BR",
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "2-digit",
-                                }
-                              )}
+                              {formatCreatedAtDate(order.createdAt)}
                             </div>
                             <div className="text-xs text-slate-500">
                               {new Date(order.createdAt).toLocaleString(
