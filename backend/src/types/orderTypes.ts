@@ -40,6 +40,7 @@ export interface UpdateOrderDTO {
     productId: string;
     quantity: number;
     status: string;
+    totalCost: number;
     totalAmount: number;
 }
 

@@ -20,6 +20,7 @@ export default function AdminHome() {
     productId: "",
     quantity: "",
     status: "",
+    totalCost: "",
     totalAmount: "",
   });
   const [newOrder, setNewOrder] = useState({
@@ -241,7 +242,7 @@ export default function AdminHome() {
         escapeCSV('Relatório gerado em: ' + new Date().toLocaleString('pt-BR')),
         escapeCSV('═══════════════════════════════════════════════════════════'),
       ].join('\n');
-      
+
       // ⚠️ Adiciona BOM UTF-8 para Excel reconhecer encoding
       const BOM = '\uFEFF';
       const csvWithBOM = BOM + csvContent;
@@ -290,13 +291,14 @@ export default function AdminHome() {
       productId: order.items[0].productId,
       quantity: order.items[0].quantity,
       status: order.status,
+      totalCost: order.totalCost,
       totalAmount: order.totalAmount,
     });
   };
 
   const closeEditModal = () => {
     setEditOrder(null);
-    setEditForm({ productId: "", quantity: "", status: "", totalAmount: "" });
+    setEditForm({ productId: "", quantity: "", status: "", totalCost: "", totalAmount: "" });
   };
 
   const handleEditFormChange = (e) => {
@@ -311,6 +313,7 @@ export default function AdminHome() {
       productId: editForm.productId,
       quantity: Number(editForm.quantity),
       status: editForm.status,
+      totalCost: Number(editForm.totalCost),
       totalAmount: Number(editForm.totalAmount),
     });
     closeEditModal();
@@ -919,6 +922,24 @@ export default function AdminHome() {
                     <option value="delivered">Entregue</option>
                     <option value="cancelled">Cancelado</option>
                   </select>
+                </div>
+
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.4s" }}
+                >
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Total Preço de Custo (R$)
+                  </label>
+                  <input
+                    type="number"
+                    name="totalCost"
+                    value={editForm.totalCost}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                    min="0"
+                    step="0.01"
+                  />
                 </div>
 
                 <div
