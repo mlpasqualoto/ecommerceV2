@@ -8,6 +8,7 @@ export interface DashboardStats {
         orders: {
             today: number;
             total: number;
+            avgValue: number;
             byStatus: Record<string, number>;
         };
         customers: {
