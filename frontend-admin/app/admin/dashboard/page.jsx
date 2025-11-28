@@ -362,13 +362,19 @@ export default function Dashboard() {
                         cy={160 - (data.orders / 60) * 140}
                         r="4"
                         fill="#3b82f6"
-                        className="cursor-pointer transition-all"
+                        className="cursor-pointer"
                         onMouseEnter={() => setTooltipDay(idx)}
                         onMouseLeave={() => setTooltipDay(null)}
-                        style={{ 
-                          transform: tooltipDay === idx ? 'scale(1.5)' : 'scale(1)',
-                          transformOrigin: 'center'
-                        }}
+                      />
+                      {/* Círculo maior invisível para área de hover maior e mais estável */}
+                      <circle
+                        cx={60 + idx * 50}
+                        cy={160 - (data.orders / 60) * 140}
+                        r="12"
+                        fill="transparent"
+                        className="cursor-pointer"
+                        onMouseEnter={() => setTooltipDay(idx)}
+                        onMouseLeave={() => setTooltipDay(null)}
                       />
                       <text
                         x={60 + idx * 50}
@@ -398,10 +404,10 @@ export default function Dashboard() {
                 {/* Tooltip Pedidos por Dia */}
                 {tooltipDay !== null && ordersByDay[tooltipDay] && (
                   <div 
-                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
+                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
                     style={{
                       left: `${((60 + tooltipDay * 50) / 400) * 100}%`,
-                      top: `${((160 - (ordersByDay[tooltipDay].orders / 60) * 140) / 200) * 100 - 15}%`,
+                      top: `${((160 - (ordersByDay[tooltipDay].orders / 60) * 140) / 200) * 100 - 25}%`,
                       transform: 'translate(-50%, -100%)',
                       pointerEvents: 'none',
                       zIndex: 10
@@ -494,13 +500,19 @@ export default function Dashboard() {
                         cy={160 - (data.orders / 1000) * 140}
                         r="4"
                         fill="#9333ea"
-                        className="cursor-pointer transition-all"
+                        className="cursor-pointer"
                         onMouseEnter={() => setTooltipMonth(idx)}
                         onMouseLeave={() => setTooltipMonth(null)}
-                        style={{ 
-                          transform: tooltipMonth === idx ? 'scale(1.5)' : 'scale(1)',
-                          transformOrigin: 'center'
-                        }}
+                      />
+                      {/* Círculo maior invisível para área de hover */}
+                      <circle
+                        cx={70 + idx * 60}
+                        cy={160 - (data.orders / 1000) * 140}
+                        r="12"
+                        fill="transparent"
+                        className="cursor-pointer"
+                        onMouseEnter={() => setTooltipMonth(idx)}
+                        onMouseLeave={() => setTooltipMonth(null)}
                       />
                       <text
                         x={70 + idx * 60}
