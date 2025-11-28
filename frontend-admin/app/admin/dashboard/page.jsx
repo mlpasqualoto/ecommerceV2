@@ -326,121 +326,133 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {ordersByDay.length > 0 && (
-              <div className="relative h-64">
-                <svg viewBox="0 0 400 200" className="w-full h-full">
-                  <line x1="40" y1="0" x2="40" y2="160" stroke="#e2e8f0" strokeWidth="1"/>
-                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="2"/>
-                  
-                  <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">60</text>
-                  <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">40</text>
-                  <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">20</text>
-                  <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">0</text>
-                  
-                  <path
-                    d={ordersByDay.map((data, idx) => 
-                      `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / 60) * 140}`
-                    ).join(' ')}
-                    fill="none"
-                    stroke="url(#blueGradient)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                  
-                  <path
-                    d={`${ordersByDay.map((data, idx) => 
-                      `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / 60) * 140}`
-                    ).join(' ')} L 360,160 L 60,160 Z`}
-                    fill="url(#blueGradientArea)"
-                    opacity="0.3"
-                  />
-                  
-                  {ordersByDay.map((data, idx) => (
-                    <g key={idx}>
-                      <circle
-                        cx={60 + idx * 50}
-                        cy={160 - (data.orders / 60) * 140}
-                        r="4"
-                        fill="#3b82f6"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setTooltipDay(idx)}
-                        onMouseLeave={() => setTooltipDay(null)}
-                      />
-                      {/* Círculo maior invisível para área de hover maior e mais estável */}
-                      <circle
-                        cx={60 + idx * 50}
-                        cy={160 - (data.orders / 60) * 140}
-                        r="12"
-                        fill="transparent"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setTooltipDay(idx)}
-                        onMouseLeave={() => setTooltipDay(null)}
-                      />
-                      <text
-                        x={60 + idx * 50}
-                        y="180"
-                        fontSize="11"
-                        fill="#64748b"
-                        textAnchor="middle"
-                        fontWeight="500"
-                      >
-                        {new Date(data._id).toLocaleDateString('pt-BR', { weekday: 'short' })}
-                      </text>
-                    </g>
-                  ))}
-                  
-                  <defs>
-                    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#6366f1" />
-                    </linearGradient>
-                    <linearGradient id="blueGradientArea" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                {/* Tooltip Pedidos por Dia */}
-                {tooltipDay !== null && ordersByDay[tooltipDay] && (
-                  <div 
-                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
-                    style={{
-                      left: `${((60 + tooltipDay * 50) / 400) * 100}%`,
-                      top: `${((160 - (ordersByDay[tooltipDay].orders / 60) * 140) / 200) * 100 - 25}%`,
-                      transform: 'translate(-50%, -100%)',
-                      pointerEvents: 'none',
-                      zIndex: 10
-                    }}
-                  >
-                    <div className="text-center">
-                      <div className="font-bold text-blue-300">
-                        {new Date(ordersByDay[tooltipDay]._id).toLocaleDateString('pt-BR', { 
-                          day: '2-digit', 
-                          month: 'short' 
-                        })}
-                      </div>
-                      <div className="text-white mt-1">
-                        {ordersByDay[tooltipDay].orders} pedidos
-                      </div>
-                      <div className="text-blue-200 text-[10px]">
-                        {formatCurrency(ordersByDay[tooltipDay].revenue)}
-                      </div>
-                    </div>
-                    <div 
-                      className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
-                      style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: '6px solid transparent',
-                        borderRight: '6px solid transparent',
-                        borderTop: '6px solid #0f172a'
-                      }}
+            {ordersByDay.length > 0 && (() => {
+              // Calcula o valor máximo para escala dinâmica
+              const maxOrders = Math.max(...ordersByDay.map(d => d.orders));
+              const yScale = maxOrders > 0 ? maxOrders : 1;
+              const yStep = Math.ceil(yScale / 4); // 4 divisões no eixo Y
+              
+              return (
+                <div className="relative h-64">
+                  <svg viewBox="0 0 400 200" className="w-full h-full">
+                    <line x1="40" y1="0" x2="40" y2="160" stroke="#e2e8f0" strokeWidth="1"/>
+                    <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="2"/>
+                    
+                    {/* Labels do eixo Y dinâmicos */}
+                    <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 4}</text>
+                    <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 3}</text>
+                    <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 2}</text>
+                    <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep}</text>
+                    <text x="30" y="165" fontSize="10" fill="#94a3b8" textAnchor="end">0</text>
+                    
+                    {/* Linhas de grade horizontais */}
+                    <line x1="40" y1="40" x2="400" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="80" x2="400" y2="80" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    
+                    <path
+                      d={ordersByDay.map((data, idx) => 
+                        `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / yScale) * 140}`
+                      ).join(' ')}
+                      fill="none"
+                      stroke="url(#blueGradient)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
                     />
-                  </div>
-                )}
-              </div>
-            )}
+                    
+                    <path
+                      d={`${ordersByDay.map((data, idx) => 
+                        `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / yScale) * 140}`
+                      ).join(' ')} L ${60 + (ordersByDay.length - 1) * 50},160 L 60,160 Z`}
+                      fill="url(#blueGradientArea)"
+                      opacity="0.3"
+                    />
+                    
+                    {ordersByDay.map((data, idx) => (
+                      <g key={idx}>
+                        <circle
+                          cx={60 + idx * 50}
+                          cy={160 - (data.orders / yScale) * 140}
+                          r="4"
+                          fill="#3b82f6"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setTooltipDay(idx)}
+                          onMouseLeave={() => setTooltipDay(null)}
+                        />
+                        <circle
+                          cx={60 + idx * 50}
+                          cy={160 - (data.orders / yScale) * 140}
+                          r="12"
+                          fill="transparent"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setTooltipDay(idx)}
+                          onMouseLeave={() => setTooltipDay(null)}
+                        />
+                        <text
+                          x={60 + idx * 50}
+                          y="180"
+                          fontSize="11"
+                          fill="#64748b"
+                          textAnchor="middle"
+                          fontWeight="500"
+                        >
+                          {new Date(data._id).toLocaleDateString('pt-BR', { weekday: 'short' })}
+                        </text>
+                      </g>
+                    ))}
+                    
+                    <defs>
+                      <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#6366f1" />
+                      </linearGradient>
+                      <linearGradient id="blueGradientArea" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+
+                  {tooltipDay !== null && ordersByDay[tooltipDay] && (
+                    <div 
+                      className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
+                      style={{
+                        left: `${((60 + tooltipDay * 50) / 400) * 100}%`,
+                        top: `${((160 - (ordersByDay[tooltipDay].orders / yScale) * 140) / 200) * 100 - 25}%`,
+                        transform: 'translate(-50%, -100%)',
+                        pointerEvents: 'none',
+                        zIndex: 10
+                      }}
+                    >
+                      <div className="text-center">
+                        <div className="font-bold text-blue-300">
+                          {new Date(ordersByDay[tooltipDay]._id).toLocaleDateString('pt-BR', { 
+                            day: '2-digit', 
+                            month: 'short' 
+                          })}
+                        </div>
+                        <div className="text-white mt-1">
+                          {ordersByDay[tooltipDay].orders} pedidos
+                        </div>
+                        <div className="text-blue-200 text-[10px]">
+                          {formatCurrency(ordersByDay[tooltipDay].revenue)}
+                        </div>
+                      </div>
+                      <div 
+                        className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
+                        style={{
+                          width: 0,
+                          height: 0,
+                          borderLeft: '6px solid transparent',
+                          borderRight: '6px solid transparent',
+                          borderTop: '6px solid #0f172a'
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             
             <div className="mt-4 pt-4 border-t border-slate-100">
               <div className="flex items-center justify-between text-sm">
@@ -464,121 +476,133 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {ordersByMonth.length > 0 && (
-              <div className="relative h-64">
-                <svg viewBox="0 0 400 200" className="w-full h-full">
-                  <line x1="40" y1="0" x2="40" y2="160" stroke="#e2e8f0" strokeWidth="1"/>
-                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="2"/>
-                  
-                  <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">1000</text>
-                  <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">750</text>
-                  <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">500</text>
-                  <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">250</text>
-                  
-                  <path
-                    d={ordersByMonth.map((data, idx) => 
-                      `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / 1000) * 140}`
-                    ).join(' ')}
-                    fill="none"
-                    stroke="url(#purpleGradient)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                  
-                  <path
-                    d={`${ordersByMonth.map((data, idx) => 
-                      `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / 1000) * 140}`
-                    ).join(' ')} L 370,160 L 70,160 Z`}
-                    fill="url(#purpleGradientArea)"
-                    opacity="0.3"
-                  />
-                  
-                  {ordersByMonth.map((data, idx) => (
-                    <g key={idx}>
-                      <circle
-                        cx={70 + idx * 60}
-                        cy={160 - (data.orders / 1000) * 140}
-                        r="4"
-                        fill="#9333ea"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setTooltipMonth(idx)}
-                        onMouseLeave={() => setTooltipMonth(null)}
-                      />
-                      {/* Círculo maior invisível para área de hover */}
-                      <circle
-                        cx={70 + idx * 60}
-                        cy={160 - (data.orders / 1000) * 140}
-                        r="12"
-                        fill="transparent"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setTooltipMonth(idx)}
-                        onMouseLeave={() => setTooltipMonth(null)}
-                      />
-                      <text
-                        x={70 + idx * 60}
-                        y="180"
-                        fontSize="11"
-                        fill="#64748b"
-                        textAnchor="middle"
-                        fontWeight="500"
-                      >
-                        {new Date(data._id + '-01').toLocaleDateString('pt-BR', { month: 'short' })}
-                      </text>
-                    </g>
-                  ))}
-                  
-                  <defs>
-                    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#93333ea" />
-                      <stop offset="100%" stopColor="#c026d3" />
-                    </linearGradient>
-                    <linearGradient id="purpleGradientArea" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#93333ea" />
-                      <stop offset="100%" stopColor="#93333ea" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                {/* Tooltip Pedidos por Mês */}
-                {tooltipMonth !== null && ordersByMonth[tooltipMonth] && (
-                  <div 
-                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
-                    style={{
-                      left: `${((70 + tooltipMonth * 60) / 400) * 100}%`,
-                      top: `${((160 - (ordersByMonth[tooltipMonth].orders / 1000) * 140) / 200) * 100 - 15}%`,
-                      transform: 'translate(-50%, -100%)',
-                      pointerEvents: 'none',
-                      zIndex: 10
-                    }}
-                  >
-                    <div className="text-center">
-                      <div className="font-bold text-purple-300">
-                        {new Date(ordersByMonth[tooltipMonth]._id + '-01').toLocaleDateString('pt-BR', { 
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </div>
-                      <div className="text-white mt-1">
-                        {ordersByMonth[tooltipMonth].orders} pedidos
-                      </div>
-                      <div className="text-purple-200 text-[10px]">
-                        {formatCurrency(ordersByMonth[tooltipMonth].revenue)}
-                      </div>
-                    </div>
-                    <div 
-                      className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
-                      style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: '6px solid transparent',
-                        borderRight: '6px solid transparent',
-                        borderTop: '6px solid #0f172a'
-                      }}
+            {ordersByMonth.length > 0 && (() => {
+              // Calcula o valor máximo para escala dinâmica
+              const maxOrders = Math.max(...ordersByMonth.map(d => d.orders));
+              const yScale = maxOrders > 0 ? maxOrders : 1;
+              const yStep = Math.ceil(yScale / 4);
+              
+              return (
+                <div className="relative h-64">
+                  <svg viewBox="0 0 400 200" className="w-full h-full">
+                    <line x1="40" y1="0" x2="40" y2="160" stroke="#e2e8f0" strokeWidth="1"/>
+                    <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="2"/>
+                    
+                    {/* Labels do eixo Y dinâmicos */}
+                    <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 4}</text>
+                    <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 3}</text>
+                    <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 2}</text>
+                    <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep}</text>
+                    <text x="30" y="165" fontSize="10" fill="#94a3b8" textAnchor="end">0</text>
+                    
+                    {/* Linhas de grade */}
+                    <line x1="40" y1="40" x2="400" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="80" x2="400" y2="80" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    
+                    <path
+                      d={ordersByMonth.map((data, idx) => 
+                        `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / yScale) * 140}`
+                      ).join(' ')}
+                      fill="none"
+                      stroke="url(#purpleGradient)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
                     />
-                  </div>
-                )}
-              </div>
-            )}
+                    
+                    <path
+                      d={`${ordersByMonth.map((data, idx) => 
+                        `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / yScale) * 140}`
+                      ).join(' ')} L ${70 + (ordersByMonth.length - 1) * 60},160 L 70,160 Z`}
+                      fill="url(#purpleGradientArea)"
+                      opacity="0.3"
+                    />
+                    
+                    {ordersByMonth.map((data, idx) => (
+                      <g key={idx}>
+                        <circle
+                          cx={70 + idx * 60}
+                          cy={160 - (data.orders / yScale) * 140}
+                          r="4"
+                          fill="#9333ea"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setTooltipMonth(idx)}
+                          onMouseLeave={() => setTooltipMonth(null)}
+                        />
+                        <circle
+                          cx={70 + idx * 60}
+                          cy={160 - (data.orders / yScale) * 140}
+                          r="12"
+                          fill="transparent"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setTooltipMonth(idx)}
+                          onMouseLeave={() => setTooltipMonth(null)}
+                        />
+                        <text
+                          x={70 + idx * 60}
+                          y="180"
+                          fontSize="11"
+                          fill="#64748b"
+                          textAnchor="middle"
+                          fontWeight="500"
+                        >
+                          {new Date(data._id + '-01').toLocaleDateString('pt-BR', { month: 'short' })}
+                        </text>
+                      </g>
+                    ))}
+                    
+                    <defs>
+                      <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#93333ea" />
+                        <stop offset="100%" stopColor="#c026d3" />
+                      </linearGradient>
+                      <linearGradient id="purpleGradientArea" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#93333ea" />
+                        <stop offset="100%" stopColor="#93333ea" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+
+                  {tooltipMonth !== null && ordersByMonth[tooltipMonth] && (
+                    <div 
+                      className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
+                      style={{
+                        left: `${((70 + tooltipMonth * 60) / 400) * 100}%`,
+                        top: `${((160 - (ordersByMonth[tooltipMonth].orders / yScale) * 140) / 200) * 100 - 25}%`,
+                        transform: 'translate(-50%, -100%)',
+                        pointerEvents: 'none',
+                        zIndex: 10
+                      }}
+                    >
+                      <div className="text-center">
+                        <div className="font-bold text-purple-300">
+                          {new Date(ordersByMonth[tooltipMonth]._id + '-01').toLocaleDateString('pt-BR', { 
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </div>
+                        <div className="text-white mt-1">
+                          {ordersByMonth[tooltipMonth].orders} pedidos
+                        </div>
+                        <div className="text-purple-200 text-[10px]">
+                          {formatCurrency(ordersByMonth[tooltipMonth].revenue)}
+                        </div>
+                      </div>
+                      <div 
+                        className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
+                        style={{
+                          width: 0,
+                          height: 0,
+                          borderLeft: '6px solid transparent',
+                          borderRight: '6px solid transparent',
+                          borderTop: '6px solid #0f172a'
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             
             <div className="mt-4 pt-4 border-t border-slate-100">
               <div className="flex items-center justify-between text-sm">
