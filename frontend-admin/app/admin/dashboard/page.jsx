@@ -8,6 +8,8 @@ export default function Dashboard() {
   const [showRevenue, setShowRevenue] = useState(true);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
+  const [tooltipDay, setTooltipDay] = useState(null);
+  const [tooltipMonth, setTooltipMonth] = useState(null);
 
   // Calcula startDate e endDate baseado no dateRange
   const getDateRange = (range) => {
@@ -360,7 +362,13 @@ export default function Dashboard() {
                         cy={160 - (data.orders / 60) * 140}
                         r="4"
                         fill="#3b82f6"
-                        className="cursor-pointer hover:r-6 transition-all"
+                        className="cursor-pointer transition-all"
+                        onMouseEnter={() => setTooltipDay(idx)}
+                        onMouseLeave={() => setTooltipDay(null)}
+                        style={{ 
+                          transform: tooltipDay === idx ? 'scale(1.5)' : 'scale(1)',
+                          transformOrigin: 'center'
+                        }}
                       />
                       <text
                         x={60 + idx * 50}
@@ -386,6 +394,45 @@ export default function Dashboard() {
                     </linearGradient>
                   </defs>
                 </svg>
+
+                {/* Tooltip Pedidos por Dia */}
+                {tooltipDay !== null && ordersByDay[tooltipDay] && (
+                  <div 
+                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
+                    style={{
+                      left: `${((60 + tooltipDay * 50) / 400) * 100}%`,
+                      top: `${((160 - (ordersByDay[tooltipDay].orders / 60) * 140) / 200) * 100 - 15}%`,
+                      transform: 'translate(-50%, -100%)',
+                      pointerEvents: 'none',
+                      zIndex: 10
+                    }}
+                  >
+                    <div className="text-center">
+                      <div className="font-bold text-blue-300">
+                        {new Date(ordersByDay[tooltipDay]._id).toLocaleDateString('pt-BR', { 
+                          day: '2-digit', 
+                          month: 'short' 
+                        })}
+                      </div>
+                      <div className="text-white mt-1">
+                        {ordersByDay[tooltipDay].orders} pedidos
+                      </div>
+                      <div className="text-blue-200 text-[10px]">
+                        {formatCurrency(ordersByDay[tooltipDay].revenue)}
+                      </div>
+                    </div>
+                    <div 
+                      className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
+                      style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: '6px solid transparent',
+                        borderRight: '6px solid transparent',
+                        borderTop: '6px solid #0f172a'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
             
@@ -447,7 +494,13 @@ export default function Dashboard() {
                         cy={160 - (data.orders / 1000) * 140}
                         r="4"
                         fill="#9333ea"
-                        className="cursor-pointer hover:r-6 transition-all"
+                        className="cursor-pointer transition-all"
+                        onMouseEnter={() => setTooltipMonth(idx)}
+                        onMouseLeave={() => setTooltipMonth(null)}
+                        style={{ 
+                          transform: tooltipMonth === idx ? 'scale(1.5)' : 'scale(1)',
+                          transformOrigin: 'center'
+                        }}
                       />
                       <text
                         x={70 + idx * 60}
@@ -464,15 +517,54 @@ export default function Dashboard() {
                   
                   <defs>
                     <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#9333ea" />
+                      <stop offset="0%" stopColor="#93333ea" />
                       <stop offset="100%" stopColor="#c026d3" />
                     </linearGradient>
                     <linearGradient id="purpleGradientArea" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#9333ea" />
-                      <stop offset="100%" stopColor="#9333ea" stopOpacity="0" />
+                      <stop offset="0%" stopColor="#93333ea" />
+                      <stop offset="100%" stopColor="#93333ea" stopOpacity="0" />
                     </linearGradient>
                   </defs>
                 </svg>
+
+                {/* Tooltip Pedidos por Mês */}
+                {tooltipMonth !== null && ordersByMonth[tooltipMonth] && (
+                  <div 
+                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
+                    style={{
+                      left: `${((70 + tooltipMonth * 60) / 400) * 100}%`,
+                      top: `${((160 - (ordersByMonth[tooltipMonth].orders / 1000) * 140) / 200) * 100 - 15}%`,
+                      transform: 'translate(-50%, -100%)',
+                      pointerEvents: 'none',
+                      zIndex: 10
+                    }}
+                  >
+                    <div className="text-center">
+                      <div className="font-bold text-purple-300">
+                        {new Date(ordersByMonth[tooltipMonth]._id + '-01').toLocaleDateString('pt-BR', { 
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </div>
+                      <div className="text-white mt-1">
+                        {ordersByMonth[tooltipMonth].orders} pedidos
+                      </div>
+                      <div className="text-purple-200 text-[10px]">
+                        {formatCurrency(ordersByMonth[tooltipMonth].revenue)}
+                      </div>
+                    </div>
+                    <div 
+                      className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
+                      style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: '6px solid transparent',
+                        borderRight: '6px solid transparent',
+                        borderTop: '6px solid #0f172a'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
             
