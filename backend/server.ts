@@ -7,6 +7,7 @@ import connectDB from "./src/config/db";
 import orderRoutes from "./src/routes/orderRoutes";
 import productRoutes from "./src/routes/productRoutes";
 import userRoutes from "./src/routes/userRoutes";
+import analyticsRoutes from "./src/routes/analyticsRoutes";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./src/middlewares/errorMiddleware";
 import expressWinston from "express-winston";
@@ -82,6 +83,7 @@ connectDB();
 app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // middleware global de erro
 app.use(errorMiddleware);

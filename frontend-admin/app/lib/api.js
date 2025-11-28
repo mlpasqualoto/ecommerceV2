@@ -195,3 +195,11 @@ export async function fetchDeleteProduct(productId) {
   });
   return handleResponse(res);
 }
+
+export async function fetchDashboardStats(startDate, endDate) {
+  const res = await fetch(`${API_URL}/api/analytics/dashboard?startDate=${startDate}&endDate=${endDate}`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse(res);
+}
