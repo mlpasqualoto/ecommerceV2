@@ -329,8 +329,8 @@ export default function Dashboard() {
             {ordersByDay.length > 0 && (() => {
               // Calcula o valor máximo para escala dinâmica
               const maxOrders = Math.max(...ordersByDay.map(d => d.orders));
-              const yScale = maxOrders > 0 ? maxOrders : 1;
-              const yStep = Math.ceil(yScale / 4); // 4 divisões no eixo Y
+              const yScale = maxOrders > 0 ? Math.ceil(maxOrders * 1.1) : 1; // Adiciona 10% de margem
+              const yStep = Math.ceil(yScale / 5); // 5 divisões no eixo Y
               
               return (
                 <div className="relative h-64">
@@ -339,20 +339,22 @@ export default function Dashboard() {
                     <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="2"/>
                     
                     {/* Labels do eixo Y dinâmicos */}
-                    <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 4}</text>
-                    <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 3}</text>
-                    <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 2}</text>
-                    <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep}</text>
+                    <text x="30" y="8" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 5}</text>
+                    <text x="30" y="40" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 4}</text>
+                    <text x="30" y="72" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 3}</text>
+                    <text x="30" y="104" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 2}</text>
+                    <text x="30" y="136" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep}</text>
                     <text x="30" y="165" fontSize="10" fill="#94a3b8" textAnchor="end">0</text>
                     
                     {/* Linhas de grade horizontais */}
-                    <line x1="40" y1="40" x2="400" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
-                    <line x1="40" y1="80" x2="400" y2="80" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
-                    <line x1="40" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="32" x2="400" y2="32" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="64" x2="400" y2="64" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="96" x2="400" y2="96" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="128" x2="400" y2="128" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
                     
                     <path
                       d={ordersByDay.map((data, idx) => 
-                        `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / yScale) * 140}`
+                        `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / yScale) * 152}`
                       ).join(' ')}
                       fill="none"
                       stroke="url(#blueGradient)"
@@ -362,7 +364,7 @@ export default function Dashboard() {
                     
                     <path
                       d={`${ordersByDay.map((data, idx) => 
-                        `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / yScale) * 140}`
+                        `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / yScale) * 152}`
                       ).join(' ')} L ${60 + (ordersByDay.length - 1) * 50},160 L 60,160 Z`}
                       fill="url(#blueGradientArea)"
                       opacity="0.3"
@@ -372,7 +374,7 @@ export default function Dashboard() {
                       <g key={idx}>
                         <circle
                           cx={60 + idx * 50}
-                          cy={160 - (data.orders / yScale) * 140}
+                          cy={160 - (data.orders / yScale) * 152}
                           r="4"
                           fill="#3b82f6"
                           className="cursor-pointer"
@@ -381,7 +383,7 @@ export default function Dashboard() {
                         />
                         <circle
                           cx={60 + idx * 50}
-                          cy={160 - (data.orders / yScale) * 140}
+                          cy={160 - (data.orders / yScale) * 152}
                           r="12"
                           fill="transparent"
                           className="cursor-pointer"
@@ -418,7 +420,7 @@ export default function Dashboard() {
                       className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
                       style={{
                         left: `${((60 + tooltipDay * 50) / 400) * 100}%`,
-                        top: `${((160 - (ordersByDay[tooltipDay].orders / yScale) * 140) / 200) * 100 - 25}%`,
+                        top: `${((160 - (ordersByDay[tooltipDay].orders / yScale) * 152) / 200) * 100 - 25}%`,
                         transform: 'translate(-50%, -100%)',
                         pointerEvents: 'none',
                         zIndex: 10
@@ -479,8 +481,8 @@ export default function Dashboard() {
             {ordersByMonth.length > 0 && (() => {
               // Calcula o valor máximo para escala dinâmica
               const maxOrders = Math.max(...ordersByMonth.map(d => d.orders));
-              const yScale = maxOrders > 0 ? maxOrders : 1;
-              const yStep = Math.ceil(yScale / 4);
+              const yScale = maxOrders > 0 ? Math.ceil(maxOrders * 1.1) : 1; // Adiciona 10% de margem
+              const yStep = Math.ceil(yScale / 5); // 5 divisões
               
               return (
                 <div className="relative h-64">
@@ -489,20 +491,22 @@ export default function Dashboard() {
                     <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="2"/>
                     
                     {/* Labels do eixo Y dinâmicos */}
-                    <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 4}</text>
-                    <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 3}</text>
-                    <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 2}</text>
-                    <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep}</text>
+                    <text x="30" y="8" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 5}</text>
+                    <text x="30" y="40" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 4}</text>
+                    <text x="30" y="72" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 3}</text>
+                    <text x="30" y="104" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep * 2}</text>
+                    <text x="30" y="136" fontSize="10" fill="#94a3b8" textAnchor="end">{yStep}</text>
                     <text x="30" y="165" fontSize="10" fill="#94a3b8" textAnchor="end">0</text>
                     
                     {/* Linhas de grade */}
-                    <line x1="40" y1="40" x2="400" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
-                    <line x1="40" y1="80" x2="400" y2="80" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
-                    <line x1="40" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="32" x2="400" y2="32" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="64" x2="400" y2="64" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="96" x2="400" y2="96" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
+                    <line x1="40" y1="128" x2="400" y2="128" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4"/>
                     
                     <path
                       d={ordersByMonth.map((data, idx) => 
-                        `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / yScale) * 140}`
+                        `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / yScale) * 152}`
                       ).join(' ')}
                       fill="none"
                       stroke="url(#purpleGradient)"
@@ -512,7 +516,7 @@ export default function Dashboard() {
                     
                     <path
                       d={`${ordersByMonth.map((data, idx) => 
-                        `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / yScale) * 140}`
+                        `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / yScale) * 152}`
                       ).join(' ')} L ${70 + (ordersByMonth.length - 1) * 60},160 L 70,160 Z`}
                       fill="url(#purpleGradientArea)"
                       opacity="0.3"
@@ -522,7 +526,7 @@ export default function Dashboard() {
                       <g key={idx}>
                         <circle
                           cx={70 + idx * 60}
-                          cy={160 - (data.orders / yScale) * 140}
+                          cy={160 - (data.orders / yScale) * 152}
                           r="4"
                           fill="#9333ea"
                           className="cursor-pointer"
@@ -531,7 +535,7 @@ export default function Dashboard() {
                         />
                         <circle
                           cx={70 + idx * 60}
-                          cy={160 - (data.orders / yScale) * 140}
+                          cy={160 - (data.orders / yScale) * 152}
                           r="12"
                           fill="transparent"
                           className="cursor-pointer"
@@ -568,7 +572,7 @@ export default function Dashboard() {
                       className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
                       style={{
                         left: `${((70 + tooltipMonth * 60) / 400) * 100}%`,
-                        top: `${((160 - (ordersByMonth[tooltipMonth].orders / yScale) * 140) / 200) * 100 - 25}%`,
+                        top: `${((160 - (ordersByMonth[tooltipMonth].orders / yScale) * 152) / 200) * 100 - 25}%`,
                         transform: 'translate(-50%, -100%)',
                         pointerEvents: 'none',
                         zIndex: 10
