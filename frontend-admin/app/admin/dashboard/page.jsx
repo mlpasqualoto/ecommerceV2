@@ -16,9 +16,11 @@ export default function Dashboard() {
     
     switch (range) {
       case "today":
+        const endOfToday = new Date(today);
+        endOfToday.setHours(23, 59, 59, 999);
         return {
           startDate: today.toISOString().split('T')[0],
-          endDate: today.toISOString().split('T')[0]
+          endDate: endOfToday.toISOString().split('T')[0]
         };
       case "week":
         const weekAgo = new Date(today);

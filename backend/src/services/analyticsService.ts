@@ -6,15 +6,26 @@ import {
 } from "../types/analyticsTypes";
 
 export async function getDashBoardsStatsService(startDate: string, endDate: string): Promise<AnalyticsServiceResult> {
+        // Valida e converte datas
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0); // Início do dia
+        
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // Fim do dia
+        
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            return {
+                status: 400,
+                message: "Datas inválidas. Use formato ISO (YYYY-MM-DD)."
+            };
+        }    
+    
         // 1. Total de Receita e Pedidos
         const orderStats = await Order.aggregate([
         {
             $match: {
-            status: { $in: ['paid', 'shipped', 'delivered'] },
-            createdAt: { 
-                $gte: new Date(startDate), 
-                $lte: new Date(endDate) 
-            }
+                status: { $in: ['paid', 'shipped', 'delivered'] },
+                createdAt: { $gte: start, $lte: end }
             }
         },
         {
