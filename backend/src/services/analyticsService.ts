@@ -15,7 +15,7 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
             return {
                 status: 400,
                 message: "Datas inválidas. Use formato ISO (YYYY-MM-DD).",
-                stats: null
+                stats: undefined
             };
         }
 
@@ -228,7 +228,7 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         return {
             status: 500,
             message: "Erro ao buscar estatísticas do dashboard",
-            stats: null
+            stats: undefined
         };
     }
 }
