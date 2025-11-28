@@ -84,6 +84,11 @@ export default function AdminLayout({ children }) {
             >
               Usuários
             </a>
+            <a href="/admin/dashboard"
+              className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded transition-colors duration-200"
+            >
+              Dashboard
+            </a>
           </nav>
         </div>
 
