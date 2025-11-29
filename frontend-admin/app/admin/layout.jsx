@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function AdminLayout({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [currentPath, setCurrentPath] = useState("/admin");
   const router = useRouter();
 
   useEffect(() => {
@@ -59,84 +60,181 @@ export default function AdminLayout({ children }) {
     }
   };
 
+ const menuItems = [
+    {
+      path: "/admin",
+      label: "Pedidos",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      )
+    },
+    {
+      path: "/admin/products",
+      label: "Produtos",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+      )
+    },
+    {
+      path: "/admin/users",
+      label: "Usuários",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      )
+    },
+    {
+      path: "/admin/dashboard",
+      label: "Dashboard",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      )
+    }
+  ];
+
   return (
-    <div className="flex h-screen">
-      <aside className="w-60 bg-gradient-to-r from-gray-950 to-gray-800 text-white p-4 flex flex-col justify-between">
-        {/* Seção superior */}
-        <div>
-          <h2 className="text-lg font-bold mb-4">Painel Admin</h2>
-          <nav className="flex flex-col gap-2">
-            <a
-              href="/admin"
-              className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded transition-colors duration-200"
-            >
-              Pedidos
-            </a>
-            <a
-              href="/admin/products"
-              className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded transition-colors duration-200"
-            >
-              Produtos
-            </a>
-            <a
-              href="/admin/users"
-              className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded transition-colors duration-200"
-            >
-              Usuários
-            </a>
-            <a href="/admin/dashboard"
-              className="text-gray-300 hover:text-white hover:bg-gray-700 px-3 py-2 rounded transition-colors duration-200"
-            >
-              Dashboard
-            </a>
-          </nav>
+    <div className="flex h-screen bg-slate-50">
+      {/* Sidebar Moderna */}
+      <aside className="w-72 bg-white border-r border-slate-200 flex flex-col shadow-sm">
+        {/* Logo/Header */}
+        <div className="p-6 border-b border-slate-200">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Admin Panel</h2>
+              <p className="text-xs text-slate-500">Gerenciamento</p>
+            </div>
+          </div>
         </div>
 
-        {/* Seção inferior - Botão de Logout */}
-        <div className="border-t border-gray-600 pt-4 mt-4">
+        {/* Menu de Navegação */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {menuItems.map((item) => (
+            <button
+              key={item.path}
+              onClick={() => setCurrentPath(item.path)}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer ${
+                currentPath === item.path
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              <div className={`transition-transform duration-200 ${
+                currentPath === item.path ? "" : "group-hover:scale-110"
+              }`}>
+                {item.icon}
+              </div>
+              <span className="font-medium text-sm">{item.label}</span>
+              {currentPath === item.path && (
+                <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Seção de Status */}
+        <div className="p-4 border-t border-slate-200">
+          <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-10 h-10 bg-emerald-100 rounded-lg">
+                <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
+              </div>
+              <div className="flex-1">
+                <div className="text-xs font-medium text-emerald-600 uppercase tracking-wide">
+                  Sistema
+                </div>
+                <div className="text-sm font-semibold text-slate-900">Online</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Botão de Logout */}
+        <div className="p-4 border-t border-slate-200">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className=" cursor-pointer w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-40 to-red-600 hover:from-red-600 hover:to-red-40 disabled:from-red-400 disabled:to-red-500 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-lg hover:shadow-xl group"
+            className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-red-400 disabled:to-red-500 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-lg hover:shadow-xl group cursor-pointer"
           >
             {isLoggingOut ? (
               <>
-                <svg
-                  className="w-4 h-4 animate-spin"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
+                <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 <span>Saindo...</span>
               </>
             ) : (
               <>
-                <svg
-                  className="w-4 h-4 group-hover:scale-110 transition-transform duration-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
+                <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
+                <span>Sair</span>
               </>
             )}
           </button>
         </div>
       </aside>
-      <main className="flex-1 p-6 bg-gray-100">{children}</main>
+
+      {/* Área de Conteúdo */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl mx-auto shadow-lg">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold text-slate-900">Sidebar Redesenhada</h1>
+              <p className="text-slate-600 max-w-md mx-auto">
+                Nova identidade visual com design moderno, seguindo os padrões da página de pedidos.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <div className="text-2xl font-bold text-slate-900">✨</div>
+                  <div className="text-sm font-semibold text-slate-900 mt-2">Design Moderno</div>
+                  <div className="text-xs text-slate-500 mt-1">Interface limpa e elegante</div>
+                </div>
+                
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <div className="text-2xl font-bold text-slate-900">🎨</div>
+                  <div className="text-sm font-semibold text-slate-900 mt-2">Cores Consistentes</div>
+                  <div className="text-xs text-slate-500 mt-1">Paleta unificada</div>
+                </div>
+                
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <div className="text-2xl font-bold text-slate-900">⚡</div>
+                  <div className="text-sm font-semibold text-slate-900 mt-2">Animações Suaves</div>
+                  <div className="text-xs text-slate-500 mt-1">Transições fluidas</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.6s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }
