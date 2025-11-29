@@ -6,8 +6,13 @@ import { useRouter } from "next/navigation";
 export default function AdminLayout({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [currentPath, setCurrentPath] = useState("/admin");
+  const [currentPath, setCurrentPath] = useState("");
   const router = useRouter();
+
+  // Atualiza currentPath baseado na URL atual
+  useEffect(() => {
+    setCurrentPath(window.location.pathname);
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -123,7 +128,10 @@ export default function AdminLayout({ children }) {
           {menuItems.map((item) => (
             <button
               key={item.path}
-              onClick={() => setCurrentPath(item.path)}
+              onClick={() => {
+                setCurrentPath(item.path);
+                router.push(item.path);
+              }}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer ${
                 currentPath === item.path
                   ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
