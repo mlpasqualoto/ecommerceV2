@@ -60,15 +60,21 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         sevenDaysAgo.setHours(0, 0, 0, 0); // Meia-noite local
-        // Ajusta para UTC-3 (adiciona 3 horas ao UTC para compensar)
-        const sevenDaysAgoUTC = new Date(sevenDaysAgo.getTime() + 3 * 60 * 60 * 1000);
 
         const ordersByDay = await Order.aggregate([
         {
             $match: {
                 status: { $in: ['paid', 'shipped', 'delivered'] },
                 createdAt: { 
-                    $gte: sevenDaysAgoUTC
+                    $gte: sevenDaysAgo
+                }
+            }
+        },
+        {
+            $addFields: {
+                // Ajusta createdAt para UTC-3 antes de agrupar
+                adjustedDate: {
+                    $subtract: ['$createdAt', 3 * 60 * 60 * 1000] // Subtrai 3 horas
                 }
             }
         },
@@ -77,8 +83,7 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
             _id: {
                 $dateToString: { 
                     format: '%Y-%m-%d', 
-                    date: '$createdAt', 
-                    timezone: '-03:00'
+                    date: '$adjustedDate'
                 } 
             },
             orders: { $sum: 1 },
@@ -99,12 +104,18 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
             }
         },
         {
+            $addFields: {
+                adjustedDate: {
+                    $subtract: ['$createdAt', 3 * 60 * 60 * 1000]
+                }
+            }
+        },
+        {
             $group: {
             _id: { 
                 $dateToString: { 
                     format: '%Y-%m', 
-                    date: '$createdAt', 
-                    timezone: '-03:00'
+                    date: '$adjustedDate'
                 } 
             },
             orders: { $sum: 1 },
