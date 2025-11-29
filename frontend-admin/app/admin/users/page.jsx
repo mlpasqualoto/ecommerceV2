@@ -158,20 +158,13 @@ export default function UsersPage() {
     setNewUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  if (loading) {
+  // Loading state
+  if (loading || !dashboardData) {
     return (
-      <div className="fixed top-0 left-0 w-screen h-dvh bg-white/95 backdrop-blur-sm flex items-center justify-center z-[9999] text-[#1a73e8] text-xl">
-        <div className="flex flex-col items-center space-y-4 animate-pulse">
-          <div className="relative">
-            <i className="fa-solid fa-spinner animate-spin text-4xl"></i>
-            <div className="absolute inset-0 rounded-full animate-ping"></div>
-          </div>
-          <div className="text-center">
-            <div className="font-semibold">Carregando usuários...</div>
-            <div className="text-sm text-slate-500 mt-1">
-              Aguarde um momento
-            </div>
-          </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Carregando dashboard...</p>
         </div>
       </div>
     );
