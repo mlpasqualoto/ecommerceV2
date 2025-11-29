@@ -187,43 +187,7 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Área de Conteúdo */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-8">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl mx-auto shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h1 className="text-3xl font-bold text-slate-900">Sidebar Redesenhada</h1>
-              <p className="text-slate-600 max-w-md mx-auto">
-                Nova identidade visual com design moderno, seguindo os padrões da página de pedidos.
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <div className="text-2xl font-bold text-slate-900">✨</div>
-                  <div className="text-sm font-semibold text-slate-900 mt-2">Design Moderno</div>
-                  <div className="text-xs text-slate-500 mt-1">Interface limpa e elegante</div>
-                </div>
-                
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <div className="text-2xl font-bold text-slate-900">🎨</div>
-                  <div className="text-sm font-semibold text-slate-900 mt-2">Cores Consistentes</div>
-                  <div className="text-xs text-slate-500 mt-1">Paleta unificada</div>
-                </div>
-                
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <div className="text-2xl font-bold text-slate-900">⚡</div>
-                  <div className="text-sm font-semibold text-slate-900 mt-2">Animações Suaves</div>
-                  <div className="text-xs text-slate-500 mt-1">Transições fluidas</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+      <main className="flex-1 overflow-y-auto">{children}</main>
 
       <style jsx global>{`
         @keyframes fadeIn {
