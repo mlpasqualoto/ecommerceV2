@@ -329,48 +329,72 @@ export default function Dashboard() {
             {ordersByDay.length > 0 && (
               <div className="relative h-64">
                 <svg viewBox="0 0 400 200" className="w-full h-full">
-                  <line x1="40" y1="0" x2="40" y2="160" stroke="#e2e8f0" strokeWidth="1"/>
-                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="2"/>
+                  {/* Grade horizontal sutil */}
+                  <line x1="40" y1="40" x2="400" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="80" x2="400" y2="80" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="1.5"/>
                   
+                  {/* Grade vertical sutil */}
+                  {ordersByDay.map((_, idx) => (
+                    <line
+                      key={`grid-${idx}`}
+                      x1={60 + idx * 50}
+                      y1="0"
+                      x2={60 + idx * 50}
+                      y2="160"
+                      stroke="#f1f5f9"
+                      strokeWidth="1"
+                      strokeDasharray="2,2"
+                    />
+                  ))}
+        
+                  {/* Eixo Y */}
+                  <line x1="40" y1="0" x2="40" y2="160" stroke="#cbd5e1" strokeWidth="1.5"/>
+        
                   <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">60</text>
                   <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">40</text>
                   <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">20</text>
                   <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">0</text>
-                  
+        
                   <path
                     d={ordersByDay.map((data, idx) => 
                       `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / 60) * 140}`
                     ).join(' ')}
                     fill="none"
                     stroke="url(#blueGradient)"
-                    strokeWidth="3"
+                    strokeWidth="3.5"
                     strokeLinecap="round"
+                    strokeLinejoin="round"
+                    filter="url(#shadow)"
                   />
-                  
+        
                   <path
                     d={`${ordersByDay.map((data, idx) => 
                       `${idx === 0 ? 'M' : 'L'} ${60 + idx * 50},${160 - (data.orders / 60) * 140}`
                     ).join(' ')} L 360,160 L 60,160 Z`}
                     fill="url(#blueGradientArea)"
-                    opacity="0.3"
+                    opacity="0.2"
                   />
-                  
+        
                   {ordersByDay.map((data, idx) => (
                     <g key={idx}>
                       <circle
                         cx={60 + idx * 50}
                         cy={160 - (data.orders / 60) * 140}
-                        r="4"
+                        r="5"
                         fill="#3b82f6"
+                        stroke="#ffffff"
+                        strokeWidth="2"
                         className="cursor-pointer"
                         onMouseEnter={() => setTooltipDay(idx)}
                         onMouseLeave={() => setTooltipDay(null)}
+                        filter="url(#shadow)"
                       />
-                      {/* Círculo maior invisível para área de hover maior e mais estável */}
                       <circle
                         cx={60 + idx * 50}
                         cy={160 - (data.orders / 60) * 140}
-                        r="12"
+                        r="15"
                         fill="transparent"
                         className="cursor-pointer"
                         onMouseEnter={() => setTooltipDay(idx)}
@@ -391,7 +415,7 @@ export default function Dashboard() {
                       </text>
                     </g>
                   ))}
-                  
+        
                   <defs>
                     <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#3b82f6" />
@@ -401,6 +425,17 @@ export default function Dashboard() {
                       <stop offset="0%" stopColor="#3b82f6" />
                       <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
                     </linearGradient>
+                    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                      <feOffset dx="0" dy="1" result="offsetblur"/>
+                      <feComponentTransfer>
+                        <feFuncA type="linear" slope="0.2"/>
+                      </feComponentTransfer>
+                      <feMerge>
+                        <feMergeNode/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
                   </defs>
                 </svg>
 
@@ -473,48 +508,72 @@ export default function Dashboard() {
             {ordersByMonth.length > 0 && (
               <div className="relative h-64">
                 <svg viewBox="0 0 400 200" className="w-full h-full">
-                  <line x1="40" y1="0" x2="40" y2="160" stroke="#e2e8f0" strokeWidth="1"/>
-                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="2"/>
+                  {/* Grade horizontal sutil */}
+                  <line x1="40" y1="40" x2="400" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="80" x2="400" y2="80" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="1.5"/>
                   
+                  {/* Grade vertical sutil */}
+                  {ordersByMonth.map((_, idx) => (
+                    <line
+                      key={`grid-${idx}`}
+                      x1={70 + idx * 60}
+                      y1="0"
+                      x2={70 + idx * 60}
+                      y2="160"
+                      stroke="#f1f5f9"
+                      strokeWidth="1"
+                      strokeDasharray="2,2"
+                    />
+                  ))}
+        
+                  {/* Eixo Y */}
+                  <line x1="40" y1="0" x2="40" y2="160" stroke="#cbd5e1" strokeWidth="1.5"/>
+        
                   <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">1000</text>
                   <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">750</text>
                   <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">500</text>
                   <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">250</text>
-                  
+        
                   <path
                     d={ordersByMonth.map((data, idx) => 
                       `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / 1000) * 140}`
                     ).join(' ')}
                     fill="none"
                     stroke="url(#purpleGradient)"
-                    strokeWidth="3"
+                    strokeWidth="3.5"
                     strokeLinecap="round"
+                    strokeLinejoin="round"
+                    filter="url(#shadowPurple)"
                   />
-                  
+        
                   <path
                     d={`${ordersByMonth.map((data, idx) => 
                       `${idx === 0 ? 'M' : 'L'} ${70 + idx * 60},${160 - (data.orders / 1000) * 140}`
                     ).join(' ')} L 370,160 L 70,160 Z`}
                     fill="url(#purpleGradientArea)"
-                    opacity="0.3"
+                    opacity="0.2"
                   />
-                  
+        
                   {ordersByMonth.map((data, idx) => (
                     <g key={idx}>
                       <circle
                         cx={70 + idx * 60}
                         cy={160 - (data.orders / 1000) * 140}
-                        r="4"
-                        fill="#9333ea"
+                        r="5"
+                        fill="#93333ea"
+                        stroke="#ffffff"
+                        strokeWidth="2"
                         className="cursor-pointer"
                         onMouseEnter={() => setTooltipMonth(idx)}
                         onMouseLeave={() => setTooltipMonth(null)}
+                        filter="url(#shadowPurple)"
                       />
-                      {/* Círculo maior invisível para área de hover */}
                       <circle
                         cx={70 + idx * 60}
                         cy={160 - (data.orders / 1000) * 140}
-                        r="12"
+                        r="15"
                         fill="transparent"
                         className="cursor-pointer"
                         onMouseEnter={() => setTooltipMonth(idx)}
@@ -535,7 +594,7 @@ export default function Dashboard() {
                       </text>
                     </g>
                   ))}
-                  
+        
                   <defs>
                     <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#93333ea" />
@@ -545,6 +604,17 @@ export default function Dashboard() {
                       <stop offset="0%" stopColor="#93333ea" />
                       <stop offset="100%" stopColor="#93333ea" stopOpacity="0" />
                     </linearGradient>
+                    <filter id="shadowPurple" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                      <feOffset dx="0" dy="1" result="offsetblur"/>
+                      <feComponentTransfer>
+                        <feFuncA type="linear" slope="0.2"/>
+                      </feComponentTransfer>
+                      <feMerge>
+                        <feMergeNode/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
                   </defs>
                 </svg>
 
