@@ -56,7 +56,7 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         }
         ]);
 
-        // 3. Pedidos por Dia (últimos 7 dias)
+        // 3. Pedidos por Dia (últimos 7 dias) - MANTER
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         sevenDaysAgo.setHours(0, 0, 0, 0);
@@ -65,18 +65,13 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
           {
             $match: {
               status: { $in: ['paid', 'shipped', 'delivered'] },
-              createdAt: { 
-                $gte: sevenDaysAgo
-              }
+              createdAt: { $gte: sevenDaysAgo }
             }
           },
           {
             $group: {
               _id: {
-                $dateToString: { 
-                  format: '%Y-%m-%d', 
-                  date: '$createdAt'
-                } 
+                $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } 
               },
               orders: { $sum: 1 },
               revenue: { $sum: '$totalAmount' }
@@ -85,7 +80,36 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
           { $sort: { _id: 1 } }
         ]);
 
-        // 4. Pedidos por Mês (últimos 6 meses)
+        // 3.1. Pedidos por Dia do Mês Atual
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const endOfMonth = new Date();
+        endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+        endOfMonth.setDate(0);
+        endOfMonth.setHours(23, 59, 59, 999);
+
+        const ordersByDayOfMonth = await Order.aggregate([
+          {
+            $match: {
+              status: { $in: ['paid', 'shipped', 'delivered'] },
+              createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+            }
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } 
+              },
+              orders: { $sum: 1 },
+              revenue: { $sum: '$totalAmount' }
+            }
+          },
+          { $sort: { _id: 1 } }
+        ]);
+
+        // 4. Pedidos por Mês (últimos 6 meses) - MANTER
         const ordersByMonth = await Order.aggregate([
           {
             $match: {
@@ -98,10 +122,7 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
           {
             $group: {
               _id: { 
-                $dateToString: { 
-                  format: '%Y-%m', 
-                  date: '$createdAt'
-                } 
+                $dateToString: { format: '%Y-%m', date: '$createdAt' } 
               },
               orders: { $sum: 1 },
               revenue: { $sum: '$totalAmount' }
@@ -109,6 +130,72 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
           },
           { $sort: { _id: 1 } }
         ]);
+
+        // 4.1. Receita por Dia (últimos 7 dias)
+        const revenueByDay = await Order.aggregate([
+          {
+            $match: {
+              status: { $in: ['paid', 'shipped', 'delivered'] },
+              createdAt: { $gte: sevenDaysAgo }
+            }
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } 
+              },
+              revenue: { $sum: '$totalAmount' }
+            }
+          },
+          { $sort: { _id: 1 } }
+        ]);
+        
+        // 4.2. Pedidos por Hora do Dia (últimas 24h)
+        const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        
+        const ordersByHour = await Order.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: last24Hours }
+            }
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%H', date: '$createdAt' } 
+              },
+              orders: { $sum: 1 },
+              revenue: { $sum: '$totalAmount' }
+            }
+          },
+          { $sort: { _id: 1 } }
+        ]);
+        
+        // 4.3. Taxa de Conversão por Status
+        const conversionRateAgg = await Order.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: start, $lte: end }
+            }
+          },
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 }
+            }
+          }
+        ]);
+
+        // calcular taxa de conversão como proporção de pedidos com status de sucesso
+        const totalOrdersInRange = (conversionRateAgg as any[]).reduce((sum: number, item: any) => sum + (item.count || 0), 0);
+        const successfulOrders = (conversionRateAgg as any[]).reduce((sum: number, item: any) => {
+          const status = item._id;
+          if (['paid', 'shipped', 'delivered'].includes(status)) {
+            return sum + (item.count || 0);
+          }
+          return sum;
+        }, 0);
+        const conversionRate = totalOrdersInRange ? (successfulOrders / totalOrdersInRange) : 0;
 
         // 5. Top Produtos Mais Vendidos
         const topProducts = await Order.aggregate([
@@ -191,8 +278,8 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
                     today: orderStats[0]?.totalOrders || 0,
                     total: orderStats[0]?.totalOrders || 0,
                     byStatus: ordersByStatus.reduce((acc, item) => {
-                    acc[item._id] = item.count;
-                    return acc;
+                        acc[item._id] = item.count;
+                        return acc;
                     }, {})
                 },
                 customers: {
@@ -207,7 +294,11 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
                 },
                 charts: {
                     ordersByDay,
-                    ordersByMonth
+                    ordersByDayOfMonth,
+                    ordersByMonth,
+                    revenueByDay,
+                    ordersByHour,
+                    conversionRate
                 },
                 topProducts,
                 recentOrders

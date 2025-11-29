@@ -123,15 +123,14 @@ export default function Dashboard() {
 
   // Extrai dados da API
   const { revenue, orders, customers, products, charts, topProducts, recentOrders } = dashboardData;
-  const ordersByDay = charts?.ordersByDay || [];
-  const ordersByMonth = charts?.ordersByMonth || [];
+  const ordersByDay = dashboardData?.charts?.ordersByDay || [];
+  const ordersByDayOfMonth = dashboardData?.charts?.ordersByDayOfMonth || [];
+  const ordersByMonth = dashboardData?.charts?.ordersByMonth || [];
+  const revenueByDay = dashboardData?.charts?.revenueByDay || [];
+  const ordersByHour = dashboardData?.charts?.ordersByHour || [];
 
   return (
-    <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
-        isPageLoaded ? "opacity-100" : "opacity-0"
-      }`}
-    >
+    <div className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"}`}>
       {/* Header */}
       <div className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
         isPageLoaded ? "translate-y-0" : "-translate-y-4"
@@ -314,9 +313,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Gráficos de Linha */}
+        {/* GRID DE GRÁFICOS - 2 COLUNAS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Gráfico: Pedidos por Dia */}
+          {/* Gráfico 1: Pedidos por Dia (Última Semana) - JÁ EXISTE */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Pedidos por Dia (Última Semana)</h3>
@@ -495,7 +494,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Gráfico: Pedidos por Mês */}
+          {/* Gráfico 2: Pedidos por Mês - JÁ EXISTE */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Pedidos por Mês (Últimos 6 Meses)</h3>
@@ -669,6 +668,178 @@ export default function Dashboard() {
                   {ordersByMonth.length > 0
                     ? Math.round(ordersByMonth.reduce((acc, d) => acc + d.orders, 0) / ordersByMonth.length)
                     : 0} pedidos
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* NOVO GRID DE GRÁFICOS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Gráfico 3: Pedidos por Dia do Mês */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">Pedidos por Dia do Mês</h3>
+              <div className="flex items-center space-x-2 text-xs text-slate-500">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <span>Pedidos</span>
+              </div>
+            </div>
+            
+            {ordersByDayOfMonth.length > 0 && (
+              <div className="relative h-64 overflow-x-auto">
+                <svg viewBox="0 0 800 200" className="w-full h-full min-w-[800px]">
+                  {/* Grade horizontal */}
+                  <line x1="40" y1="40" x2="800" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="80" x2="800" y2="80" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="120" x2="800" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="160" x2="800" y2="160" stroke="#e2e8f0" strokeWidth="1.5"/>
+                  
+                  {/* Grade vertical */}
+                  {ordersByDayOfMonth.map((_, idx) => (
+                    <line
+                      key={`grid-${idx}`}
+                      x1={60 + idx * 25}
+                      y1="0"
+                      x2={60 + idx * 25}
+                      y2="160"
+                      stroke="#f1f5f9"
+                      strokeWidth="1"
+                      strokeDasharray="2,2"
+                    />
+                  ))}
+        
+                  <line x1="40" y1="0" x2="40" y2="160" stroke="#cbd5e1" strokeWidth="1.5"/>
+        
+                  <text x="30" y="10" fontSize="10" fill="#94a3b8" textAnchor="end">100</text>
+                  <text x="30" y="50" fontSize="10" fill="#94a3b8" textAnchor="end">75</text>
+                  <text x="30" y="90" fontSize="10" fill="#94a3b8" textAnchor="end">50</text>
+                  <text x="30" y="130" fontSize="10" fill="#94a3b8" textAnchor="end">25</text>
+        
+                  <path
+                    d={ordersByDayOfMonth.map((data, idx) => 
+                      `${idx === 0 ? 'M' : 'L'} ${60 + idx * 25},${160 - (data.orders / 100) * 140}`
+                    ).join(' ')}
+                    fill="none"
+                    stroke="url(#emeraldGradient)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+        
+                  {ordersByDayOfMonth.map((data, idx) => (
+                    <g key={idx}>
+                      <circle
+                        cx={60 + idx * 25}
+                        cy={160 - (data.orders / 100) * 140}
+                        r="4"
+                        fill="#10b981"
+                        stroke="#ffffff"
+                        strokeWidth="2"
+                      />
+                      {idx % 5 === 0 && (
+                        <text
+                          x={60 + idx * 25}
+                          y="180"
+                          fontSize="9"
+                          fill="#64748b"
+                          textAnchor="middle"
+                        >
+                          {data._id.split('-')[2]}
+                        </text>
+                      )}
+                    </g>
+                  ))}
+        
+                  <defs>
+                    <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="100%" stopColor="#059669" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            )}
+            
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">Total no mês:</span>
+                <span className="font-semibold text-slate-900">
+                  {ordersByDayOfMonth.reduce((acc, d) => acc + d.orders, 0)} pedidos
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Gráfico 4: Receita por Dia */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">Receita por Dia (Última Semana)</h3>
+              <div className="flex items-center space-x-2 text-xs text-slate-500">
+                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                <span>Receita</span>
+              </div>
+            </div>
+            
+            {revenueByDay.length > 0 && (
+              <div className="relative h-64">
+                <svg viewBox="0 0 400 200" className="w-full h-full">
+                  <line x1="40" y1="40" x2="400" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="80" x2="400" y2="80" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="120" x2="400" y2="120" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2"/>
+                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="1.5"/>
+                  
+                  <line x1="40" y1="0" x2="40" y2="160" stroke="#cbd5e1" strokeWidth="1.5"/>
+        
+                  {/* Barras verticais */}
+                  {revenueByDay.map((data, idx) => {
+                    const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue));
+                    const barHeight = (data.revenue / maxRevenue) * 140;
+                    return (
+                      <rect
+                        key={idx}
+                        x={60 + idx * 50 - 15}
+                        y={160 - barHeight}
+                        width="30"
+                        height={barHeight}
+                        fill="url(#amberGradient)"
+                        rx="4"
+                      />
+                    );
+                  })}
+        
+                  {revenueByDay.map((data, idx) => (
+                    <text
+                      key={idx}
+                      x={60 + idx * 50}
+                      y="180"
+                      fontSize="11"
+                      fill="#64748b"
+                      textAnchor="middle"
+                      fontWeight="500"
+                    >
+                      {(() => {
+                        const [year, month, day] = data._id.split('-');
+                        return new Date(year, month - 1, day).toLocaleDateString('pt-BR', { weekday: 'short' });
+                      })()}
+                    </text>
+                  ))}
+        
+                  <defs>
+                    <linearGradient id="amberGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                      <stop offset="0%" stopColor="#f59e0b" />
+                      <stop offset="100%" stopColor="#fbbf24" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            )}
+            
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">Receita média/dia:</span>
+                <span className="font-semibold text-slate-900">
+                  {formatCurrency(revenueByDay.reduce((acc, d) => acc + d.revenue, 0) / revenueByDay.length || 0)}
                 </span>
               </div>
             </div>

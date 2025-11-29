@@ -23,6 +23,10 @@ export interface DashboardStats {
         charts: {
             ordersByDay: Array<{ _id: string; orders: number; revenue: number }>;
             ordersByMonth: Array<{ _id: string; orders: number; revenue: number }>;
+            ordersByDayOfMonth: Array<{ _id: number; orders: number; revenue: number }>;
+            revenueByDay: Array<{ _id: string; revenue: number }>;
+            ordersByHour: Array<{ _id: number; orders: number }>;
+            conversionRate: number;
         };
         topProducts: Array<{
             _id: string;
