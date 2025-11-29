@@ -57,18 +57,24 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         ]);
 
         // 3. Pedidos por Dia (últimos 7 dias)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0); // Meia-noite local
+        // Ajusta para UTC-3 (adiciona 3 horas ao UTC para compensar)
+        const sevenDaysAgoUTC = new Date(sevenDaysAgo.getTime() + 3 * 60 * 60 * 1000);
+
         const ordersByDay = await Order.aggregate([
         {
             $match: {
                 status: { $in: ['paid', 'shipped', 'delivered'] },
                 createdAt: { 
-                    $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) 
+                    $gte: sevenDaysAgoUTC
                 }
             }
         },
         {
             $group: {
-            _id: { 
+            _id: {
                 $dateToString: { 
                     format: '%Y-%m-%d', 
                     date: '$createdAt', 
