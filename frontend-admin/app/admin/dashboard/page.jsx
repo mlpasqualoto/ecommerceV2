@@ -384,7 +384,10 @@ export default function Dashboard() {
                         textAnchor="middle"
                         fontWeight="500"
                       >
-                        {new Date(data._id).toLocaleDateString('pt-BR', { weekday: 'short' })}
+                        {(() => {
+                          const [year, month, day] = data._id.split('-');
+                          return new Date(year, month - 1, day).toLocaleDateString('pt-BR', { weekday: 'short' });
+                        })()}
                       </text>
                     </g>
                   ))}
@@ -415,10 +418,13 @@ export default function Dashboard() {
                   >
                     <div className="text-center">
                       <div className="font-bold text-blue-300">
-                        {new Date(ordersByDay[tooltipDay]._id).toLocaleDateString('pt-BR', { 
+                        {(() => {
+                          const [year, month, day] = ordersByDay[tooltipDay]._id.split('-');
+                          return new Date(year, month - 1, day).toLocaleDateString('pt-BR', { 
                           day: '2-digit', 
                           month: 'short' 
-                        })}
+                          });
+                        })()}
                       </div>
                       <div className="text-white mt-1">
                         {ordersByDay[tooltipDay].orders} pedidos
@@ -522,7 +528,10 @@ export default function Dashboard() {
                         textAnchor="middle"
                         fontWeight="500"
                       >
-                        {new Date(data._id + '-01').toLocaleDateString('pt-BR', { month: 'short' })}
+                        {(() => {
+                          const [year, month] = data._id.split('-');
+                          return new Date(year, month - 1, 1).toLocaleDateString('pt-BR', { month: 'short' });
+                        })()}
                       </text>
                     </g>
                   ))}
@@ -553,10 +562,13 @@ export default function Dashboard() {
                   >
                     <div className="text-center">
                       <div className="font-bold text-purple-300">
-                        {new Date(ordersByMonth[tooltipMonth]._id + '-01').toLocaleDateString('pt-BR', { 
+                        {(() => {
+                          const [year, month] = ordersByMonth[tooltipMonth]._id.split('-');
+                          return new Date(year, month - 1, 1).toLocaleDateString('pt-BR', { 
                           month: 'long',
                           year: 'numeric'
-                        })}
+                        });
+                      })()}
                       </div>
                       <div className="text-white mt-1">
                         {ordersByMonth[tooltipMonth].orders} pedidos
