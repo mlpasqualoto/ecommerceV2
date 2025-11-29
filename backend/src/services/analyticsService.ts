@@ -60,15 +60,20 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         const ordersByDay = await Order.aggregate([
         {
             $match: {
-            createdAt: { 
-                $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) 
-            }
+                status: { $in: ['paid', 'shipped', 'delivered'] },
+                createdAt: { 
+                    $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) 
+                }
             }
         },
         {
             $group: {
             _id: { 
-                $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } 
+                $dateToString: { 
+                    format: '%Y-%m-%d', 
+                    date: '$createdAt', 
+                    timezone: '-03:00'
+                } 
             },
             orders: { $sum: 1 },
             revenue: { $sum: '$totalAmount' }
@@ -81,15 +86,20 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         const ordersByMonth = await Order.aggregate([
         {
             $match: {
-            createdAt: { 
-                $gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) 
-            }
+                status: { $in: ['paid', 'shipped', 'delivered'] },
+                createdAt: { 
+                    $gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) 
+                }
             }
         },
         {
             $group: {
             _id: { 
-                $dateToString: { format: '%Y-%m', date: '$createdAt' } 
+                $dateToString: { 
+                    format: '%Y-%m', 
+                    date: '$createdAt', 
+                    timezone: '-03:00'
+                } 
             },
             orders: { $sum: 1 },
             revenue: { $sum: '$totalAmount' }
