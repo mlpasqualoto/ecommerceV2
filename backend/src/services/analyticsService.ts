@@ -59,70 +59,55 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         // 3. Pedidos por Dia (últimos 7 dias)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        sevenDaysAgo.setHours(0, 0, 0, 0); // Meia-noite local
+        sevenDaysAgo.setHours(0, 0, 0, 0);
 
         const ordersByDay = await Order.aggregate([
-        {
+          {
             $match: {
-                status: { $in: ['paid', 'shipped', 'delivered'] },
-                createdAt: { 
-                    $gte: sevenDaysAgo
-                }
+              status: { $in: ['paid', 'shipped', 'delivered'] },
+              createdAt: { 
+                $gte: sevenDaysAgo
+              }
             }
-        },
-        {
-            $addFields: {
-                // Ajusta createdAt para UTC-3 antes de agrupar
-                adjustedDate: {
-                    $subtract: ['$createdAt', 3 * 60 * 60 * 1000] // Subtrai 3 horas
-                }
-            }
-        },
-        {
+          },
+          {
             $group: {
-            _id: {
+              _id: {
                 $dateToString: { 
-                    format: '%Y-%m-%d', 
-                    date: '$adjustedDate'
+                  format: '%Y-%m-%d', 
+                  date: '$createdAt'
                 } 
-            },
-            orders: { $sum: 1 },
-            revenue: { $sum: '$totalAmount' }
+              },
+              orders: { $sum: 1 },
+              revenue: { $sum: '$totalAmount' }
             }
-        },
-        { $sort: { _id: 1 } }
+          },
+          { $sort: { _id: 1 } }
         ]);
 
         // 4. Pedidos por Mês (últimos 6 meses)
         const ordersByMonth = await Order.aggregate([
-        {
+          {
             $match: {
-                status: { $in: ['paid', 'shipped', 'delivered'] },
-                createdAt: { 
-                    $gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) 
-                }
+              status: { $in: ['paid', 'shipped', 'delivered'] },
+              createdAt: { 
+                $gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) 
+              }
             }
-        },
-        {
-            $addFields: {
-                adjustedDate: {
-                    $subtract: ['$createdAt', 3 * 60 * 60 * 1000]
-                }
-            }
-        },
-        {
+          },
+          {
             $group: {
-            _id: { 
+              _id: { 
                 $dateToString: { 
-                    format: '%Y-%m', 
-                    date: '$adjustedDate'
+                  format: '%Y-%m', 
+                  date: '$createdAt'
                 } 
-            },
-            orders: { $sum: 1 },
-            revenue: { $sum: '$totalAmount' }
+              },
+              orders: { $sum: 1 },
+              revenue: { $sum: '$totalAmount' }
             }
-        },
-        { $sort: { _id: 1 } }
+          },
+          { $sort: { _id: 1 } }
         ]);
 
         // 5. Top Produtos Mais Vendidos
