@@ -60,11 +60,43 @@ export default function AdminHome() {
   useEffect(() => {
     // intervalo de 60s para atualizar só os dados
     const intervalId = setInterval(() => {
-      handleRefreshData();
+      handleRefreshDataTimer();
     }, 60000);
 
     return () => clearInterval(intervalId); // cleanup
-  }, [orderDate, statusFilter]);
+  }, [orderDate, statusFilter, expandedOrder]); // Adiciona expandedOrder
+
+  async function handleRefreshDataTimer() {
+    // ✅ NÃO altera systemStatus - atualiza silenciosamente
+    try {
+      // Busca dados sem alterar estados visuais
+      const response = await fetchOrderByDate(orderDate);
+    
+      if (
+        response?.message?.toLowerCase().includes("não autenticado") ||
+        response?.error === "Unauthorized"
+      ) {
+        router.push("/login");
+        return;
+      }
+      
+      // ✅ Atualiza apenas os dados, mantém UI intacta
+      if (response?.orders) {
+        let filteredOrders = response.orders;
+        if (statusFilter !== "all") {
+          filteredOrders = response.orders.filter(order => order.status === statusFilter);
+        }
+        setOrders(filteredOrders);
+        setSystemStatus("online");
+      } else {
+        setSystemStatus("unstable");
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar pedidos:", err);
+      setSystemStatus("unstable");
+    } 
+    // ✅ NÃO fecha detalhes expandidos - mantém expandedOrder
+  }
 
   // Função para recarregar/atualizar os dados manualmente
   async function handleRefreshData() {
@@ -91,7 +123,7 @@ export default function AdminHome() {
       setSystemStatus("unstable");
     } finally {
       setLoading(false);
-      toggleOrderDetails();
+      setExpandedOrder(null); // Fecha detalhes apenas no refresh manual
     }
   }
 
