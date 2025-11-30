@@ -67,7 +67,6 @@ export default function AdminHome() {
   }, [orderDate, statusFilter, expandedOrder]); // Adiciona expandedOrder
 
   async function handleRefreshDataTimer() {
-    // ✅ NÃO altera systemStatus - atualiza silenciosamente
     try {
       // Busca dados sem alterar estados visuais
       const response = await fetchOrderByDate(orderDate);
@@ -80,7 +79,6 @@ export default function AdminHome() {
         return;
       }
       
-      // ✅ Atualiza apenas os dados, mantém UI intacta
       if (response?.orders) {
         let filteredOrders = response.orders;
         if (statusFilter !== "all") {
@@ -95,7 +93,6 @@ export default function AdminHome() {
       console.error("Erro ao atualizar pedidos:", err);
       setSystemStatus("unstable");
     } 
-    // ✅ NÃO fecha detalhes expandidos - mantém expandedOrder
   }
 
   // Função para recarregar/atualizar os dados manualmente
