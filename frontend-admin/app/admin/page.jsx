@@ -743,7 +743,15 @@ export default function AdminHome() {
                         <span className="tracking-wider">R$ ••••</span>
                       )}
                     </div>
-                    <div className="text-xs sm:text-sm text-slate-500 mt-0.5">receita</div>
+                    <div className="text-sm text-slate-500 mt-1">
+                      receita confirmada
+                    </div>
+                    <div className="flex items-center justify-end space-x-1 mt-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-emerald-600 font-medium">
+                        {orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length} pedidos
+                      </span>
+                    </div>
                   </div>
 
                   {/* Botão do olho */}
@@ -1066,7 +1074,78 @@ export default function AdminHome() {
 
         {/* Barra de Controles - RESPONSIVA */}
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="space-y-4">
+          {/* Desktop: Tudo em uma linha */}
+          <div className="hidden lg:flex lg:items-center lg:gap-4">
+            {/* Busca por ID */}
+            <form onSubmit={handleFilterById} className="flex items-center gap-2 flex-1">
+              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Buscar ID:</label>
+              <input
+                type="text"
+                name="orderId"
+                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono"
+                placeholder="ID do pedido..."
+              />
+              <button
+                type="submit"
+                className="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl whitespace-nowrap"
+              >
+                Buscar
+              </button>
+            </form>
+
+            {/* Status */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Status:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm min-w-[150px]"
+              >
+                <option value="all">Todos</option>
+                <option value="paid">Pago</option>
+                <option value="pending">Pendente</option>
+                <option value="shipped">Enviado</option>
+                <option value="delivered">Entregue</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </div>
+
+            {/* Data */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Data:</label>
+              <input
+                type="text"
+                value={formatBR(orderDate)}
+                readOnly
+                onClick={() => hiddenDateRef.current?.showPicker?.() || hiddenDateRef.current?.click()}
+                className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px]"
+              />
+              <input
+                type="date"
+                ref={hiddenDateRef}
+                value={orderDate}
+                onChange={(e) => {
+                  setOrderDate(e.target.value);
+                  handleFilterByDate(e.target.value);
+                }}
+                className="sr-only"
+              />
+            </div>
+
+            {/* Botão Novo Pedido */}
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl flex items-center gap-2 whitespace-nowrap"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Novo Pedido
+            </button>
+          </div>
+
+          {/* Mobile: Layout empilhado */}
+          <div className="lg:hidden space-y-4">
             {/* Busca por ID */}
             <form onSubmit={handleFilterById} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <label className="text-xs sm:text-sm font-semibold text-slate-700">Buscar ID:</label>
@@ -1087,7 +1166,7 @@ export default function AdminHome() {
             </form>
 
             {/* Filtros em grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {/* Status */}
               <div className="flex flex-col gap-2">
                 <label className="text-xs sm:text-sm font-semibold text-slate-700">Status:</label>
@@ -1126,20 +1205,18 @@ export default function AdminHome() {
                   className="sr-only"
                 />
               </div>
-
-              {/* Botão Novo Pedido */}
-              <div className="flex items-end sm:col-span-2 lg:col-span-1">
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="w-full px-6 py-2 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Novo Pedido
-                </button>
-              </div>
             </div>
+
+            {/* Botão Novo Pedido */}
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="w-full px-6 py-2 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Novo Pedido
+            </button>
           </div>
         </div>
 
@@ -1525,7 +1602,7 @@ export default function AdminHome() {
                                         className="bi bi-truck"
                                         viewBox="0 0 16 16"
                                       >
-                                        <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                                        <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0  0 0 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
                                       </svg>
                                       Enviar
                                     </button>
