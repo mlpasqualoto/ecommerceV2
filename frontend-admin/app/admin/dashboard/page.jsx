@@ -12,6 +12,10 @@ export default function Dashboard() {
   const [tooltipMonth, setTooltipMonth] = useState(null);
   const [tooltipDayOfMonth, setTooltipDayOfMonth] = useState(null);
   const [tooltipRevenue, setTooltipRevenue] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
 
   // Calcula startDate e endDate baseado no dateRange
   const getDateRange = (range) => {
@@ -140,6 +144,30 @@ export default function Dashboard() {
   const ordersByMonth = dashboardData?.charts?.ordersByMonth || [];
   const revenueByDay = dashboardData?.charts?.revenueByDay || [];
   const ordersByHour = dashboardData?.charts?.ordersByHour || [];
+
+  // Filtra dados do mês selecionado
+  const filteredOrdersByDayOfMonth = (ordersByDayOfMonth || []).filter((data) =>
+    data._id.startsWith(selectedMonth)
+  );
+
+  // Gera lista de meses disponíveis (últimos 12 meses)
+  const getAvailableMonths = () => {
+    const months = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
+      const label = date.toLocaleDateString("pt-BR", {
+        month: "long",
+        year: "numeric",
+      });
+      months.push({ value, label });
+    }
+    return months;
+  };
 
   return (
     <div
@@ -1081,13 +1109,26 @@ export default function Dashboard() {
               <h3 className="text-lg font-semibold text-slate-900">
                 Pedidos por Dia do Mês
               </h3>
-              <div className="flex items-center space-x-2 text-xs text-slate-500">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                <span>Pedidos</span>
+              <div className="flex items-center space-x-3">
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                >
+                  {getAvailableMonths().map((month) => (
+                    <option key={month.value} value={month.value}>
+                      {month.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex items-center space-x-2 text-xs text-slate-500">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <span>Pedidos</span>
+                </div>
               </div>
             </div>
 
-            {ordersByDayOfMonth.length > 0 && (
+            {filteredOrdersByDayOfMonth.length > 0 ? (
               <div className="relative h-64 overflow-x-auto">
                 <svg
                   viewBox="0 0 800 200"
@@ -1131,7 +1172,7 @@ export default function Dashboard() {
                   />
 
                   {/* Grade vertical */}
-                  {ordersByDayOfMonth.map((_, idx) => (
+                  {filteredOrdersByDayOfMonth.map((_, idx) => (
                     <line
                       key={`grid-${idx}`}
                       x1={60 + idx * 25}
@@ -1153,51 +1194,37 @@ export default function Dashboard() {
                     strokeWidth="1.5"
                   />
 
-                  <text
-                    x="30"
-                    y="10"
-                    fontSize="10"
-                    fill="#94a3b8"
-                    textAnchor="end"
-                  >
-                    100
-                  </text>
-                  <text
-                    x="30"
-                    y="50"
-                    fontSize="10"
-                    fill="#94a3b8"
-                    textAnchor="end"
-                  >
-                    75
-                  </text>
-                  <text
-                    x="30"
-                    y="90"
-                    fontSize="10"
-                    fill="#94a3b8"
-                    textAnchor="end"
-                  >
-                    50
-                  </text>
-                  <text
-                    x="30"
-                    y="130"
-                    fontSize="10"
-                    fill="#94a3b8"
-                    textAnchor="end"
-                  >
-                    25
-                  </text>
+                  {/* Labels dinâmicos do eixo Y */}
+                  {(() => {
+                    const maxOrders = Math.max(
+                      ...filteredOrdersByDayOfMonth.map((d) => d.orders)
+                    );
+                    const yScale = Math.ceil(maxOrders * 1.1);
+                    return [0, 0.25, 0.5, 0.75, 1].map((factor, idx) => (
+                      <text
+                        key={idx}
+                        x="30"
+                        y={160 - factor * 140 + 5}
+                        fontSize="10"
+                        fill="#94a3b8"
+                        textAnchor="end"
+                      >
+                        {Math.round(yScale * factor)}
+                      </text>
+                    ));
+                  })()}
 
                   <path
-                    d={ordersByDayOfMonth
-                      .map(
-                        (data, idx) =>
-                          `${idx === 0 ? "M" : "L"} ${60 + idx * 25},${
-                            160 - (data.orders / 100) * 140
-                          }`
-                      )
+                    d={filteredOrdersByDayOfMonth
+                      .map((data, idx) => {
+                        const maxOrders = Math.max(
+                          ...filteredOrdersByDayOfMonth.map((d) => d.orders)
+                        );
+                        const yScale = Math.ceil(maxOrders * 1.1);
+                        return `${idx === 0 ? "M" : "L"} ${60 + idx * 25},${
+                          160 - (data.orders / yScale) * 140
+                        }`;
+                      })
                       .join(" ")}
                     fill="none"
                     stroke="url(#emeraldGradient)"
@@ -1208,56 +1235,65 @@ export default function Dashboard() {
                   />
 
                   <path
-                    d={`${ordersByDayOfMonth
-                      .map(
-                        (data, idx) =>
-                          `${idx === 0 ? "M" : "L"} ${60 + idx * 25},${
-                            160 - (data.orders / 100) * 140
-                          }`
-                      )
+                    d={`${filteredOrdersByDayOfMonth
+                      .map((data, idx) => {
+                        const maxOrders = Math.max(
+                          ...filteredOrdersByDayOfMonth.map((d) => d.orders)
+                        );
+                        const yScale = Math.ceil(maxOrders * 1.1);
+                        return `${idx === 0 ? "M" : "L"} ${60 + idx * 25},${
+                          160 - (data.orders / yScale) * 140
+                        }`;
+                      })
                       .join(" ")} L ${
-                      60 + (ordersByDayOfMonth.length - 1) * 25
+                      60 + (filteredOrdersByDayOfMonth.length - 1) * 25
                     },160 L 60,160 Z`}
                     fill="url(#emeraldGradientArea)"
                     opacity="0.15"
                   />
 
-                  {ordersByDayOfMonth.map((data, idx) => (
-                    <g key={idx}>
-                      <circle
-                        cx={60 + idx * 25}
-                        cy={160 - (data.orders / 100) * 140}
-                        r="4"
-                        fill="#10b981"
-                        stroke="#ffffff"
-                        strokeWidth="2"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setTooltipDayOfMonth(idx)}
-                        onMouseLeave={() => setTooltipDayOfMonth(null)}
-                        filter="url(#shadowEmerald)"
-                      />
-                      <circle
-                        cx={60 + idx * 25}
-                        cy={160 - (data.orders / 100) * 140}
-                        r="12"
-                        fill="transparent"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setTooltipDayOfMonth(idx)}
-                        onMouseLeave={() => setTooltipDayOfMonth(null)}
-                      />
-                      {idx % 5 === 0 && (
-                        <text
-                          x={60 + idx * 25}
-                          y="180"
-                          fontSize="9"
-                          fill="#64748b"
-                          textAnchor="middle"
-                        >
-                          {data._id.split("-")[2]}
-                        </text>
-                      )}
-                    </g>
-                  ))}
+                  {filteredOrdersByDayOfMonth.map((data, idx) => {
+                    const maxOrders = Math.max(
+                      ...filteredOrdersByDayOfMonth.map((d) => d.orders)
+                    );
+                    const yScale = Math.ceil(maxOrders * 1.1);
+                    return (
+                      <g key={idx}>
+                        <circle
+                          cx={60 + idx * 25}
+                          cy={160 - (data.orders / yScale) * 140}
+                          r="4"
+                          fill="#10b981"
+                          stroke="#ffffff"
+                          strokeWidth="2"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setTooltipDayOfMonth(idx)}
+                          onMouseLeave={() => setTooltipDayOfMonth(null)}
+                          filter="url(#shadowEmerald)"
+                        />
+                        <circle
+                          cx={60 + idx * 25}
+                          cy={160 - (data.orders / yScale) * 140}
+                          r="12"
+                          fill="transparent"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setTooltipDayOfMonth(idx)}
+                          onMouseLeave={() => setTooltipDayOfMonth(null)}
+                        />
+                        {idx % 5 === 0 && (
+                          <text
+                            x={60 + idx * 25}
+                            y="180"
+                            fontSize="9"
+                            fill="#64748b"
+                            textAnchor="middle"
+                          >
+                            {data._id.split("-")[2]}
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
 
                   <defs>
                     <linearGradient
@@ -1302,20 +1338,26 @@ export default function Dashboard() {
 
                 {/* Tooltip Pedidos por Dia do Mês */}
                 {tooltipDayOfMonth !== null &&
-                  ordersByDayOfMonth[tooltipDayOfMonth] && (
+                  filteredOrdersByDayOfMonth[tooltipDayOfMonth] && (
                     <div
                       className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
                       style={{
                         left: `${((60 + tooltipDayOfMonth * 25) / 800) * 100}%`,
-                        top: `${
-                          ((160 -
-                            (ordersByDayOfMonth[tooltipDayOfMonth].orders /
-                              100) *
+                        top: `${(() => {
+                          const maxOrders = Math.max(
+                            ...filteredOrdersByDayOfMonth.map((d) => d.orders)
+                          );
+                          const yScale = Math.ceil(maxOrders * 1.1);
+                          return (
+                            ((160 -
+                              (filteredOrdersByDayOfMonth[tooltipDayOfMonth]
+                                .orders / yScale) *
                               140) /
-                            200) *
-                            100 -
-                          25
-                        }%`,
+                              200) *
+                              100 -
+                            25
+                          );
+                        })()}%`,
                         transform: "translate(-50%, -100%)",
                         pointerEvents: "none",
                         zIndex: 10,
@@ -1325,7 +1367,7 @@ export default function Dashboard() {
                         <div className="font-bold text-emerald-300">
                           {(() => {
                             const [year, month, day] =
-                              ordersByDayOfMonth[tooltipDayOfMonth]._id.split(
+                              filteredOrdersByDayOfMonth[tooltipDayOfMonth]._id.split(
                                 "-"
                               );
                             return new Date(
@@ -1339,11 +1381,11 @@ export default function Dashboard() {
                           })()}
                         </div>
                         <div className="text-white mt-1">
-                          {ordersByDayOfMonth[tooltipDayOfMonth].orders} pedidos
+                          {filteredOrdersByDayOfMonth[tooltipDayOfMonth].orders} pedidos
                         </div>
                         <div className="text-emerald-200 text-[10px]">
                           {formatCurrency(
-                            ordersByDayOfMonth[tooltipDayOfMonth].revenue
+                            filteredOrdersByDayOfMonth[tooltipDayOfMonth].revenue
                           )}
                         </div>
                       </div>
@@ -1360,13 +1402,34 @@ export default function Dashboard() {
                     </div>
                   )}
               </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-slate-400">
+                <div className="text-center">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 opacity-50"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                  <p className="text-sm">
+                    Nenhum pedido encontrado para este mês
+                  </p>
+                </div>
+              </div>
             )}
 
             <div className="mt-4 pt-4 border-t border-slate-100">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600">Total no mês:</span>
                 <span className="font-semibold text-slate-900">
-                  {ordersByDayOfMonth.reduce((acc, d) => acc + d.orders, 0)}{" "}
+                  {filteredOrdersByDayOfMonth.reduce((acc, d) => acc + d.orders, 0)}{" "}
                   pedidos
                 </span>
               </div>
