@@ -16,7 +16,8 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             return {
                 status: 400,
-                message: "Datas inválidas. Use formato ISO (YYYY-MM-DD)."
+                message: "Datas inválidas. Use formato ISO (YYYY-MM-DD).",
+                stats: undefined
             };
         }    
     
@@ -56,7 +57,7 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         }
         ]);
 
-        // 3. Pedidos por Dia (últimos 7 dias) - MANTER
+        // 3. Pedidos por Dia (últimos 7 dias)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         sevenDaysAgo.setHours(0, 0, 0, 0);
@@ -80,21 +81,17 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
           { $sort: { _id: 1 } }
         ]);
 
-        // 3.1. Pedidos por Dia do Mês Atual
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
-        
-        const endOfMonth = new Date();
-        endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-        endOfMonth.setDate(0);
-        endOfMonth.setHours(23, 59, 59, 999);
+        // 3.1. Pedidos por Dia do Mês (ÚLTIMOS 12 MESES) ⚠️ AJUSTADO
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+        twelveMonthsAgo.setDate(1);
+        twelveMonthsAgo.setHours(0, 0, 0, 0);
 
         const ordersByDayOfMonth = await Order.aggregate([
           {
             $match: {
               status: { $in: ['paid', 'shipped', 'delivered'] },
-              createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+              createdAt: { $gte: twelveMonthsAgo } // ⚠️ Busca últimos 12 meses
             }
           },
           {
@@ -109,14 +106,17 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
           { $sort: { _id: 1 } }
         ]);
 
-        // 4. Pedidos por Mês (últimos 6 meses) - MANTER
+        // 4. Pedidos por Mês (últimos 6 meses)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        sixMonthsAgo.setDate(1);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
         const ordersByMonth = await Order.aggregate([
           {
             $match: {
               status: { $in: ['paid', 'shipped', 'delivered'] },
-              createdAt: { 
-                $gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) 
-              }
+              createdAt: { $gte: sixMonthsAgo }
             }
           },
           {
@@ -186,7 +186,6 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
           }
         ]);
 
-        // calcular taxa de conversão como proporção de pedidos com status de sucesso
         const totalOrdersInRange = (conversionRateAgg as any[]).reduce((sum: number, item: any) => sum + (item.count || 0), 0);
         const successfulOrders = (conversionRateAgg as any[]).reduce((sum: number, item: any) => {
           const status = item._id;
@@ -237,10 +236,11 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         ]);
 
         // 7. Novos clientes hoje
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
         const newCustomersToday = await User.countDocuments({
-        createdAt: {
-            $gte: new Date(new Date().setHours(0, 0, 0, 0))
-        }
+          createdAt: { $gte: today }
         });
 
         // 8. Estatísticas de Produtos
@@ -263,38 +263,44 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
         const recentOrders = await Order.find()
         .sort({ createdAt: -1 })
         .limit(5)
-        .populate('userId', 'name')
+        .populate('userId', 'name email')
         .lean();
+
+        // Extrai valores com fallback seguro
+        const orderStatsData = orderStats[0] || { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 };
+        const customerStatsData = customerStats[0] || { totalCustomers: 0, activeCustomers: 0 };
+        const productStatsData = productStats[0] || { totalProducts: 0, lowStock: 0, outOfStock: 0 };
 
         return {
             status: 200,
             message: "Estatísticas do dashboard recuperadas com sucesso",
             stats: {
                 revenue: {
-                    today: orderStats[0]?.totalRevenue || 0,
-                    total: orderStats[0]?.totalRevenue || 0
+                    today: orderStatsData.totalRevenue,
+                    total: orderStatsData.totalRevenue
                 },
                 orders: {
-                    today: orderStats[0]?.totalOrders || 0,
-                    total: orderStats[0]?.totalOrders || 0,
+                    today: orderStatsData.totalOrders,
+                    total: orderStatsData.totalOrders,
+                    avgValue: orderStatsData.avgOrderValue || 0,
                     byStatus: ordersByStatus.reduce((acc, item) => {
                         acc[item._id] = item.count;
                         return acc;
-                    }, {})
+                    }, {} as Record<string, number>)
                 },
                 customers: {
-                    total: customerStats[0]?.totalCustomers || 0,
-                    active: customerStats[0]?.activeCustomers || 0,
+                    total: customerStatsData.totalCustomers,
+                    active: customerStatsData.activeCustomers,
                     new: newCustomersToday
                 },
                 products: {
-                    total: productStats[0]?.totalProducts || 0,
-                    lowStock: productStats[0]?.lowStock || 0,
-                    outOfStock: productStats[0]?.outOfStock || 0
+                    total: productStatsData.totalProducts,
+                    lowStock: productStatsData.lowStock,
+                    outOfStock: productStatsData.outOfStock
                 },
                 charts: {
                     ordersByDay,
-                    ordersByDayOfMonth,
+                    ordersByDayOfMonth, // ⚠️ Agora contém últimos 12 meses
                     ordersByMonth,
                     revenueByDay,
                     ordersByHour,
