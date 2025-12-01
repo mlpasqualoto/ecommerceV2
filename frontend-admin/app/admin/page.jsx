@@ -649,19 +649,25 @@ export default function AdminHome() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${isPageLoaded ? "opacity-100" : "opacity-0"
-        }`}
+      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
+        isPageLoaded ? "opacity-100" : "opacity-0"
+      }`}
     >
-      {/* Header Principal */}
-      <div className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${isPageLoaded ? "translate-y-0" : "-translate-y-4"
-        }`}>
-        <div className="max-w-[1400px] mx-auto px-8 py-8">
-          <div className="flex items-center justify-between">
+      {/* Header Principal - RESPONSIVO */}
+      <div
+        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
+          isPageLoaded ? "translate-y-0" : "-translate-y-4"
+        }`}
+      >
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          {/* Mobile: Stack vertical */}
+          <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+            {/* Título e descrição */}
             <div className="animate-fadeInLeft">
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
+                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
                   <svg
-                    className="w-6 h-6 text-white"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-white"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -674,85 +680,59 @@ export default function AdminHome() {
                     />
                   </svg>
                 </div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
                   Gerenciamento de Pedidos
                 </h1>
               </div>
 
-              <p className="text-slate-600 max-w-2xl leading-relaxed">
-                Controle completo sobre todos os pedidos do seu e-commerce.
-                Visualize, edite e gerencie o status de cada transação.
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed hidden sm:block">
+                Controle completo sobre todos os pedidos do seu e-commerce
               </p>
 
-              <div className="flex items-center space-x-6 mt-4">
-                <div className="flex items-center space-x-2 text-sm text-slate-500">
-                  {renderSystemStatus()}
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-slate-500">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Status do sistema - Mobile compacto */}
+              <div className="flex items-center space-x-4 mt-3 text-xs sm:text-sm">
+                {renderSystemStatus()}
+                <div className="flex items-center space-x-1 text-slate-500">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>Atualizado em tempo real</span>
+                  <span className="hidden sm:inline">Atualizado em tempo real</span>
+                  <span className="sm:hidden">Tempo real</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-6 animate-fadeInRight">
-              {/* Card de estatísticas */}
-              <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-xl">
-                    <svg
-                      className="w-7 h-7 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
+            {/* Cards de estatísticas - Grid responsivo */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:flex lg:items-center lg:space-x-4 animate-fadeInRight">
+              {/* Card Total de Pedidos */}
+              <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 border border-slate-200 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-center sm:space-x-3">
+                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-blue-100 rounded-lg sm:rounded-xl mb-2 sm:mb-0">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
 
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
-                      {orders.length}
-                    </div>
-                    <div className="text-sm text-slate-500 mt-1">
-                      {orders.length === 1 ? 'pedido listado' : 'pedidos listados'}
-                    </div>
-                    <div className="flex items-center justify-end space-x-1 mt-2">
-                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                      <span className="text-xs text-green-600 font-medium">Ativo</span>
+                  <div className="text-center sm:text-right">
+                    <div className="text-2xl sm:text-3xl font-bold text-slate-900">{orders.length}</div>
+                    <div className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                      {orders.length === 1 ? 'pedido' : 'pedidos'}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Card de receita total COM OLHO */}
-              <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center justify-center w-14 h-14 bg-emerald-100 rounded-xl">
-                    <svg
-                      className="w-7 h-7 text-emerald-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
+              {/* Card Receita Total */}
+              <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 border border-emerald-200 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-center sm:space-x-3">
+                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-0">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
 
-                  <div className="flex-1 text-right">
-                    <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-emerald-600 leading-none">
+                  <div className="flex-1 text-center sm:text-right">
+                    <div className="text-lg sm:text-2xl lg:text-3xl font-bold text-slate-900">
                       {showRevenue ? (
                         formatCurrencyBRL(
                           orders
@@ -760,108 +740,52 @@ export default function AdminHome() {
                             .reduce((sum, order) => sum + order.totalAmount, 0)
                         )
                       ) : (
-                        <span className="tracking-wider">R$ ••••••</span>
+                        <span className="tracking-wider">R$ ••••</span>
                       )}
                     </div>
-                    <div className="text-sm text-slate-500 mt-1">
-                      receita confirmada
-                    </div>
-                    <div className="flex items-center justify-end space-x-1 mt-2">
-                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-emerald-600 font-medium">
-                        {orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length} pedidos
-                      </span>
-                    </div>
+                    <div className="text-xs sm:text-sm text-slate-500 mt-0.5">receita</div>
                   </div>
 
-                  {/* BOTÃO DO OLHO */}
+                  {/* Botão do olho */}
                   <button
                     onClick={() => setShowRevenue(!showRevenue)}
-                    className="cursor-pointer flex items-center justify-center w-10 h-10 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition-all duration-200 group"
-                    title={showRevenue ? "Ocultar receita" : "Mostrar receita"}
+                    className="mt-2 sm:mt-0 w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 hover:bg-emerald-200 rounded-lg sm:rounded-xl transition-all flex items-center justify-center"
                   >
                     {showRevenue ? (
-                      <svg
-                        className="w-5 h-5 text-emerald-600 group-hover:text-emerald-700"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     ) : (
-                      <svg
-                        className="w-5 h-5 text-emerald-600 group-hover:text-emerald-700"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                        />
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                       </svg>
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Botões de ação */}
-              <div className="flex flex-col gap-4 items-center">
+              {/* Botões de ação - Mobile horizontal */}
+              <div className="col-span-2 flex justify-center gap-3 sm:gap-4 lg:flex-col">
                 <button
                   onClick={handleRefreshData}
                   data-refresh-btn
-                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group cursor-pointer"
-                  title="Atualizar dados"
+                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center"
                   disabled={loading}
                 >
-                  <svg
-                    className={`w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-200 ${loading ? 'animate-spin' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
+                  <svg className={`w-5 h-5 text-slate-600 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 </button>
 
                 <button
                   onClick={handleExportData}
                   data-export-btn
-                  className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200 group cursor-pointer"
-                  title="Extrair relatório (CSV)"
+                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center"
                   disabled={orders.length === 0}
                 >
-                  <svg
-                    className="w-5 h-5 text-slate-600 group-hover:text-slate-800"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
+                  <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </button>
               </div>
@@ -870,7 +794,7 @@ export default function AdminHome() {
         </div>
       </div>
 
-      <div className="max-w-[1500px] mx-auto px-8 py-8">
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Modal de Edição */}
         {editOrder && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
@@ -1140,53 +1064,37 @@ export default function AdminHome() {
           </div>
         )}
 
-        {/* Barra de Controles */}
-        <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 transform transition-all duration-500 hover:shadow-md ${isPageLoaded
-            ? "translate-y-0 opacity-100"
-            : "translate-y-4 opacity-0"
-            }`}
-          style={{ transitionDelay: "0.1s" }}
-        >
-          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-              {/* Busca por ID */}
-              <form
-                onSubmit={handleFilterById}
-                className="flex items-center gap-3 animate-slideInUp"
-                style={{ animationDelay: "0.2s" }}
-              >
-                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
-                  Buscar por ID:
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    name="orderId"
-                    className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-mono min-w-[200px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
-                    placeholder="ID do pedido..."
-                  />
-                  <button
-                    type="submit"
-                    className="cursor-pointer px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
-                  >
-                    Buscar
-                  </button>
-                </div>
-              </form>
+        {/* Barra de Controles - RESPONSIVA */}
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="space-y-4">
+            {/* Busca por ID */}
+            <form onSubmit={handleFilterById} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <label className="text-xs sm:text-sm font-semibold text-slate-700">Buscar ID:</label>
+              <div className="flex gap-2 flex-1">
+                <input
+                  type="text"
+                  name="orderId"
+                  className="flex-1 px-3 py-2 sm:px-4 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl text-sm font-mono"
+                  placeholder="ID do pedido..."
+                />
+                <button
+                  type="submit"
+                  className="px-4 sm:px-6 py-2 sm:py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg sm:rounded-xl whitespace-nowrap"
+                >
+                  Buscar
+                </button>
+              </div>
+            </form>
 
-              {/* Filtro por Status */}
-              <div
-                className="flex items-center gap-3 animate-slideInUp"
-                style={{ animationDelay: "0.3s" }}
-              >
-                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
-                  Filtrar por Status:
-                </label>
+            {/* Filtros em grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {/* Status */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs sm:text-sm font-semibold text-slate-700">Status:</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-medium min-w-[140px] text-slate-900 hover:border-slate-300"
+                  className="px-3 py-2 sm:px-4 sm:py-3 bg-white border border-slate-200 rounded-lg sm:rounded-xl text-sm"
                 >
                   <option value="all">Todos</option>
                   <option value="paid">Pago</option>
@@ -1197,32 +1105,16 @@ export default function AdminHome() {
                 </select>
               </div>
 
-              {/* Filtro por Data */}
-              <div
-                className="flex items-center gap-3 animate-slideInUp"
-                style={{ animationDelay: "0.4s" }}
-              >
-                <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
-                  Filtrar por Data:
-                </label>
-                {/* campo visível em formato DD/MM/YYYY */}
+              {/* Data */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs sm:text-sm font-semibold text-slate-700">Data:</label>
                 <input
                   type="text"
-                  name="orderDateDisplay"
                   value={formatBR(orderDate)}
                   readOnly
-                  onClick={() => {
-                    const el = hiddenDateRef.current;
-                    if (!el) return;
-                    if (typeof el.showPicker === "function") {
-                      el.showPicker();
-                    } else {
-                      el.click();
-                    }
-                  }}
-                  className="px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm font-mono min-w-[140px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300 cursor-pointer"
+                  onClick={() => hiddenDateRef.current?.showPicker?.() || hiddenDateRef.current?.click()}
+                  className="px-3 py-2 sm:px-4 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl text-sm font-mono cursor-pointer"
                 />
-                {/* input nativo escondido mas focável */}
                 <input
                   type="date"
                   ref={hiddenDateRef}
@@ -1234,41 +1126,27 @@ export default function AdminHome() {
                   className="sr-only"
                 />
               </div>
-            </div>
 
-            {/* Botão Novo Pedido */}
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="cursor-pointer px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-lg flex items-center gap-2 whitespace-nowrap transform hover:scale-105 hover:shadow-xl animate-slideInUp"
-              style={{ animationDelay: "0.5s" }}
-            >
-              <svg
-                className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              Novo Pedido
-            </button>
+              {/* Botão Novo Pedido */}
+              <div className="flex items-end sm:col-span-2 lg:col-span-1">
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="w-full px-6 py-2 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Novo Pedido
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Tabela de Pedidos */}
-        <div
-          className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transform transition-all duration-500 hover:shadow-md ${isPageLoaded
-            ? "translate-y-0 opacity-100"
-            : "translate-y-4 opacity-0"
-            }`}
-          style={{ transitionDelay: "0.2s" }}
-        >
-          <div className="overflow-x-auto">
+        {/* Tabela - MOBILE: Cards, DESKTOP: Table */}
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          {/* Desktop: Tabela tradicional */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
@@ -1698,8 +1576,7 @@ export default function AdminHome() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth="1"
-                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                            />
+                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                           </svg>
                           <div className="absolute inset-0 bg-slate-300/30 rounded-full animate-ping"></div>
                         </div>
@@ -1723,17 +1600,138 @@ export default function AdminHome() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile: Cards */}
+          <div className="lg:hidden divide-y divide-slate-100">
+            {orders.length > 0 ? (
+              orders.map((order, idx) =>
+                order ? (
+                  <div key={order._id || idx} className="p-4 hover:bg-slate-50 transition-colors">
+                    {/* Cabeçalho do card */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-slate-900">
+                          {formatCreatedAtDate(order.createdAt)}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {new Date(order.createdAt).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            timeZone: "UTC"
+                          })}
+                        </div>
+                      </div>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                        {getStatusText(order.status)}
+                      </span>
+                    </div>
+
+                    {/* Produtos */}
+                    <div className="mb-3">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2 mb-2">
+                          {item.imageUrl && (
+                            <img src={item.imageUrl} alt={item.name} className="w-10 h-10 object-cover rounded-lg" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-900 truncate">{item.name}</div>
+                            <div className="text-xs text-slate-500">Qtd: {item.quantity}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Cliente e Total */}
+                    <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
+                      <div className="text-sm text-slate-600 truncate flex-1">{order.name}</div>
+                      <div className="text-sm font-bold text-slate-900">{formatCurrencyBRL(order.totalAmount)}</div>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openEditModal(order)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm({ open: true, orderId: order._id })}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => toggleOrderDetails(order._id)}
+                        className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all"
+                      >
+                        {expandedOrder === order._id ? "Ocultar" : "Detalhes"}
+                      </button>
+                    </div>
+
+                    {/* Detalhes expandidos */}
+                    {expandedOrder === order._id && (
+                      <div className="mt-4 pt-4 border-t border-slate-200 space-y-3 animate-slideDown">
+                        <div>
+                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">ID do Pedido</div>
+                          <div className="text-sm font-mono text-slate-900">#{order._id}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">Endereço</div>
+                          <div className="text-sm text-slate-900">{order.shippingAddress}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">Pagamento</div>
+                          <div className="text-sm text-slate-900">{order.paymentMethod || "N/A"}</div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <button
+                            onClick={() => handlePayOrder(order._id)}
+                            className="flex-1 px-3 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-medium"
+                          >
+                            Pagar
+                          </button>
+                          <button
+                            onClick={() => handleShipOrder(order._id)}
+                            className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-medium"
+                          >
+                            Enviar
+                          </button>
+                          <button
+                            onClick={() => handleCancelOrder(order._id)}
+                            className="flex-1 px-3 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-medium"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null
+              )
+            ) : (
+              <div className="p-8 text-center">
+                <svg className="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <div className="text-slate-500">
+                  <div className="font-semibold mb-1">Nenhum pedido encontrado</div>
+                  <div className="text-sm">Tente ajustar os filtros de busca</div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Footer com informações extras */}
-        <div
-          className={`mt-8 text-center text-sm text-slate-500 animate-fadeIn ${isPageLoaded ? "opacity-100" : "opacity-0"
-            }`}
-          style={{ transitionDelay: "0.3s" }}
-        >
-          <p>
-            Painel de Administração • Total de {orders.length} pedidos listados
-          </p>
+        {/* Footer */}
+        <div className="mt-6 text-center text-xs sm:text-sm text-slate-500">
+          <p>Total de {orders.length} pedidos listados</p>
         </div>
       </div>
 
