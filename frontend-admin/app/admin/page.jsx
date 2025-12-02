@@ -913,7 +913,8 @@ export default function AdminHome() {
                   {/* Botão do olho */}
                   <button
                     onClick={() => setShowRevenue(!showRevenue)}
-                    className="mt-2 sm:mt-0 w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 hover:bg-emerald-200 rounded-lg sm:rounded-xl transition-all flex items-center justify-center"
+                    className="mt-2 sm:mt-0 w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 hover:bg-emerald-200 rounded-lg sm:rounded-xl transition-all flex items-center justify-center cursor-pointer"
+                    title={showRevenue ? "Ocultar receita" : "Mostrar receita"}
                   >
                     {showRevenue ? (
                       <svg
@@ -959,7 +960,8 @@ export default function AdminHome() {
                 <button
                   onClick={handleRefreshData}
                   data-refresh-btn
-                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center"
+                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                  title="Sincronizar dados"
                   disabled={loading}
                 >
                   <svg
@@ -982,7 +984,8 @@ export default function AdminHome() {
                 <button
                   onClick={handleExportData}
                   data-export-btn
-                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center"
+                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                  title="Exportar relatório (CSV)"
                   disabled={orders.length === 0}
                 >
                   <svg
@@ -1304,7 +1307,7 @@ export default function AdminHome() {
               />
               <button
                 type="submit"
-                className="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl whitespace-nowrap"
+                className="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl whitespace-nowrap cursor-pointer"
               >
                 Buscar
               </button>
@@ -1318,7 +1321,7 @@ export default function AdminHome() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm min-w-[150px]"
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm min-w-[150px] cursor-pointer"
               >
                 <option value="all">Todos</option>
                 <option value="paid">Pago</option>
@@ -1359,7 +1362,7 @@ export default function AdminHome() {
             {/* Botão Novo Pedido */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl flex items-center gap-2 whitespace-nowrap"
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl flex items-center gap-2 whitespace-nowrap cursor-pointer"
             >
               <svg
                 className="w-4 h-4"
