@@ -5,6 +5,7 @@ import User from "../../models/User"; // assumindo que existe
 import Product from "../../models/Product"; // assumindo que existe
 import dotenv from "dotenv";
 import logger from "../../utils/logger";
+import { parseDataBr } from "../../utils/utils";
 
 dotenv.config();
 
@@ -140,9 +141,8 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
     productCache.clear();
 
     // Garante data atual em UTC-3
-    const currentDate = new Date();
-    const currentDateBr = currentDate.setHours(currentDate.getHours() - 3); // Ajusta para o fuso horário de Brasília (UTC-3)
-    
+    const currentDateBr = parseDataBr(dataInicial);
+
     logger.info("Chamando endpoint pedidos.pesquisa.php", { dataInicial, dataFinal, situacao });
     
     // Garante usuário genérico antes de processar pedidos
