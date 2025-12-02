@@ -6,6 +6,6 @@ export function isValidDate(dateString: string): boolean {
 export function parseDataBr(dataBr: string): Date {
   const [dia, mes, ano] = dataBr.split('/');
   const date = new Date(`${ano}-${mes}-${dia}`);
-  date.setHours(date.getHours() - 3); // Ajusta para UTC-3
+  //date.setHours(date.getHours() - 3); // Ajusta para UTC-3
   return date;
 }
