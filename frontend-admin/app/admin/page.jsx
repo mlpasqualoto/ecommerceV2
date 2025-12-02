@@ -32,9 +32,12 @@ export default function AdminHome() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, orderId: null });
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    open: false,
+    orderId: null,
+  });
   const [showRevenue, setShowRevenue] = useState(true);
-  
+
   // usa data local (YYYY-MM-DD) — evita deslocamento por UTC
   const getLocalIsoDate = () => {
     const d = new Date();
@@ -70,7 +73,7 @@ export default function AdminHome() {
     try {
       // Busca dados sem alterar estados visuais
       const response = await fetchOrderByDate(orderDate);
-    
+
       if (
         response?.message?.toLowerCase().includes("não autenticado") ||
         response?.error === "Unauthorized"
@@ -78,11 +81,13 @@ export default function AdminHome() {
         router.push("/login");
         return;
       }
-      
+
       if (response?.orders) {
         let filteredOrders = response.orders;
         if (statusFilter !== "all") {
-          filteredOrders = response.orders.filter(order => order.status === statusFilter);
+          filteredOrders = response.orders.filter(
+            (order) => order.status === statusFilter
+          );
         }
         setOrders(filteredOrders);
         setSystemStatus("online");
@@ -92,7 +97,7 @@ export default function AdminHome() {
     } catch (err) {
       console.error("Erro ao atualizar pedidos:", err);
       setSystemStatus("unstable");
-    } 
+    }
   }
 
   // Função para recarregar/atualizar os dados manualmente
@@ -109,12 +114,11 @@ export default function AdminHome() {
         setSystemStatus("unstable");
       }
 
-      const refreshButton = document.querySelector('[data-refresh-btn]');
-      refreshButton?.classList.add('animate-spin');
+      const refreshButton = document.querySelector("[data-refresh-btn]");
+      refreshButton?.classList.add("animate-spin");
       setTimeout(() => {
-        refreshButton?.classList.remove('animate-spin');
+        refreshButton?.classList.remove("animate-spin");
       }, 1000);
-
     } catch (err) {
       console.error("Erro ao atualizar pedidos:", err);
       setSystemStatus("unstable");
@@ -129,21 +133,24 @@ export default function AdminHome() {
     try {
       // ⚠️ CORREÇÃO: Detecta formato de número do sistema via Intl
       const testNumber = (234.56).toLocaleString();
-      const usesComma = testNumber.includes(','); // true = vírgula decimal (BR/EU)
-      
-      // Define separadores baseado no formato detectado
-      const decimalSeparator = usesComma ? ',' : '.';
-      const columnDelimiter = usesComma ? ';' : ',';
+      const usesComma = testNumber.includes(","); // true = vírgula decimal (BR/EU)
 
-      console.log('📊 Separadores finais:', { decimal: decimalSeparator, coluna: columnDelimiter });
+      // Define separadores baseado no formato detectado
+      const decimalSeparator = usesComma ? "," : ".";
+      const columnDelimiter = usesComma ? ";" : ",";
+
+      console.log("📊 Separadores finais:", {
+        decimal: decimalSeparator,
+        coluna: columnDelimiter,
+      });
 
       // Função helper para formatar números
       const formatNumber = (value) => {
-        return value.toFixed(2).replace('.', decimalSeparator);
+        return value.toFixed(2).replace(".", decimalSeparator);
       };
 
       let count = 0;
-      const exportData = orders.map(order => ({
+      const exportData = orders.map((order) => ({
         Qte: ++count,
         ID: order._id,
         Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
@@ -151,155 +158,243 @@ export default function AdminHome() {
         Status: getStatusText(order.status),
         "Total Recebido": formatNumber(order.totalAmount),
         "Taxa Shopee": formatNumber(
-          (['paid', 'shipped', 'delivered'].includes(order.status) ? order.totalAmount * 0.20 : 0) + 
-          (['paid', 'shipped', 'delivered'].includes(order.status) ? order.totalQuantity * 5.00 : 0)
+          (["paid", "shipped", "delivered"].includes(order.status)
+            ? order.totalAmount * 0.2
+            : 0) +
+            (["paid", "shipped", "delivered"].includes(order.status)
+              ? order.totalQuantity * 5.0
+              : 0)
         ),
-        "Total Custo": formatNumber(['paid', 'shipped', 'delivered'].includes(order.status) ? order.totalCost || 0 : 0),
-        Produtos: order.items.map(item => `${item.name} (${item.quantity}x)`).join(', '),
-        'Total de Itens': order.totalQuantity
+        "Total Custo": formatNumber(
+          ["paid", "shipped", "delivered"].includes(order.status)
+            ? order.totalCost || 0
+            : 0
+        ),
+        Produtos: order.items
+          .map((item) => `${item.name} (${item.quantity}x)`)
+          .join(", "),
+        "Total de Itens": order.totalQuantity,
       }));
 
       const totalPaid = orders
-        .filter(order => order.status === 'paid')
+        .filter((order) => order.status === "paid")
         .reduce((sum, order) => sum + order.totalAmount, 0);
-      
+
       const totalShipped = orders
-        .filter(order => order.status === 'shipped')
+        .filter((order) => order.status === "shipped")
         .reduce((sum, order) => sum + order.totalAmount, 0);
-      
+
       const totalDelivered = orders
-        .filter(order => order.status === 'delivered')
+        .filter((order) => order.status === "delivered")
         .reduce((sum, order) => sum + order.totalAmount, 0);
-      
+
       const totalConfirmed = totalPaid + totalShipped + totalDelivered;
 
       // Soma custo de produção (usa order.totalCost se já vier do backend; senão calcula pelos itens)
-      const totalProductionCost = orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).reduce((sum, order) => {
-        if (typeof order.totalCost === 'number') {
-          return sum + order.totalCost;
-        }
-        const orderCost = (order.items || []).reduce(
-          (s, item) => s + (Number(item.cost) || 0) * (Number(item.quantity) || 0),
-          0
-        );
-        return sum + orderCost;
-      }, 0);
+      const totalProductionCost = orders
+        .filter((order) =>
+          ["paid", "shipped", "delivered"].includes(order.status)
+        )
+        .reduce((sum, order) => {
+          if (typeof order.totalCost === "number") {
+            return sum + order.totalCost;
+          }
+          const orderCost = (order.items || []).reduce(
+            (s, item) =>
+              s + (Number(item.cost) || 0) * (Number(item.quantity) || 0),
+            0
+          );
+          return sum + orderCost;
+        }, 0);
 
       const escapeCSV = (value) => {
         if (value == null) return '""';
         const str = String(value);
-        if (str.includes(columnDelimiter) || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        if (
+          str.includes(columnDelimiter) ||
+          str.includes('"') ||
+          str.includes("\n") ||
+          str.includes("\r")
+        ) {
           return `"${str.replace(/"/g, '""')}"`;
         }
         return `"${str}"`;
       };
 
-      const commissionShopee = totalConfirmed * 0.20;
+      const commissionShopee = totalConfirmed * 0.2;
       // Soma a quantidade total de produtos vendidos para calcular a taxa fixa por pedido
-      const quantityProducts = orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).reduce((sum, order) => {
-        return sum + (order.totalQuantity || 0);
-      }, 0);
-      const shopeeRatePerOrder = quantityProducts * 5.00;
+      const quantityProducts = orders
+        .filter((order) =>
+          ["paid", "shipped", "delivered"].includes(order.status)
+        )
+        .reduce((sum, order) => {
+          return sum + (order.totalQuantity || 0);
+        }, 0);
+      const shopeeRatePerOrder = quantityProducts * 5.0;
 
       // Cálculo do lucro bruto
-      const grossProfit = totalConfirmed - commissionShopee - shopeeRatePerOrder - totalProductionCost;
+      const grossProfit =
+        totalConfirmed -
+        commissionShopee -
+        shopeeRatePerOrder -
+        totalProductionCost;
 
       const csvContent = [
         // Cabeçalho da tabela de pedidos
-        Object.keys(exportData[0] || {}).map(escapeCSV).join(columnDelimiter),
-        ...exportData.map(row => Object.values(row).map(escapeCSV).join(columnDelimiter)),
-        '',
-        '',
+        Object.keys(exportData[0] || {})
+          .map(escapeCSV)
+          .join(columnDelimiter),
+        ...exportData.map((row) =>
+          Object.values(row).map(escapeCSV).join(columnDelimiter)
+        ),
+        "",
+        "",
         // ═══════════════════════════════════════════════════════════
         // RESUMO FINANCEIRO - LAYOUT HORIZONTAL
         // ═══════════════════════════════════════════════════════════
-        escapeCSV('═══════════════════════════════════════════════════════════'),
-        escapeCSV('RESUMO FINANCEIRO - ANÁLISE COMPLETA'),
-        escapeCSV('═══════════════════════════════════════════════════════════'),
-        '',
+        escapeCSV(
+          "═══════════════════════════════════════════════════════════"
+        ),
+        escapeCSV("RESUMO FINANCEIRO - ANÁLISE COMPLETA"),
+        escapeCSV(
+          "═══════════════════════════════════════════════════════════"
+        ),
+        "",
         // Cabeçalhos das colunas
         [
-          escapeCSV('VOLUME DE PEDIDOS'),
-          escapeCSV('RECEITAS'),
-          escapeCSV('CUSTOS OPERACIONAIS'),
-          escapeCSV('RESULTADO FINAL'),
-          escapeCSV('MÉDIAS E INDICADORES')
+          escapeCSV("VOLUME DE PEDIDOS"),
+          escapeCSV("RECEITAS"),
+          escapeCSV("CUSTOS OPERACIONAIS"),
+          escapeCSV("RESULTADO FINAL"),
+          escapeCSV("MÉDIAS E INDICADORES"),
         ].join(columnDelimiter),
-        '',
+        "",
         // Linha 1
         [
-          escapeCSV('Total de Pedidos Confirmados: ' + (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 0)),
-          escapeCSV('Receita Bruta Total: ' + formatNumber(totalConfirmed)),
-          escapeCSV('Taxa Shopee (20%): ' + formatNumber(commissionShopee)),
-          escapeCSV('LUCRO BRUTO: ' + formatNumber(grossProfit)),
-          escapeCSV('Ticket Médio: ' + formatNumber(totalConfirmed / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1)))
+          escapeCSV(
+            "Total de Pedidos Confirmados: " +
+              (orders.filter((order) =>
+                ["paid", "shipped", "delivered"].includes(order.status)
+              ).length || 0)
+          ),
+          escapeCSV("Receita Bruta Total: " + formatNumber(totalConfirmed)),
+          escapeCSV("Taxa Shopee (20%): " + formatNumber(commissionShopee)),
+          escapeCSV("LUCRO BRUTO: " + formatNumber(grossProfit)),
+          escapeCSV(
+            "Ticket Médio: " +
+              formatNumber(
+                totalConfirmed /
+                  (orders.filter((order) =>
+                    ["paid", "shipped", "delivered"].includes(order.status)
+                  ).length || 1)
+              )
+          ),
         ].join(columnDelimiter),
         // Linha 2
         [
-          escapeCSV('└─ Status: Pago + Enviado + Entregue'),
-          escapeCSV('└─ Soma de todos os pedidos confirmados'),
-          escapeCSV('Taxa Shopee Fixa (R$5,00/item): ' + formatNumber(shopeeRatePerOrder)),
-          escapeCSV('└─ (Receita - Taxas - Custos)'),
-          escapeCSV('└─ (Receita Total / Qtd Pedidos)')
+          escapeCSV("└─ Status: Pago + Enviado + Entregue"),
+          escapeCSV("└─ Soma de todos os pedidos confirmados"),
+          escapeCSV(
+            "Taxa Shopee Fixa (R$5,00/item): " +
+              formatNumber(shopeeRatePerOrder)
+          ),
+          escapeCSV("└─ (Receita - Taxas - Custos)"),
+          escapeCSV("└─ (Receita Total / Qtd Pedidos)"),
         ].join(columnDelimiter),
         // Linha 3
         [
-          escapeCSV(''),
-          escapeCSV(''),
-          escapeCSV('Subtotal Taxas Shopee: ' + formatNumber(commissionShopee + shopeeRatePerOrder)),
-          escapeCSV('Margem de Lucro: ' + formatNumber((grossProfit / totalConfirmed) * 100) + '%'),
-          escapeCSV('Lucro Médio por Pedido: ' + formatNumber(grossProfit / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1)))
+          escapeCSV(""),
+          escapeCSV(""),
+          escapeCSV(
+            "Subtotal Taxas Shopee: " +
+              formatNumber(commissionShopee + shopeeRatePerOrder)
+          ),
+          escapeCSV(
+            "Margem de Lucro: " +
+              formatNumber((grossProfit / totalConfirmed) * 100) +
+              "%"
+          ),
+          escapeCSV(
+            "Lucro Médio por Pedido: " +
+              formatNumber(
+                grossProfit /
+                  (orders.filter((order) =>
+                    ["paid", "shipped", "delivered"].includes(order.status)
+                  ).length || 1)
+              )
+          ),
         ].join(columnDelimiter),
         // Linha 4
         [
-          escapeCSV(''),
-          escapeCSV(''),
-          escapeCSV('Custo de Produtos (Estoque): ' + formatNumber(totalProductionCost)),
-          escapeCSV(''),
-          escapeCSV('└─ (Lucro Bruto / Qtd Pedidos)')
+          escapeCSV(""),
+          escapeCSV(""),
+          escapeCSV(
+            "Custo de Produtos (Estoque): " + formatNumber(totalProductionCost)
+          ),
+          escapeCSV(""),
+          escapeCSV("└─ (Lucro Bruto / Qtd Pedidos)"),
         ].join(columnDelimiter),
         // Linha 5
         [
-          escapeCSV(''),
-          escapeCSV(''),
-          escapeCSV('TOTAL DE CUSTOS: ' + formatNumber(commissionShopee + shopeeRatePerOrder + totalProductionCost)),
-          escapeCSV(''),
-          escapeCSV('Custo Médio por Pedido: ' + formatNumber((commissionShopee + shopeeRatePerOrder + totalProductionCost) / (orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length || 1)))
+          escapeCSV(""),
+          escapeCSV(""),
+          escapeCSV(
+            "TOTAL DE CUSTOS: " +
+              formatNumber(
+                commissionShopee + shopeeRatePerOrder + totalProductionCost
+              )
+          ),
+          escapeCSV(""),
+          escapeCSV(
+            "Custo Médio por Pedido: " +
+              formatNumber(
+                (commissionShopee + shopeeRatePerOrder + totalProductionCost) /
+                  (orders.filter((order) =>
+                    ["paid", "shipped", "delivered"].includes(order.status)
+                  ).length || 1)
+              )
+          ),
         ].join(columnDelimiter),
-        '',
-        escapeCSV('═══════════════════════════════════════════════════════════'),
-        escapeCSV('Relatório gerado em: ' + new Date().toLocaleString('pt-BR')),
-        escapeCSV('═══════════════════════════════════════════════════════════'),
-      ].join('\n');
+        "",
+        escapeCSV(
+          "═══════════════════════════════════════════════════════════"
+        ),
+        escapeCSV("Relatório gerado em: " + new Date().toLocaleString("pt-BR")),
+        escapeCSV(
+          "═══════════════════════════════════════════════════════════"
+        ),
+      ].join("\n");
 
       // ⚠️ Adiciona BOM UTF-8 para Excel reconhecer encoding
-      const BOM = '\uFEFF';
+      const BOM = "\uFEFF";
       const csvWithBOM = BOM + csvContent;
 
-      const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
+      const blob = new Blob([csvWithBOM], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
+      link.setAttribute("href", url);
 
       // Garante data atual em UTC-3
       const currentDate = new Date();
       const currentDateBr = currentDate.setHours(currentDate.getHours() - 3); // Ajusta para o fuso horário de Brasília (UTC-3)
 
-      link.setAttribute('download', `pedidos_${orders[0].createdAt.split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
+      link.setAttribute(
+        "download",
+        `pedidos_${orders[0].createdAt.split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      const exportButton = document.querySelector('[data-export-btn]');
-      exportButton?.classList.add('bg-green-200', 'text-green-700');
+      const exportButton = document.querySelector("[data-export-btn]");
+      exportButton?.classList.add("bg-green-200", "text-green-700");
       setTimeout(() => {
-        exportButton?.classList.remove('bg-green-200', 'text-green-700');
+        exportButton?.classList.remove("bg-green-200", "text-green-700");
       }, 2000);
-
     } catch (error) {
-      console.error('Erro ao exportar dados:', error);
-      alert('Erro ao exportar dados. Tente novamente.');
+      console.error("Erro ao exportar dados:", error);
+      alert("Erro ao exportar dados. Tente novamente.");
     }
   };
 
@@ -327,7 +422,13 @@ export default function AdminHome() {
 
   const closeEditModal = () => {
     setEditOrder(null);
-    setEditForm({ productId: "", quantity: "", status: "", totalCost: "", totalAmount: "" });
+    setEditForm({
+      productId: "",
+      quantity: "",
+      status: "",
+      totalCost: "",
+      totalAmount: "",
+    });
   };
 
   const handleEditFormChange = (e) => {
@@ -406,11 +507,11 @@ export default function AdminHome() {
     }
 
     return data;
-  }
+  };
 
   const handleFilterByDate = async (date) => {
     if (!date) return null;
-    
+
     const data = await fetchOrderByDate(date);
     if (
       data?.message?.toLowerCase().includes("não autenticado") ||
@@ -606,7 +707,7 @@ export default function AdminHome() {
     // Usa a própria string ISO para pegar a parte da data (YYYY-MM-DD)
     // e exibir em DD/MM/YY
     const iso = String(createdAt);
-    const [yyyy, mm, dd] = iso.split('T')[0].split('-');
+    const [yyyy, mm, dd] = iso.split("T")[0].split("-");
     return `${dd}/${mm}/${yyyy.slice(2)}`;
   };
 
@@ -693,10 +794,22 @@ export default function AdminHome() {
               <div className="flex items-center space-x-4 mt-3 text-xs sm:text-sm">
                 {renderSystemStatus()}
                 <div className="flex items-center space-x-1 text-slate-500">
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-3 h-3 sm:w-4 sm:h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
-                  <span className="hidden sm:inline">Atualizado em tempo real</span>
+                  <span className="hidden sm:inline">
+                    Atualizado em tempo real
+                  </span>
                   <span className="sm:hidden">Tempo real</span>
                 </div>
               </div>
@@ -705,20 +818,18 @@ export default function AdminHome() {
             {/* Cards de estatísticas - Grid responsivo */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:flex lg:items-center lg:space-x-4 animate-fadeInRight">
               {/* Card Total de Pedidos */}
-              <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 border border-slate-200 shadow-sm">
-                <div className="flex flex-col sm:flex-row items-center sm:space-x-3">
-                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-blue-100 rounded-lg sm:rounded-xl mb-2 sm:mb-0">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-
-                  <div className="flex-1 text-center sm:text-right">
-                    <div className="text-lg sm:text-2xl lg:text-3xl font-bold text-slate-900">{orders.length}</div>
-                    <div className="text-sm text-slate-500 mt-1">
-                      {orders.length === 1 ? 'pedido' : 'pedidos'}
-                    </div>
-                  </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
+                  {orders.length}
+                </div>
+                <div className="text-sm text-slate-500 mt-1">
+                  {orders.length === 1 ? "pedido listado" : "pedidos listados"}
+                </div>
+                <div className="flex items-center justify-end space-x-1 mt-2">
+                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                  <span className="text-xs text-green-600 font-medium">
+                    Ativo
+                  </span>
                 </div>
               </div>
 
@@ -726,8 +837,18 @@ export default function AdminHome() {
               <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 border border-emerald-200 shadow-sm">
                 <div className="flex flex-col sm:flex-row items-center sm:space-x-3">
                   <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-0">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-emerald-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
 
@@ -736,7 +857,11 @@ export default function AdminHome() {
                       {showRevenue ? (
                         formatCurrencyBRL(
                           orders
-                            .filter(order => ['paid', 'shipped', 'delivered'].includes(order.status))
+                            .filter((order) =>
+                              ["paid", "shipped", "delivered"].includes(
+                                order.status
+                              )
+                            )
                             .reduce((sum, order) => sum + order.totalAmount, 0)
                         )
                       ) : (
@@ -749,7 +874,14 @@ export default function AdminHome() {
                     <div className="flex items-center justify-end space-x-1 mt-2">
                       <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
                       <span className="text-xs text-emerald-600 font-medium">
-                        {orders.filter(order => ['paid', 'shipped', 'delivered'].includes(order.status)).length} pedidos
+                        {
+                          orders.filter((order) =>
+                            ["paid", "shipped", "delivered"].includes(
+                              order.status
+                            )
+                          ).length
+                        }{" "}
+                        pedidos
                       </span>
                     </div>
                   </div>
@@ -760,13 +892,38 @@ export default function AdminHome() {
                     className="mt-2 sm:mt-0 w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 hover:bg-emerald-200 rounded-lg sm:rounded-xl transition-all flex items-center justify-center"
                   >
                     {showRevenue ? (
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
                       </svg>
                     )}
                   </button>
@@ -781,8 +938,20 @@ export default function AdminHome() {
                   className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center"
                   disabled={loading}
                 >
-                  <svg className={`w-5 h-5 text-slate-600 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <svg
+                    className={`w-5 h-5 text-slate-600 ${
+                      loading ? "animate-spin" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
                   </svg>
                 </button>
 
@@ -792,8 +961,18 @@ export default function AdminHome() {
                   className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center"
                   disabled={orders.length === 0}
                 >
-                  <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    className="w-5 h-5 text-slate-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                 </button>
               </div>
@@ -807,12 +986,15 @@ export default function AdminHome() {
         {editOrder && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
-
               {/* Cabeçalho fixo */}
               <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900">Editar Pedido</h2>
-                  <p className="text-sm text-slate-600 mt-1">ID: {editForm.productId}</p>
+                  <h2 className="text-xl font-semibold text-slate-900">
+                    Editar Pedido
+                  </h2>
+                  <p className="text-sm text-slate-600 mt-1">
+                    ID: {editForm.productId}
+                  </p>
                 </div>
                 <button
                   onClick={closeEditModal}
@@ -941,12 +1123,15 @@ export default function AdminHome() {
         {isCreateModalOpen && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
-
               {/* Cabeçalho fixo */}
               <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900">Criar Novo Pedido</h2>
-                  <p className="text-sm text-slate-600 mt-1">Adicione um novo pedido ao sistema</p>
+                  <h2 className="text-xl font-semibold text-slate-900">
+                    Criar Novo Pedido
+                  </h2>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Adicione um novo pedido ao sistema
+                  </p>
                 </div>
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
@@ -1049,11 +1234,14 @@ export default function AdminHome() {
                 Confirmar Exclusão
               </h2>
               <p className="text-slate-600 mb-6">
-                Tem certeza que deseja excluir este pedido? Essa ação não pode ser desfeita.
+                Tem certeza que deseja excluir este pedido? Essa ação não pode
+                ser desfeita.
               </p>
               <div className="flex justify-end space-x-3">
                 <button
-                  onClick={() => setDeleteConfirm({ open: false, orderId: null })}
+                  onClick={() =>
+                    setDeleteConfirm({ open: false, orderId: null })
+                  }
                   className="cursor-pointer px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
                 >
                   Cancelar
@@ -1077,8 +1265,13 @@ export default function AdminHome() {
           {/* Desktop: Tudo em uma linha */}
           <div className="hidden lg:flex lg:items-center lg:gap-4">
             {/* Busca por ID */}
-            <form onSubmit={handleFilterById} className="flex items-center gap-2 flex-1">
-              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Buscar ID:</label>
+            <form
+              onSubmit={handleFilterById}
+              className="flex items-center gap-2 flex-1"
+            >
+              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+                Buscar ID:
+              </label>
               <input
                 type="text"
                 name="orderId"
@@ -1095,7 +1288,9 @@ export default function AdminHome() {
 
             {/* Status */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Status:</label>
+              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+                Status:
+              </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -1112,12 +1307,17 @@ export default function AdminHome() {
 
             {/* Data */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">Data:</label>
+              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+                Data:
+              </label>
               <input
                 type="text"
                 value={formatBR(orderDate)}
                 readOnly
-                onClick={() => hiddenDateRef.current?.showPicker?.() || hiddenDateRef.current?.click()}
+                onClick={() =>
+                  hiddenDateRef.current?.showPicker?.() ||
+                  hiddenDateRef.current?.click()
+                }
                 className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px]"
               />
               <input
@@ -1137,8 +1337,18 @@ export default function AdminHome() {
               onClick={() => setIsCreateModalOpen(true)}
               className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl flex items-center gap-2 whitespace-nowrap"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
               </svg>
               Novo Pedido
             </button>
@@ -1147,8 +1357,13 @@ export default function AdminHome() {
           {/* Mobile: Layout empilhado */}
           <div className="lg:hidden space-y-4">
             {/* Busca por ID */}
-            <form onSubmit={handleFilterById} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <label className="text-xs sm:text-sm font-semibold text-slate-700">Buscar ID:</label>
+            <form
+              onSubmit={handleFilterById}
+              className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3"
+            >
+              <label className="text-xs sm:text-sm font-semibold text-slate-700">
+                Buscar ID:
+              </label>
               <div className="flex gap-2 flex-1">
                 <input
                   type="text"
@@ -1169,7 +1384,9 @@ export default function AdminHome() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {/* Status */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs sm:text-sm font-semibold text-slate-700">Status:</label>
+                <label className="text-xs sm:text-sm font-semibold text-slate-700">
+                  Status:
+                </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -1186,12 +1403,17 @@ export default function AdminHome() {
 
               {/* Data */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs sm:text-sm font-semibold text-slate-700">Data:</label>
+                <label className="text-xs sm:text-sm font-semibold text-slate-700">
+                  Data:
+                </label>
                 <input
                   type="text"
                   value={formatBR(orderDate)}
                   readOnly
-                  onClick={() => hiddenDateRef.current?.showPicker?.() || hiddenDateRef.current?.click()}
+                  onClick={() =>
+                    hiddenDateRef.current?.showPicker?.() ||
+                    hiddenDateRef.current?.click()
+                  }
                   className="px-3 py-2 sm:px-4 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl text-sm font-mono cursor-pointer"
                 />
                 <input
@@ -1212,8 +1434,18 @@ export default function AdminHome() {
               onClick={() => setIsCreateModalOpen(true)}
               className="w-full px-6 py-2 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
               </svg>
               Novo Pedido
             </button>
@@ -1274,7 +1506,7 @@ export default function AdminHome() {
                                 {
                                   hour: "2-digit",
                                   minute: "2-digit",
-                                  timeZone: "UTC" // Exibe a hora UTC SEM conversão
+                                  timeZone: "UTC", // Exibe a hora UTC SEM conversão
                                 }
                               )}
                             </div>
@@ -1357,7 +1589,12 @@ export default function AdminHome() {
 
                               <button
                                 className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
-                                onClick={() => setDeleteConfirm({ open: true, orderId: order._id })}
+                                onClick={() =>
+                                  setDeleteConfirm({
+                                    open: true,
+                                    orderId: order._id,
+                                  })
+                                }
                                 title="Deletar pedido"
                               >
                                 <svg
@@ -1388,10 +1625,11 @@ export default function AdminHome() {
                               }
                             >
                               <svg
-                                className={`w-4 h-4 transition-transform duration-300 ${expandedOrder === order._id
-                                  ? "rotate-180"
-                                  : ""
-                                  }`}
+                                className={`w-4 h-4 transition-transform duration-300 ${
+                                  expandedOrder === order._id
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1540,7 +1778,7 @@ export default function AdminHome() {
                                             year: "numeric",
                                             hour: "2-digit",
                                             minute: "2-digit",
-                                            timeZone: "UTC" // Exibe a hora UTC SEM conversão
+                                            timeZone: "UTC", // Exibe a hora UTC SEM conversão
                                           })}
                                         </p>
                                       </div>
@@ -1653,7 +1891,8 @@ export default function AdminHome() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth="1"
-                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                            />
                           </svg>
                           <div className="absolute inset-0 bg-slate-300/30 rounded-full animate-ping"></div>
                         </div>
@@ -1683,7 +1922,10 @@ export default function AdminHome() {
             {orders.length > 0 ? (
               orders.map((order, idx) =>
                 order ? (
-                  <div key={order._id || idx} className="p-4 hover:bg-slate-50 transition-colors">
+                  <div
+                    key={order._id || idx}
+                    className="p-4 hover:bg-slate-50 transition-colors"
+                  >
                     {/* Cabeçalho do card */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
@@ -1691,14 +1933,21 @@ export default function AdminHome() {
                           {formatCreatedAtDate(order.createdAt)}
                         </div>
                         <div className="text-xs text-slate-500">
-                          {new Date(order.createdAt).toLocaleTimeString("pt-BR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            timeZone: "UTC"
-                          })}
+                          {new Date(order.createdAt).toLocaleTimeString(
+                            "pt-BR",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              timeZone: "UTC",
+                            }
+                          )}
                         </div>
                       </div>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          order.status
+                        )}`}
+                      >
                         {getStatusText(order.status)}
                       </span>
                     </div>
@@ -1708,11 +1957,19 @@ export default function AdminHome() {
                       {order.items.map((item, idx) => (
                         <div key={idx} className="flex items-center gap-2 mb-2">
                           {item.imageUrl && (
-                            <img src={item.imageUrl} alt={item.name} className="w-10 h-10 object-cover rounded-lg" />
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-10 h-10 object-cover rounded-lg"
+                            />
                           )}
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-slate-900 truncate">{item.name}</div>
-                            <div className="text-xs text-slate-500">Qtd: {item.quantity}</div>
+                            <div className="text-sm font-medium text-slate-900 truncate">
+                              {item.name}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Qtd: {item.quantity}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1720,8 +1977,12 @@ export default function AdminHome() {
 
                     {/* Cliente e Total */}
                     <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
-                      <div className="text-sm text-slate-600 truncate flex-1">{order.name}</div>
-                      <div className="text-sm font-bold text-slate-900">{formatCurrencyBRL(order.totalAmount)}</div>
+                      <div className="text-sm text-slate-600 truncate flex-1">
+                        {order.name}
+                      </div>
+                      <div className="text-sm font-bold text-slate-900">
+                        {formatCurrencyBRL(order.totalAmount)}
+                      </div>
                     </div>
 
                     {/* Ações */}
@@ -1731,16 +1992,38 @@ export default function AdminHome() {
                           onClick={() => openEditModal(order)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
                           </svg>
                         </button>
                         <button
-                          onClick={() => setDeleteConfirm({ open: true, orderId: order._id })}
+                          onClick={() =>
+                            setDeleteConfirm({ open: true, orderId: order._id })
+                          }
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -1756,16 +2039,28 @@ export default function AdminHome() {
                     {expandedOrder === order._id && (
                       <div className="mt-4 pt-4 border-t border-slate-200 space-y-3 animate-slideDown">
                         <div>
-                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">ID do Pedido</div>
-                          <div className="text-sm font-mono text-slate-900">#{order._id}</div>
+                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">
+                            ID do Pedido
+                          </div>
+                          <div className="text-sm font-mono text-slate-900">
+                            #{order._id}
+                          </div>
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">Endereço</div>
-                          <div className="text-sm text-slate-900">{order.shippingAddress}</div>
+                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">
+                            Endereço
+                          </div>
+                          <div className="text-sm text-slate-900">
+                            {order.shippingAddress}
+                          </div>
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">Pagamento</div>
-                          <div className="text-sm text-slate-900">{order.paymentMethod || "N/A"}</div>
+                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">
+                            Pagamento
+                          </div>
+                          <div className="text-sm text-slate-900">
+                            {order.paymentMethod || "N/A"}
+                          </div>
                         </div>
                         <div className="flex flex-wrap gap-2 pt-2">
                           <button
@@ -1794,12 +2089,26 @@ export default function AdminHome() {
               )
             ) : (
               <div className="p-8 text-center">
-                <svg className="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                <svg
+                  className="w-12 h-12 text-slate-300 mx-auto mb-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1"
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
                 </svg>
                 <div className="text-slate-500">
-                  <div className="font-semibold mb-1">Nenhum pedido encontrado</div>
-                  <div className="text-sm">Tente ajustar os filtros de busca</div>
+                  <div className="font-semibold mb-1">
+                    Nenhum pedido encontrado
+                  </div>
+                  <div className="text-sm">
+                    Tente ajustar os filtros de busca
+                  </div>
                 </div>
               </div>
             )}
