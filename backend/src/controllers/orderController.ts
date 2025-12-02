@@ -12,6 +12,7 @@ import {
     cancelOrderService,
     deleteOrderService
 } from "../services/orderService";
+import { syncOlistShopeeOrders } from "../services/integrations/olistSync";
 import { NextFunction, Request, Response } from "express";
 
 // Criar um novo pedido (user)
@@ -270,3 +271,20 @@ export const deleteOrder = async (req: Request, res: Response, next: NextFunctio
         return next(error);
     }
 };
+
+// **** SINCRONIZAÇÃO OLIST **** //
+// Sincronizar pedidos da Olist (admin)
+export const olistSyncHandler = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.params.dataInicial || !req.params.dataFinal) {
+        const error = new Error("Datas não fornecidas.");
+        (error as any).statusCode = 400;
+        return next(error);
+    }
+    try {
+        await syncOlistShopeeOrders(req.params.dataInicial, req.params.dataFinal, "");
+
+        return res.status(200).json({ message: "Sincronização da Olist concluída com sucesso." });
+    } catch (error) {
+        return next(error);
+    }
+}

@@ -10,6 +10,7 @@ import {
   fetchShipOrder,
   fetchCancelOrder,
   fetchDeleteOrder,
+  fetchOlistSync
 } from "../lib/api.js";
 import { formatCurrencyBRL } from "../utils/utils.js";
 import { useRouter } from "next/navigation";
@@ -105,7 +106,7 @@ export default function AdminHome() {
     setLoading(true);
     setSystemStatus("loading");
     try {
-      const data = await handleFilterByDate(orderDate);
+      const data = await fetchOlistSync(orderDate, orderDate);
 
       // Define status do sistema baseado na resposta
       if (data && Array.isArray(data.orders)) {

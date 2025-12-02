@@ -203,3 +203,13 @@ export async function fetchDashboardStats(startDate, endDate) {
   });
   return handleResponse(res);
 }
+
+// **** SINCRONIZAÇÃO OLIST **** //
+// Sincronizar pedidos da Olist (admin)
+export async function fetchOlistSync(dataInicial, dataFinal) {
+  const res = await fetch(`${API_URL}/api/orders/olistSync/${dataInicial}/${dataFinal}`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse(res);
+}

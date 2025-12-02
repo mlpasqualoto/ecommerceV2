@@ -12,6 +12,7 @@ import {
   shipOrder,
   cancelOrder,
   deleteOrder,
+  olistSyncHandler,
 } from "../controllers/orderController";
 import authenticateToken from "../middlewares/authMiddleware";
 import { authorizeRole } from "../middlewares/authRoleMiddleware"
@@ -58,5 +59,9 @@ router.patch("/:id/cancel", authenticateToken, sensitiveActionLimiter, cancelOrd
 
 // Deletar um pedido (admin)
 router.delete("/:id/delete", authenticateToken, authorizeRole("admin"), publicActionLimiter, deleteOrder);
+
+// **** SINCRONIZAÇÃO OLIST **** //
+// Sincronizar pedidos da Olist (admin)
+router.get("/olistSync/:dataInicial/:dataFinal", authenticateToken, authorizeRole("admin"), sensitiveActionLimiter, olistSyncHandler);
 
 export default router;
