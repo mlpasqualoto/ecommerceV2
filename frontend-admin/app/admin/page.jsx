@@ -443,18 +443,24 @@ export default function AdminHome() {
   };
 
   const handleEditSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
-    if (!editOrder) return;
-    await handleUpdateOrder(editOrder._id, {
-      productId: editForm.productId,
-      quantity: Number(editForm.quantity),
-      status: editForm.status,
-      totalCost: Number(editForm.totalCost),
-      totalAmount: Number(editForm.totalAmount),
-    });
-    closeEditModal();
+    try {
+      await handleUpdateOrder(editOrder._id, {
+        productId: editForm.productId,
+        quantity: Number(editForm.quantity),
+        status: editForm.status,
+        totalCost: Number(editForm.totalCost),
+        totalAmount: Number(editForm.totalAmount),
+      });
+    } catch (err) {
+      console.error("Erro ao atualizar pedido:", err);
+    } finally {
+      setLoading(false);
+      closeEditModal();
+    }
   };
-
+  
   useEffect(() => {
     const loadOrders = async () => {
       setLoading(true);
