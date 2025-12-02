@@ -1336,35 +1336,52 @@ export default function Dashboard() {
                   </defs>
                 </svg>
 
-                {/* Tooltip Pedidos por Dia do Mês */}
+                {/* Tooltip Pedidos por Dia do Mês - AJUSTADO */}
                 {tooltipDayOfMonth !== null &&
                   filteredOrdersByDayOfMonth[tooltipDayOfMonth] && (
                     <div
-                      className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
+                      className="fixed bg-slate-900/95 backdrop-blur-sm text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl pointer-events-none z-[9999]"
                       style={{
-                        left: `${((60 + tooltipDayOfMonth * 25) / 800) * 100}%`,
+                        left: `${(() => {
+                          const svgContainer = document.querySelector(
+                            'svg[viewBox="0 0 800 200"]'
+                          );
+                          if (!svgContainer) return "50%";
+                          const rect = svgContainer.getBoundingClientRect();
+                          const xPos = ((60 + tooltipDayOfMonth * 25) / 800) * rect.width;
+                          return `${rect.left + xPos}px`;
+                        })()}`,
                         top: `${(() => {
+                          const svgContainer = document.querySelector(
+                            'svg[viewBox="0 0 800 200"]'
+                          );
+                          if (!svgContainer) return "50%";
+                          const rect = svgContainer.getBoundingClientRect();
                           const maxOrders = Math.max(
                             ...filteredOrdersByDayOfMonth.map((d) => d.orders)
                           );
                           const yScale = Math.ceil(maxOrders * 1.1);
-                          return (
+                          const yPos =
                             ((160 -
-                              (filteredOrdersByDayOfMonth[tooltipDayOfMonth]
-                                .orders / yScale) *
-                              140) /
+                              (filteredOrdersByDayOfMonth[tooltipDayOfMonth].orders /
+                                yScale) *
+                                140) /
                               200) *
-                              100 -
-                            25
-                          );
-                        })()}%`,
-                        transform: "translate(-50%, -100%)",
-                        pointerEvents: "none",
-                        zIndex: 10,
+                            rect.height;
+                          
+                          // Se estiver muito alto (>70%), mostra embaixo
+                          const percentage = (filteredOrdersByDayOfMonth[tooltipDayOfMonth].orders / yScale) * 100;
+                          if (percentage > 70) {
+                            return `${rect.top + yPos + 20}px`;
+                          }
+                          return `${rect.top + yPos - 80}px`;
+                        })()}`,
+                        transform: "translateX(-50%)",
+                        minWidth: "180px",
                       }}
                     >
                       <div className="text-center">
-                        <div className="font-bold text-emerald-300">
+                        <div className="font-bold text-emerald-300 text-sm">
                           {(() => {
                             const [year, month, day] =
                               filteredOrdersByDayOfMonth[tooltipDayOfMonth]._id.split(
@@ -1377,27 +1394,26 @@ export default function Dashboard() {
                             ).toLocaleDateString("pt-BR", {
                               day: "2-digit",
                               month: "short",
+                              year: "numeric",
                             });
                           })()}
                         </div>
-                        <div className="text-white mt-1">
-                          {filteredOrdersByDayOfMonth[tooltipDayOfMonth].orders} pedidos
+                        <div className="text-white mt-1 font-semibold">
+                          {filteredOrdersByDayOfMonth[tooltipDayOfMonth].orders} pedido
+                          {filteredOrdersByDayOfMonth[tooltipDayOfMonth].orders !== 1 ? "s" : ""}
                         </div>
-                        <div className="text-emerald-200 text-[10px]">
-                          {formatCurrency(
-                            filteredOrdersByDayOfMonth[tooltipDayOfMonth].revenue
-                          )}
+                        <div className="text-emerald-200 text-[11px] mt-1">
+                          {formatCurrency(filteredOrdersByDayOfMonth[tooltipDayOfMonth].revenue)}
                         </div>
                       </div>
+                      
+                      {/* Seta que inverte conforme posição */}
                       <div
-                        className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
-                        style={{
-                          width: 0,
-                          height: 0,
-                          borderLeft: "6px solid transparent",
-                          borderRight: "6px solid transparent",
-                          borderTop: "6px solid #0f172a",
-                        }}
+                        className={`absolute left-1/2 -translate-x-1/2 w-0 h-0 border-x-[8px] border-x-transparent ${
+                          ((filteredOrdersByDayOfMonth[tooltipDayOfMonth].orders / Math.ceil(Math.max(...filteredOrdersByDayOfMonth.map((d) => d.orders)) * 1.1)) * 100) > 70
+                            ? 'top-0 -translate-y-full border-b-[8px] border-b-slate-900/95'
+                            : 'bottom-0 translate-y-full border-t-[8px] border-t-slate-900/95'
+                        }`}
                       />
                     </div>
                   )}
