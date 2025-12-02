@@ -142,6 +142,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 
     // Garante data atual em UTC-3
     const currentDateBr = parseDataBr(dataInicial);
+    console.log(parseDataBr("02/12/2025"));
 
     logger.info("Chamando endpoint pedidos.pesquisa.php", { dataInicial, dataFinal, situacao });
     
@@ -282,7 +283,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             totalQuantity,
             status: mapStatus(detail.situacao ?? ""),
             source: "olist" as const,
-            createdAt: currentDateBr ?? undefined,
+            createdAt: currentDateBr,
           };
 
           if (items.length === 0 || totalQuantity < 1) {
@@ -378,7 +379,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
                 totalAmount,
                 totalQuantity,
                 status: mapStatus(detail.situacao ?? ""),
-                createdAt: currentDateBr ?? undefined,
+                createdAt: currentDateBr,
               }
             }
           );

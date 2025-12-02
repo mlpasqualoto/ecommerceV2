@@ -1327,7 +1327,7 @@ export default function AdminHome() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm min-w-[150px] cursor-pointer"
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm min-w-[150px] cursor-pointer placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
               >
                 <option value="all">Todos</option>
                 <option value="paid">Pago</option>
@@ -1351,7 +1351,7 @@ export default function AdminHome() {
                   hiddenDateRef.current?.showPicker?.() ||
                   hiddenDateRef.current?.click()
                 }
-                className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px]"
+                className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
               />
               <input
                 type="date"
