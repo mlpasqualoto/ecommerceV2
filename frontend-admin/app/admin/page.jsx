@@ -1848,7 +1848,7 @@ export default function AdminHome() {
                                         className="bi bi-credit-card"
                                         viewBox="0 0 24 24"
                                       >
-                                        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z" />
+                                        <path d="M0 4a2 2 0 0 1 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z" />
                                         <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
                                       </svg>
                                       Pagar
@@ -1888,7 +1888,7 @@ export default function AdminHome() {
                                         <path
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
-                                          strokeWidth="2"
+                                          strokeWidth={2}
                                           d="M6 18L18 6M6 6l12 12"
                                         />
                                       </svg>
@@ -2050,8 +2050,8 @@ export default function AdminHome() {
                               strokeLinejoin="round"
                               strokeWidth={2}
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
+                          />
+                        </svg>
                         </button>
                       </div>
                       <button
