@@ -1308,7 +1308,7 @@ export default function AdminHome() {
               <input
                 type="text"
                 name="orderId"
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono"
+                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                 placeholder="ID do pedido..."
               />
               <button
