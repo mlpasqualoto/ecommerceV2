@@ -207,7 +207,11 @@ export async function fetchDashboardStats(startDate, endDate) {
 // **** SINCRONIZAÇÃO OLIST **** //
 // Sincronizar pedidos da Olist (admin)
 export async function fetchOlistSync(dataInicial, dataFinal) {
-  const res = await fetch(`${API_URL}/api/orders/olistSync/${dataInicial}/${dataFinal}`, {
+  // Codifica as datas para substituir "/" por "%2F"
+  const encodedInicial = encodeURIComponent(dataInicial);
+  const encodedFinal = encodeURIComponent(dataFinal);
+
+  const res = await fetch(`${API_URL}/api/orders/olistSync/${encodedInicial}/${encodedFinal}`, {
     method: "GET",
     credentials: "include",
   });
