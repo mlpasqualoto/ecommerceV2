@@ -106,7 +106,9 @@ export default function AdminHome() {
     setLoading(true);
     setSystemStatus("loading");
     try {
+      console.log("Atualizando pedidos para a data:", orderDate);
       const data = await fetchOlistSync(orderDate, orderDate);
+      console.log("Sincronização Olist concluída:", data);
 
       // Define status do sistema baseado na resposta
       if (data && Array.isArray(data.orders)) {
