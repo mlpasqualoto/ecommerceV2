@@ -106,8 +106,10 @@ export default function AdminHome() {
     setLoading(true);
     setSystemStatus("loading");
     try {
-      console.log("Atualizando pedidos para a data:", orderDate);
-      const data = await fetchOlistSync(orderDate, orderDate);
+      const formattedDate = formatBR(orderDate);
+      console.log("Atualizando pedidos para a data:", formattedDate);
+      
+      const data = await fetchOlistSync(formattedDate, formattedDate);
       console.log("Sincronização Olist concluída:", data);
 
       // Define status do sistema baseado na resposta
@@ -1861,7 +1863,7 @@ export default function AdminHome() {
                                         className="bi bi-truck"
                                         viewBox="0 0 24 24"
                                       >
-                                        <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5  0  0 0 1 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                                        <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0  0 0 1 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
                                       </svg>
                                       Enviar
                                     </button>
@@ -2024,8 +2026,8 @@ export default function AdminHome() {
                               strokeLinejoin="round"
                               strokeWidth={2}
                               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
+                          />
+                        </svg>
                         </button>
                         <button
                           onClick={() =>
