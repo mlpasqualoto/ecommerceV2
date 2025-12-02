@@ -818,18 +818,36 @@ export default function AdminHome() {
             {/* Cards de estatísticas - Grid responsivo */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:flex lg:items-center lg:space-x-4 animate-fadeInRight">
               {/* Card Total de Pedidos */}
-              <div className="text-right">
-                <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
-                  {orders.length}
-                </div>
-                <div className="text-sm text-slate-500 mt-1">
-                  {orders.length === 1 ? "pedido listado" : "pedidos listados"}
-                </div>
-                <div className="flex items-center justify-end space-x-1 mt-2">
-                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                  <span className="text-xs text-green-600 font-medium">
-                    Ativo
-                  </span>
+              <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-xl">
+                    <svg
+                      className="w-7 h-7 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
+                      {orders.length}
+                    </div>
+                    <div className="text-sm text-slate-500 mt-1">
+                      {orders.length === 1 ? 'pedido listado' : 'pedidos listados'}
+                    </div>
+                    <div className="flex items-center justify-end space-x-1 mt-2">
+                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                      <span className="text-xs text-green-600 font-medium">Ativo</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
