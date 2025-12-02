@@ -106,11 +106,12 @@ export default function AdminHome() {
     setLoading(true);
     setSystemStatus("loading");
     try {
-      const formattedDate = formatBR(orderDate);
-      console.log("Atualizando pedidos para a data:", formattedDate);
-      
-      const data = await fetchOlistSync(formattedDate, formattedDate);
-      console.log("Sincronização Olist concluída:", data);
+      // Sincroniza com Olist antes de buscar (alimenta banco de dados)
+      const formattedDate = formatBR(orderDate);    
+      await fetchOlistSync(formattedDate, formattedDate);
+
+      // Busca dados atualizados no banco de dados
+      const data = await fetchOrderByDate(orderDate);
 
       // Define status do sistema baseado na resposta
       if (data && Array.isArray(data.orders)) {
