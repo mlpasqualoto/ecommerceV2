@@ -1339,30 +1339,33 @@ export default function AdminHome() {
             </div>
 
             {/* Data */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative">
               <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
                 Data:
               </label>
-              <input
-                type="text"
-                value={formatBR(orderDate)}
-                readOnly
-                onClick={() =>
-                  hiddenDateRef.current?.showPicker?.() ||
-                  hiddenDateRef.current?.click()
-                }
-                className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
-              />
-              <input
-                type="date"
-                ref={hiddenDateRef}
-                value={orderDate}
-                onChange={(e) => {
-                  setOrderDate(e.target.value);
-                  handleFilterByDate(e.target.value);
-                }}
-                className="sr-only"
-              />
+              
+              {/* Input visível (formatado) */}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formatBR(orderDate)}
+                  readOnly
+                  onClick={() => hiddenDateRef.current?.showPicker?.()}
+                  className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                />
+                
+                {/* Input date SOBREPOSTO (invisível mas clicável) */}
+                <input
+                  type="date"
+                  ref={hiddenDateRef}
+                  value={orderDate}
+                  onChange={(e) => {
+                    setOrderDate(e.target.value);
+                    handleFilterByDate(e.target.value);
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+              </div>
             </div>
 
             {/* Botão Novo Pedido */}
@@ -1443,10 +1446,7 @@ export default function AdminHome() {
                   type="text"
                   value={formatBR(orderDate)}
                   readOnly
-                  onClick={() =>
-                    hiddenDateRef.current?.showPicker?.() ||
-                    hiddenDateRef.current?.click()
-                  }
+                  onClick={() => hiddenDateRef.current?.showPicker?.()}
                   className="px-3 py-2 sm:px-4 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl text-sm font-mono cursor-pointer"
                 />
                 <input
@@ -2133,7 +2133,7 @@ export default function AdminHome() {
                     strokeLinejoin="round"
                     strokeWidth="1"
                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                  />
+                />
                 </svg>
                 <div className="text-slate-500">
                   <div className="font-semibold mb-1">
@@ -2150,7 +2150,7 @@ export default function AdminHome() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-xs sm:text-sm text-slate-500">
-          <p>Total de {orders.length} pedidos listados</p>
+          <p>Painel de Administração • Total de {orders.length} pedidos listados</p>
         </div>
       </div>
 
