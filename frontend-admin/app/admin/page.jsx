@@ -1443,21 +1443,14 @@ export default function AdminHome() {
                   Data:
                 </label>
                 <input
-                  type="text"
-                  value={formatBR(orderDate)}
-                  readOnly
-                  onClick={() => hiddenDateRef.current?.showPicker?.()}
-                  className="px-3 py-2 sm:px-4 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl text-sm font-mono cursor-pointer"
-                />
-                <input
                   type="date"
-                  ref={hiddenDateRef}
+                  //ref={hiddenDateRef}
                   value={orderDate}
                   onChange={(e) => {
                     setOrderDate(e.target.value);
                     handleFilterByDate(e.target.value);
                   }}
-                  className="sr-only"
+                  className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                 />
               </div>
             </div>
