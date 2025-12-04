@@ -9,35 +9,33 @@ export default function AdminLayout({ children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const router = useRouter();
-  const pathname = usePathname(); // Hook nativo para pegar a rota atual
+  const pathname = usePathname();
 
-  // Lista de rotas públicas onde a verificação de auth NÃO deve ocorrer
+  // Lista de rotas públicas
   const publicRoutes = ["/login", "/register", "/forgot-password"];
-  
-  // Verifica se a rota atual é pública
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  // Função de verificação de autenticação isolada
   const checkAuth = useCallback(async (isBackgroundCheck = false) => {
-    // SE JÁ ESTIVER NA PÁGINA DE LOGIN, NÃO FAZ NADA.
+    // 1. Evita loop se já estiver no login
     if (isPublicRoute) {
       setIsLoading(false);
       return;
     }
 
     try {
-      const res = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/me", {
+      // TÉCNICA CACHE BUSTER:
+      // Adicionamos ?t=timestamp para garantir que a requisição seja sempre única.
+      // Isso evita cache SEM precisar enviar headers que quebram o CORS.
+      const timestamp = new Date().getTime();
+      
+      const res = await fetch(`https://ecommercev2-rg6c.onrender.com/api/users/me?t=${timestamp}`, {
         method: "GET",
-        credentials: "include",
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
+        credentials: "include", // Mantém os cookies
+        // REMOVIDO: headers de Cache-Control que causavam o erro de CORS
       });
 
-      // Se der 401 (Não autorizado) ou 403 (Proibido)
+      // Se der 401/403 e não estivermos no login, redireciona
       if (res.status === 401 || res.status === 403) {
-        // Só redireciona se não estivermos já no login
         if (!isPublicRoute) {
           console.warn("Sessão expirada. Redirecionando...");
           router.push("/login");
@@ -46,6 +44,7 @@ export default function AdminLayout({ children }) {
       }
 
       if (!res.ok) {
+        // Se for outro erro, lançamos para cair no catch, mas sem forçar logout imediato se for erro de servidor
         throw new Error(`Erro na API: ${res.status}`);
       }
 
@@ -59,11 +58,13 @@ export default function AdminLayout({ children }) {
     } catch (error) {
       console.error("Erro ao verificar autenticação:", error);
       
-      // Se for um erro de rede (Failed to fetch) e NÃO estivermos no login, redireciona.
-      // Se já estivermos no login, deixamos o usuário tentar logar manualmente pelo formulário.
-      if (!isPublicRoute) {
-        router.push("/login");
-      }
+      // Lógica de segurança: Se falhar o fetch (ex: rede off) não desloga imediatamente
+      // a menos que seja explicitamente um erro de auth tratado acima.
+      // Mas para garantir segurança, se o usuário tentar navegar e der erro,
+      // você pode optar por redirecionar ou mostrar um aviso.
+      
+      // Neste caso, se for erro de rede, mantemos o usuário na tela, 
+      // mas se a resposta foi processada acima como 401, ele já foi redirecionado.
     } finally {
       if (!isBackgroundCheck) {
         setIsLoading(false);
@@ -72,21 +73,20 @@ export default function AdminLayout({ children }) {
   }, [router, pathname, isPublicRoute]);
 
   useEffect(() => {
-    // Se for rota pública, nem inicia o processo de verificação, apenas libera o loading
     if (isPublicRoute) {
       setIsLoading(false);
       return;
     }
 
-    // 1. Verificação inicial
+    // Verificação inicial
     checkAuth(false);
 
-    // 2. Intervalo (Polling) a cada 60s
+    // Polling a cada 60s
     const intervalId = setInterval(() => {
       checkAuth(true);
     }, 60000); 
 
-    // 3. Verificação ao focar na janela
+    // Verificação ao focar na janela
     const handleFocus = () => checkAuth(true);
     window.addEventListener("focus", handleFocus);
 
@@ -157,14 +157,10 @@ export default function AdminLayout({ children }) {
     }
   ];
 
-  // Renderização Condicional:
-  // Se for uma rota pública (ex: Login), renderiza apenas o conteúdo (sem sidebar)
-  // Isso evita que a Sidebar apareça na tela de login
   if (isPublicRoute) {
     return <>{children}</>;
   }
 
-  // Loading state para rotas protegidas
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
@@ -178,7 +174,6 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-slate-50">
-      {/* Overlay para mobile */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -186,7 +181,6 @@ export default function AdminLayout({ children }) {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50
@@ -196,7 +190,6 @@ export default function AdminLayout({ children }) {
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        {/* Header da Sidebar */}
         <div className="p-4 sm:p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -222,7 +215,6 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
 
-        {/* Menu de Navegação */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => (
             <button
@@ -247,7 +239,6 @@ export default function AdminLayout({ children }) {
           ))}
         </nav>
 
-        {/* Status */}
         <div className="p-4 border-t border-slate-200">
           <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200">
             <div className="flex items-center space-x-3">
@@ -264,7 +255,6 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
 
-        {/* Logout */}
         <div className="p-4 border-t border-slate-200">
           <button
             onClick={handleLogout}
@@ -290,9 +280,7 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Conteúdo Principal */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header Mobile */}
         <header className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -315,7 +303,6 @@ export default function AdminLayout({ children }) {
           <div className="w-10"></div>
         </header>
 
-        {/* Conteúdo */}
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>
