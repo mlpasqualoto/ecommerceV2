@@ -1,39 +1,52 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function AdminLayout({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [currentPath, setCurrentPath] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const router = useRouter();
+  const pathname = usePathname(); // Hook nativo para pegar a rota atual
 
-  // Atualiza currentPath baseado na URL atual
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setCurrentPath(window.location.pathname);
-    }
-  }, []);
+  // Lista de rotas públicas onde a verificação de auth NÃO deve ocorrer
+  const publicRoutes = ["/login", "/register", "/forgot-password"];
+  
+  // Verifica se a rota atual é pública
+  const isPublicRoute = publicRoutes.includes(pathname);
 
-  // Função de verificação de autenticação isolada (useCallback para estabilidade)
+  // Função de verificação de autenticação isolada
   const checkAuth = useCallback(async (isBackgroundCheck = false) => {
+    // SE JÁ ESTIVER NA PÁGINA DE LOGIN, NÃO FAZ NADA.
+    if (isPublicRoute) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/me", {
         method: "GET",
         credentials: "include",
         headers: {
-          'Cache-Control': 'no-cache', // Garante que não pegue cache do navegador
+          'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         }
       });
 
-      // Se der 401 (Não autorizado) ou 403 (Proibido), redireciona
-      if (res.status === 401 || res.status === 403 || !res.ok) {
-        console.warn("Sessão expirada ou inválida. Redirecionando...");
-        router.push("/login");
+      // Se der 401 (Não autorizado) ou 403 (Proibido)
+      if (res.status === 401 || res.status === 403) {
+        // Só redireciona se não estivermos já no login
+        if (!isPublicRoute) {
+          console.warn("Sessão expirada. Redirecionando...");
+          router.push("/login");
+        }
         return;
+      }
+
+      if (!res.ok) {
+        throw new Error(`Erro na API: ${res.status}`);
       }
 
       const data = await res.json();
@@ -45,46 +58,52 @@ export default function AdminLayout({ children }) {
 
     } catch (error) {
       console.error("Erro ao verificar autenticação:", error);
-      // Se for erro de rede, talvez não queira deslogar imediatamente, 
-      // mas se for erro de auth, sim. Por segurança, redireciona.
-      router.push("/login");
+      
+      // Se for um erro de rede (Failed to fetch) e NÃO estivermos no login, redireciona.
+      // Se já estivermos no login, deixamos o usuário tentar logar manualmente pelo formulário.
+      if (!isPublicRoute) {
+        router.push("/login");
+      }
     } finally {
-      // Só remove o loading se não for uma verificação de fundo
       if (!isBackgroundCheck) {
         setIsLoading(false);
       }
     }
-  }, [router]);
+  }, [router, pathname, isPublicRoute]);
 
   useEffect(() => {
-    // 1. Verificação inicial (mostra loading)
+    // Se for rota pública, nem inicia o processo de verificação, apenas libera o loading
+    if (isPublicRoute) {
+      setIsLoading(false);
+      return;
+    }
+
+    // 1. Verificação inicial
     checkAuth(false);
 
-    // 2. Configura intervalo para verificar a cada 60 segundos (polling)
+    // 2. Intervalo (Polling) a cada 60s
     const intervalId = setInterval(() => {
-      checkAuth(true); // true = verificação silenciosa (sem tela de loading)
+      checkAuth(true);
     }, 60000); 
 
-    // 3. Opcional: Verificar quando o usuário focar na janela novamente
+    // 3. Verificação ao focar na janela
     const handleFocus = () => checkAuth(true);
     window.addEventListener("focus", handleFocus);
 
-    // Cleanup
     return () => {
       clearInterval(intervalId);
       window.removeEventListener("focus", handleFocus);
     };
-  }, [checkAuth]);
+  }, [checkAuth, isPublicRoute]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
 
     try {
-      const res = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/logout", {
+      await fetch("https://ecommercev2-rg6c.onrender.com/api/users/logout", {
         method: "POST",
         credentials: "include",
       });
-
       router.push("/login");
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
@@ -95,9 +114,8 @@ export default function AdminLayout({ children }) {
   };
 
   const handleNavigate = (path) => {
-    setCurrentPath(path);
     router.push(path);
-    setIsMobileMenuOpen(false); // Fecha menu mobile ao navegar
+    setIsMobileMenuOpen(false);
   };
 
   const menuItems = [
@@ -139,14 +157,20 @@ export default function AdminLayout({ children }) {
     }
   ];
 
-  // Se estiver carregando a verificação INICIAL, mostra um loading full screen ou retorna null
-  // Isso evita "piscar" a tela de login ou conteúdo protegido antes da hora
+  // Renderização Condicional:
+  // Se for uma rota pública (ex: Login), renderiza apenas o conteúdo (sem sidebar)
+  // Isso evita que a Sidebar apareça na tela de login
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+
+  // Loading state para rotas protegidas
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-500 font-medium">Verificando credenciais...</p>
+          <p className="text-slate-500 font-medium">Verificando acesso...</p>
         </div>
       </div>
     );
@@ -154,7 +178,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-slate-50">
-      {/* Overlay para mobile (fecha menu ao clicar fora) */}
+      {/* Overlay para mobile */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -162,7 +186,7 @@ export default function AdminLayout({ children }) {
         />
       )}
 
-      {/* Sidebar Desktop + Mobile Drawer */}
+      {/* Sidebar */}
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50
@@ -172,7 +196,7 @@ export default function AdminLayout({ children }) {
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        {/* Header com botão fechar (mobile) */}
+        {/* Header da Sidebar */}
         <div className="p-4 sm:p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -187,7 +211,6 @@ export default function AdminLayout({ children }) {
               </div>
             </div>
 
-            {/* Botão fechar (apenas mobile) */}
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -206,25 +229,25 @@ export default function AdminLayout({ children }) {
               key={item.path}
               onClick={() => handleNavigate(item.path)}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer ${
-                currentPath === item.path
+                pathname === item.path
                   ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
               <div className={`transition-transform duration-200 ${
-                currentPath === item.path ? "" : "group-hover:scale-110"
+                pathname === item.path ? "" : "group-hover:scale-110"
               }`}>
                 {item.icon}
               </div>
               <span className="font-medium text-sm">{item.label}</span>
-              {currentPath === item.path && (
+              {pathname === item.path && (
                 <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
               )}
             </button>
           ))}
         </nav>
 
-        {/* Seção de Status */}
+        {/* Status */}
         <div className="p-4 border-t border-slate-200">
           <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200">
             <div className="flex items-center space-x-3">
@@ -241,7 +264,7 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
 
-        {/* Botão de Logout */}
+        {/* Logout */}
         <div className="p-4 border-t border-slate-200">
           <button
             onClick={handleLogout}
@@ -267,9 +290,9 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Área de Conteúdo com Botão Hamburguer Mobile */}
+      {/* Conteúdo Principal */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header Mobile (apenas em telas pequenas) */}
+        {/* Header Mobile */}
         <header className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -289,10 +312,10 @@ export default function AdminLayout({ children }) {
             <span className="text-sm font-bold text-slate-900">Admin Panel</span>
           </div>
 
-          <div className="w-10"></div> {/* Spacer para centralizar logo */}
+          <div className="w-10"></div>
         </header>
 
-        {/* Conteúdo Principal */}
+        {/* Conteúdo */}
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>
@@ -303,12 +326,9 @@ export default function AdminLayout({ children }) {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-
         .animate-fadeIn {
           animation: fadeIn 0.6s ease-out forwards;
         }
-
-        /* Previne scroll quando menu mobile está aberto */
         body:has(.mobile-menu-open) {
           overflow: hidden;
         }
