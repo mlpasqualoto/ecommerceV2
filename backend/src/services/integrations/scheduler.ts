@@ -6,8 +6,8 @@ export function startSchedulers() {
   cron.schedule("*/2 * * * *", async () => {
     console.log("⏱️ Iniciando sincronização da Olist...", new Date().toISOString());
     try {
-      const dataInicial = "03/12/2025";
-      const dataFinal = "03/12/2025";
+      const dataInicial = "04/12/2025";
+      const dataFinal = "04/12/2025";
       await syncOlistShopeeOrders(dataInicial, dataFinal, "");
       console.log("✅ Sincronização da Olist finalizada", new Date().toISOString());
     } catch (error) {
