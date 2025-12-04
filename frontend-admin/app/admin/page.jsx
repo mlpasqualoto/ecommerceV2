@@ -156,31 +156,46 @@ export default function AdminHome() {
       };
 
       let count = 0;
-      const exportData = orders.map((order) => ({
-        Qte: ++count,
-        ID: order._id,
-        Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
-        Cliente: order.name,
-        Status: getStatusText(order.status),
-        "Total Recebido": formatNumber(order.totalAmount),
-        "Taxa Shopee": formatNumber(
-          (["paid", "shipped", "delivered"].includes(order.status)
-            ? order.totalAmount * 0.2
-            : 0) +
-            (["paid", "shipped", "delivered"].includes(order.status)
-              ? order.totalQuantity * 5.0
-              : 0)
-        ),
-        "Total Custo": formatNumber(
-          ["paid", "shipped", "delivered"].includes(order.status)
-            ? order.totalCost || 0
-            : 0
-        ),
-        Produtos: order.items
-          .map((item) => `${item.name} (${item.quantity}x)`)
-          .join(", "),
-        "Total de Itens": order.totalQuantity,
-      }));
+      const exportData = orders.map((order) => {
+        // 1. Verifica se o status conta para custos (apenas pagos/enviados/entregues)
+        const isConfirmed = ["paid", "shipped", "delivered"].includes(order.status);
+
+        // 2. Valores Base
+        const totalAmount = order.totalAmount || 0;
+        const totalQuantity = order.totalQuantity || 0;
+        const totalCost = order.totalCost || 0;
+
+        // 3. Cálculo da Taxa Shopee (20% + R$5 por item)
+        const shopeeTax = isConfirmed 
+          ? (totalAmount * 0.20) + (totalQuantity * 5.0) 
+          : 0;
+
+        // 4. Custo considerado (apenas se confirmado)
+        const consideredCost = isConfirmed ? totalCost : 0;
+
+        // 5. Cálculo do Lucro Bruto
+        // Fórmula: Total Recebido - (Taxa Shopee + Total Custo)
+        // Se o pedido não estiver confirmado, o lucro é 0 (para não distorcer o relatório)
+        const grossProfit = isConfirmed 
+          ? totalAmount - (shopeeTax + consideredCost) 
+          : 0;
+
+        return {
+          Qte: ++count,
+          ID: order._id,
+          Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
+          Cliente: order.name,
+          Status: getStatusText(order.status),
+          "Total Recebido": formatNumber(totalAmount),
+          "Taxa Shopee": formatNumber(shopeeTax),
+          "Total Custo": formatNumber(consideredCost),
+          "Lucro Bruto": formatNumber(grossProfit),
+          Produtos: order.items
+            .map((item) => `${item.name} (${item.quantity}x)`)
+            .join(", "),
+          "Total de Itens": totalQuantity,
+        }
+    });
 
       const totalPaid = orders
         .filter((order) => order.status === "paid")
