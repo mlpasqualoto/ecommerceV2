@@ -6,7 +6,6 @@ export function startSchedulers() {
   cron.schedule("*/2 * * * *", async () => {
     console.log("⏱️ Iniciando sincronização da Olist...", new Date().toISOString());
     try {
-      // ajuste o formato das datas conforme a API (ex: "2025-11-15" se a API esperar YYYY-MM-DD)
       const dataInicial = "03/12/2025";
       const dataFinal = "03/12/2025";
       await syncOlistShopeeOrders(dataInicial, dataFinal, "");
