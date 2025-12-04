@@ -183,6 +183,7 @@ export default function AdminHome() {
         return {
           Qte: ++count,
           ID: order._id,
+          "ID Ecommerce": order.name.split("Ecommerce")[1]?.trim() || "",
           Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
           Cliente: order.name,
           Status: getStatusText(order.status),
