@@ -6,19 +6,18 @@ export function isValidDate(dateString: string): boolean {
 export function parseDataBr(dataBr: string): Date {
   const [dia, mes, ano] = dataBr.split('/');
   
-  // obtém a hora ATUAL em UTC
+  // ✅ Cria data em UTC com a hora atual em UTC
   const now = new Date();
-  const utcHour = now.getUTCHours();
-  const utcMinute = now.getUTCMinutes();
-  const utcSecond = now.getUTCSeconds();
   
-  // subtrai 3 horas da UTC para obter hora de Brasília
-  const brasiliaHour = utcHour - 3;
-  
-  // cria string ISO com timezone de Brasília
-  const isoString = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}T${brasiliaHour.toString().padStart(2, '0')}:${utcMinute.toString().padStart(2, '0')}:${utcSecond.toString().padStart(2, '0')}-03:00`;
-  
-  const date = new Date(isoString);
+  // Cria a data no meio-dia (12h) para evitar problemas de timezone
+  const date = new Date(Date.UTC(
+    parseInt(ano),
+    parseInt(mes) - 1,
+    parseInt(dia),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds()
+  ));
   
   return date;
 }
