@@ -6,15 +6,15 @@ export function isValidDate(dateString: string): boolean {
 export function parseDataBr(dataBr: string): Date {
   const [dia, mes, ano] = dataBr.split('/');
   
-  // ✅ Cria data em UTC com a hora atual em UTC
+  // cria data em UTC com a hora atual
   const now = new Date();
   
-  // Cria a data no meio-dia (12h) para evitar problemas de timezone
+  // subtrai 3 horas para ajustar de UTC para Brasília (UTC-3)
   const date = new Date(Date.UTC(
     parseInt(ano),
     parseInt(mes) - 1,
     parseInt(dia),
-    now.getUTCHours(),
+    now.getUTCHours() - 3, // subtrai 3 horas
     now.getUTCMinutes(),
     now.getUTCSeconds()
   ));
