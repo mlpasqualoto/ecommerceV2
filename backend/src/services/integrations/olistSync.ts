@@ -372,7 +372,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               $set: {
                 userId: olistUserId,
                 userName: detail.nome || detail.cliente?.nome || "Cliente Olist",
-                name: `Pedido Olist nº ${detail.numero ?? ''}, nº Ecommerce ${detail.numero_ecommerce ?? ''}`,
+                name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, nº Ecommerce ${detail.numero_ecommerce ?? ''}`,
                 shippingAddress: endereco_entrega,
                 buyerPhone: detail.cliente?.fone ?? "",
                 items,
