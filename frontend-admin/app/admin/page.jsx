@@ -1344,12 +1344,13 @@ export default function AdminHome() {
                 Data:
               </label>
               {/* Input visível (formatado) */}
-              <div className="relative">
+              <div className="relative min-w-[130px]">
                 <input
                   type="text"
                   value={formatBR(orderDate)}
                   readOnly
-                  onClick={() => hiddenDateRef.current?.showPicker?.()}
+                  placeholder="Selecione a data"
+                  style={{ pointerEvents: 'none' }}
                   className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                 />
                 
@@ -1362,7 +1363,8 @@ export default function AdminHome() {
                     setOrderDate(e.target.value);
                     handleFilterByDate(e.target.value);
                   }}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  style={{ WebkitAppearance: 'none' }}
                 />
               </div>
             </div>
