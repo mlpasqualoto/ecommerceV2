@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 export default function AdminLayout({ children }) {
@@ -12,39 +12,69 @@ export default function AdminLayout({ children }) {
 
   // Atualiza currentPath baseado na URL atual
   useEffect(() => {
-    setCurrentPath(window.location.pathname);
+    if (typeof window !== 'undefined') {
+      setCurrentPath(window.location.pathname);
+    }
   }, []);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/me", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          router.push("/login");
-          return;
+  // Função de verificação de autenticação isolada (useCallback para estabilidade)
+  const checkAuth = useCallback(async (isBackgroundCheck = false) => {
+    try {
+      const res = await fetch("https://ecommercev2-rg6c.onrender.com/api/users/me", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          'Cache-Control': 'no-cache', // Garante que não pegue cache do navegador
+          'Pragma': 'no-cache'
         }
+      });
 
-        const data = await res.json();
-
-        if (data.role !== "admin") {
-          router.push("/login");
-          return;
-        }
-
-      } catch (error) {
-        console.error("Erro ao verificar autenticação:", error);
+      // Se der 401 (Não autorizado) ou 403 (Proibido), redireciona
+      if (res.status === 401 || res.status === 403 || !res.ok) {
+        console.warn("Sessão expirada ou inválida. Redirecionando...");
         router.push("/login");
-      } finally {
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data.role !== "admin") {
+        router.push("/login");
+        return;
+      }
+
+    } catch (error) {
+      console.error("Erro ao verificar autenticação:", error);
+      // Se for erro de rede, talvez não queira deslogar imediatamente, 
+      // mas se for erro de auth, sim. Por segurança, redireciona.
+      router.push("/login");
+    } finally {
+      // Só remove o loading se não for uma verificação de fundo
+      if (!isBackgroundCheck) {
         setIsLoading(false);
       }
-    };
-
-    checkAuth();
+    }
   }, [router]);
+
+  useEffect(() => {
+    // 1. Verificação inicial (mostra loading)
+    checkAuth(false);
+
+    // 2. Configura intervalo para verificar a cada 60 segundos (polling)
+    const intervalId = setInterval(() => {
+      checkAuth(true); // true = verificação silenciosa (sem tela de loading)
+    }, 60000); 
+
+    // 3. Opcional: Verificar quando o usuário focar na janela novamente
+    const handleFocus = () => checkAuth(true);
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [checkAuth]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -108,6 +138,19 @@ export default function AdminLayout({ children }) {
       )
     }
   ];
+
+  // Se estiver carregando a verificação INICIAL, mostra um loading full screen ou retorna null
+  // Isso evita "piscar" a tela de login ou conteúdo protegido antes da hora
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-500 font-medium">Verificando credenciais...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-slate-50">
