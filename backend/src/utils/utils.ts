@@ -6,18 +6,15 @@ export function isValidDate(dateString: string): boolean {
 export function parseDataBr(dataBr: string): Date {
   const [dia, mes, ano] = dataBr.split('/');
   
-  // cria data UTC e depois converte pra Brasília
-  const date = new Date(Date.UTC(
+  // cria data LOCAL do servidor (já considera timezone automaticamente)
+  const date = new Date(
     parseInt(ano),
-    parseInt(mes) - 1, // mês começa em 0
+    parseInt(mes) - 1,
     parseInt(dia),
-    new Date().getUTCHours(),
-    new Date().getUTCMinutes(),
-    new Date().getUTCSeconds()
-  ));
-  
-  // Ajusta de UTC para UTC-3 (Brasília)
-  date.setUTCHours(date.getUTCHours() - 3);
+    new Date().getHours(),
+    new Date().getMinutes(),
+    new Date().getSeconds()
+  );
   
   return date;
 }
