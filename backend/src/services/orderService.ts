@@ -88,11 +88,10 @@ export async function getOrderByIdService(orderId: string, user: { id: string, r
         
         order = await Order.findOne({
             $or: [
-                // Busca exata pelo ID da Olist (ex: "917349129")
+                // busca exata pelo ID da Olist (ex: "917349129")
                 { externalId: orderId }, 
                 
-                // ✅ CORREÇÃO: Busca o termo em QUALQUER lugar do nome
-                // Isso vai encontrar tanto "808" quanto "251205JKF72H0U"
+                // busca o termo em QUALQUER lugar do nome
                 { name: { $regex: escapedOrderId, $options: 'i' } } 
             ]
         });
