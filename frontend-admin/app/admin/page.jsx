@@ -168,7 +168,8 @@ export default function AdminHome() {
         // 3. Cálculo da Taxa Shopee (20% + R$5 por item)
         const shopeeTax = isConfirmed 
           ? (totalAmount * 0.20) + (totalQuantity * 5.0) 
-          : 0;
+          : 0
+        ;
 
         // 4. Custo considerado (apenas se confirmado)
         const consideredCost = isConfirmed ? totalCost : 0;
@@ -178,14 +179,35 @@ export default function AdminHome() {
         // Se o pedido não estiver confirmado, o lucro é 0 (para não distorcer o relatório)
         const grossProfit = isConfirmed 
           ? totalAmount - (shopeeTax + consideredCost) 
-          : 0;
+          : 0
+        ;
+
+        // 6. Extração do ID Olist do nome do pedido
+        const text = order.name; // usado para extração de ID Olist e nome cliente
+        const regexOlistId = /Pedido Olist nº (\d+)/;
+        const matchOlistId = text.match(regexOlistId);
+
+        let olistId = "";
+        if (matchOlistId && matchOlistId[1]) {
+          olistId = matchOlistId[1];
+        }
+
+        //7. Extração do nome do cliente
+        const regexClientName = /em nome de (.*?),/;
+        const matchClientName = text.match(regexClientName);
+
+        let clientName = "";
+        if (matchClientName && matchClientName[1]) {
+          clientName = matchClientName[1];
+        }
 
         return {
           Qte: ++count,
           ID: order._id,
           "ID Ecommerce": order.name.split("Ecommerce")[1]?.trim() || "",
+          "ID Olist": olistId || "",
           Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
-          Cliente: order.name,
+          Cliente: clientName || "",
           Status: getStatusText(order.status),
           "Total Recebido": formatNumber(totalAmount),
           "Taxa Shopee": formatNumber(shopeeTax),
