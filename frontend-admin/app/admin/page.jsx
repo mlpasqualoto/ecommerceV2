@@ -1341,7 +1341,7 @@ export default function AdminHome() {
               className="flex items-center gap-2 flex-1"
             >
               <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
-                Buscar pedido por ID:
+                Buscar por ID:
               </label>
               <input
                 type="text"
