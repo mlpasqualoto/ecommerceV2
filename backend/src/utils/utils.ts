@@ -11,18 +11,16 @@ export function parseDataBr(dataBr: string): Date {
   
   // Calcula a hora de Brasília (UTC-3)
   let brasiliaHour = now.getUTCHours() - 3;
-  let ajusteDia = 0;
   
   // Se a hora ficar negativa, ajusta para o mesmo dia
   if (brasiliaHour < 0) {
     brasiliaHour += 24; // -1 vira 23h
-    ajusteDia = 1; // Compensa adicionando 1 dia
   }
   
   const date = new Date(Date.UTC(
     parseInt(ano),
     parseInt(mes) - 1,
-    parseInt(dia), // ✅ Compensa o dia se necessário
+    parseInt(dia),
     brasiliaHour,
     now.getUTCMinutes(),
     now.getUTCSeconds()
