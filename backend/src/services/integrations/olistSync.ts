@@ -9,6 +9,9 @@ import { parseDataBr } from "../../utils/utils";
 
 dotenv.config();
 
+// ✅ Função auxiliar para pausar a execução (Sleep)
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // Cache para evitar queries repetidas DURANTE A MESMA EXECUÇÃO
 let olistUserCache: mongoose.Types.ObjectId | null = null;
 const productCache = new Map<string, { id: mongoose.Types.ObjectId; image: string }>();
@@ -140,9 +143,14 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
     olistUserCache = null;
     productCache.clear();
 
+    // variáveis de controle de Rate Limit
+    // começa com 1 pois faremos a requisição de pesquisa logo abaixo
+    let requestCount = 1; 
+    const MAX_REQUESTS_PER_MINUTE = 55; // Limite seguro (o oficial é 60)
+    const PAUSE_TIME_MS = 62000; // 62 segundos (1 min + 2s de margem)
+
     // Garante data atual em UTC-3
     const currentDateBr = parseDataBr(dataInicial);
-    console.log(parseDataBr("02/12/2025"));
 
     logger.info("Chamando endpoint pedidos.pesquisa.php", { dataInicial, dataFinal, situacao });
     
@@ -179,12 +187,25 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
     logger.info("Número de pedidos retornados", { count: orders.length });
 
     for (const order of orders) {
+      // VERIFICAÇÃO DE RATE LIMIT ANTES DE CADA DETALHE
+      if (requestCount >= MAX_REQUESTS_PER_MINUTE) {
+        logger.warn(`⚠️ Limite de requisições aproximado (${requestCount}). Pausando por ${PAUSE_TIME_MS / 1000} segundos para liberar API...`);
+        
+        await sleep(PAUSE_TIME_MS);
+        
+        requestCount = 0; // Reseta o contador após a pausa
+        logger.info("♻️ Retomando sincronização após pausa.");
+      }
+
       const externalId = order.pedido.id ?? "";
       
       try {
         // ⚠️ CORREÇÃO: Sempre busca detalhes primeiro (independente se existe ou não)
         const detail = await fetchOlistOrderDetails(externalId);
         
+        // incrementa contador após a requisição de detalhe
+        requestCount++;
+
         if (!detail) {
           logger.warn("Não foi possível obter detalhes do pedido, pulando", { externalId });
           continue;
