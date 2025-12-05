@@ -22,7 +22,7 @@ export function parseDataBr(dataBr: string): Date {
   const date = new Date(Date.UTC(
     parseInt(ano),
     parseInt(mes) - 1,
-    parseInt(dia) + ajusteDia, // ✅ Compensa o dia se necessário
+    parseInt(dia), // ✅ Compensa o dia se necessário
     brasiliaHour,
     now.getUTCMinutes(),
     now.getUTCSeconds()
