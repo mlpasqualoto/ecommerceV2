@@ -7,6 +7,11 @@ import {
     CreateOrderDTO
 } from "../types/orderTypes";
 import { isValidDate } from "../utils/utils";
+import { isValidObjectId } from "mongoose";
+
+const escapeEcommerceIdRegex = (text: string) => {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
 
 export async function createOrderService(userId: string, items: CreateOrderDTO[]): Promise<OrderServiceResult> {
     // Busca o usuário no banco para pegar o userName
@@ -70,11 +75,31 @@ export async function getOrdersService(userId: string): Promise<OrderServiceResu
 }
 
 export async function getOrderByIdService(orderId: string, user: { id: string, role: string } | undefined): Promise<OrderServiceResult> {
-    // Busca o pedido pelo ID
-    const order = await Order.findById(orderId);
+    let order;
 
+    // 1. Tenta pelo ID interno do MongoDB
+    if (isValidObjectId(orderId)) {
+        order = await Order.findById(orderId);
+    }
+
+    // 2. Se não achou, busca flexível
     if (!order) {
-        return { status: 404, message: "Pedido não encontrado" };
+        const escapedOrderId = escapeEcommerceIdRegex(orderId);
+        
+        order = await Order.findOne({
+            $or: [
+                // Busca exata pelo ID da Olist (ex: "917349129")
+                { externalId: orderId }, 
+                
+                // ✅ CORREÇÃO: Busca o termo em QUALQUER lugar do nome
+                // Isso vai encontrar tanto "808" quanto "251205JKF72H0U"
+                { name: { $regex: escapedOrderId, $options: 'i' } } 
+            ]
+        });
+    }
+ 
+    if (!order) { 
+        return { status: 404, message: "Pedido não encontrado" }; 
     }
 
     // Se não for admin e o pedido não for do usuário logado, bloqueia
