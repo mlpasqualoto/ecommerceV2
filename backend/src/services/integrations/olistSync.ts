@@ -26,11 +26,19 @@ async function getOrCreateUser(userName: string): Promise<{ userId: mongoose.Typ
     if (!user) {
       console.log("Usuário não encontrado, criando novo usuário Olist...");
       logger.info("Criando usuário genérico Olist");
+
+      // gera email único para cada e-commerce
+      const sanitizedUserName = userName
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+      const uniqueEmail = `${sanitizedUserName}@olist-sistema.com`;
+      
       user = await User.create({
         userName: userName,
         password: "Olist@123", // senha padrão
         name: "Cliente Olist",
-        email: "olist@sistema.com",
+        email: uniqueEmail,
         number: 0,
         // adicione outros campos obrigatórios do seu User model
       });
