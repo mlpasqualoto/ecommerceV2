@@ -18,9 +18,13 @@ const productCache = new Map<string, { id: mongoose.Types.ObjectId; image: strin
 // Garante que existe um usuário "Olist"
 async function getOrCreateUser(userName: string): Promise<{ userId: mongoose.Types.ObjectId; userName: string }> {
   try {
+    console.log("Buscando ou criando usuário Olist...", userName);
+
     let user = await User.findOne({ userName: userName });
+    console.log("Usuário encontrado:", user);
     
     if (!user) {
+      console.log("Usuário não encontrado, criando novo usuário Olist...");
       logger.info("Criando usuário genérico Olist");
       user = await User.create({
         userName: userName,
@@ -30,13 +34,16 @@ async function getOrCreateUser(userName: string): Promise<{ userId: mongoose.Typ
         number: 0,
         // adicione outros campos obrigatórios do seu User model
       });
+      logger.info("Usuário Olist criado com sucesso", { userId: user._id });
     }
 
+    console.log("Retornando usuário Olist:", user);
     return { 
       userId: user._id as mongoose.Types.ObjectId,
       userName: user.userName 
     };
   } catch (error) {
+    console.error("Erro ao criar/buscar usuário Olist", error);
     logger.error("Erro ao criar/buscar usuário Olist", { error });
     throw error;
   }
