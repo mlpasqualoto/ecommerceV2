@@ -13,27 +13,27 @@ dotenv.config();
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Cache para evitar queries repetidas DURANTE A MESMA EXECUÇÃO
-let olistUserCache: mongoose.Types.ObjectId | null = null;
 const productCache = new Map<string, { id: mongoose.Types.ObjectId; image: string }>();
 
-// Garante que existe um usuário genérico "Olist"
-async function getOrCreateOlistUser(): Promise<mongoose.Types.ObjectId> {
-  if (olistUserCache) return olistUserCache;
-
+// Garante que existe um usuário "Olist"
+async function getOrCreateUser(userName: string): Promise<{ userId: mongoose.Types.ObjectId; userName: string }> {
   try {
-    let user = await User.findOne({ email: "olist@sistema.com" });
+    let user = await User.findOne({ userName: userName });
     
     if (!user) {
       logger.info("Criando usuário genérico Olist");
       user = await User.create({
+        userName: userName,
         name: "Cliente Olist",
         email: "olist@sistema.com",
         // adicione outros campos obrigatórios do seu User model
       });
     }
 
-    olistUserCache = user._id as mongoose.Types.ObjectId;
-    return olistUserCache;
+    return { 
+      userId: user._id as mongoose.Types.ObjectId,
+      userName: user.userName 
+    };
   } catch (error) {
     logger.error("Erro ao criar/buscar usuário Olist", { error });
     throw error;
@@ -140,7 +140,6 @@ async function fetchOlistOrderDetails(orderId: string) {
 export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: string, situacao: string) {
   try {
     // ⚠️ Limpa caches no início para refletir mudanças manuais
-    olistUserCache = null;
     productCache.clear();
 
     // variáveis de controle de Rate Limit
@@ -154,9 +153,6 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 
     logger.info("Chamando endpoint pedidos.pesquisa.php", { dataInicial, dataFinal, situacao });
     
-    // Garante usuário genérico antes de processar pedidos
-    const olistUserId = await getOrCreateOlistUser();
-
     const data = new URLSearchParams({
       token: process.env.OLIST_API_TOKEN || "",
       formato: "JSON",
@@ -213,6 +209,10 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 
         logger.info("Detalhe do pedido obtido", { externalId });
 
+        //busca ou cria o usuário
+        const olistUserId = await getOrCreateUser(detail.ecommerce.nomeEcommerce || "olist_user");
+
+        // Verifica se o pedido já existe
         const existing = await Order.findOne({ externalId }).lean();
 
         if (!existing) {
@@ -292,9 +292,9 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 
           const mappedOrder = {
             externalId,
-            userId: olistUserId,
-            userName: detail.nome || detail.cliente?.nome || "Cliente Olist",
-            name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, nº Ecommerce ${detail.numero_ecommerce ?? ''}`,
+            userId: olistUserId.userId,
+            userName: olistUserId.userName,
+            name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, Ecommerce - ${olistUserId.userName} - nº ${detail.numero_ecommerce ?? ''}`,
             shippingAddress: endereco_entrega,
             buyerPhone: detail.cliente?.fone ?? "",
             items,
@@ -391,9 +391,9 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             { externalId },
             { 
               $set: {
-                userId: olistUserId,
-                userName: detail.nome || detail.cliente?.nome || "Cliente Olist",
-                name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, nº Ecommerce ${detail.numero_ecommerce ?? ''}`,
+                userId: olistUserId.userId,
+                userName: olistUserId.userName,
+                name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, Ecommerce - ${olistUserId.userName} - nº ${detail.numero_ecommerce ?? ''}`,
                 shippingAddress: endereco_entrega,
                 buyerPhone: detail.cliente?.fone ?? "",
                 items,

@@ -201,10 +201,19 @@ export default function AdminHome() {
           clientName = matchClientName[1];
         }
 
+        // 8. Extração do ID Ecommerce
+        const regexEcommerceId = /- nº\s+(\S+)/; // ✅ Pega qualquer coisa após "- nº "
+        const matchEcommerceId = text.match(regexEcommerceId);
+
+        let ecommerceId = "";
+        if (matchEcommerceId && matchEcommerceId[1]) {
+          ecommerceId = matchEcommerceId[1];
+        }
+
         return {
           Qte: ++count,
           ID: order._id,
-          "ID Ecommerce": order.name.split("Ecommerce")[1]?.trim() || "",
+          "ID Ecommerce": ecommerceId || "",
           "ID Olist": olistId || "",
           Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
           Cliente: clientName || "",
@@ -1606,11 +1615,16 @@ export default function AdminHome() {
                           </td>
 
                           <td className="px-6 py-5">
-                            <div className="text-sm font-semibold text-slate-900 max-w-[150px] truncate">
-                              {order.name}
-                            </div>
-                            <div className="text-xs text-slate-500 font-mono">
-                              {order.userId}
+                            <div className="flex flex-col gap-2">
+                              {/* Nome do E-commerce (userName) com visual similar ao status */}
+                              <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 max-w-fit">
+                                {order.userName || "Cliente"}
+                              </span>
+                              
+                              {/* Nome do cliente (extraído da descrição do pedido) */}
+                              <div className="text-xs text-slate-500">
+                                {order.name.match(/em nome de (.*?),/)?.[1] || "N/A"}
+                              </div>
                             </div>
                           </td>
 
@@ -1648,7 +1662,7 @@ export default function AdminHome() {
                                     strokeLinejoin="round"
                                     strokeWidth={2}
                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                  />
+                                />
                                 </svg>
                               </button>
 
@@ -1673,7 +1687,7 @@ export default function AdminHome() {
                                     strokeLinejoin="round"
                                     strokeWidth={2}
                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                  />
+                                />
                                 </svg>
                               </button>
                             </div>
@@ -2068,7 +2082,7 @@ export default function AdminHome() {
                               strokeLinejoin="round"
                               strokeWidth={2}
                               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
+                        />
                         </svg>
                         </button>
                         <button
@@ -2088,7 +2102,7 @@ export default function AdminHome() {
                               strokeLinejoin="round"
                               strokeWidth={2}
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
+                        />
                         </svg>
                         </button>
                       </div>
