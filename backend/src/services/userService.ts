@@ -14,6 +14,11 @@ import {
     generateToken,
     comparePassword
 } from "../config/auth"
+import { isValidObjectId } from "mongoose";
+
+const escapeUserIdRegex = (text: string) => {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
 
 export async function getUsersService(): Promise<UserServiceResult> {
     // Obtem todos os usuários e exclui o campo password na consulta
@@ -33,8 +38,31 @@ export async function getUserProfileService(userId: string): Promise<UserService
 }
 
 export async function getUserByIdService(userId: string): Promise<UserServiceResult> {
-    // Obtem o usuário pelo ID, excluindo o campo password
-    const user = await User.findById(userId, "-password");
+    let user;
+    
+    // 1. Tenta pelo ID interno do MongoDB
+    if (isValidObjectId(userId)) {
+        user = await User.findById(userId, "-password");
+    }
+    
+    // 2. Se não achou, busca flexível
+    if (!user) {
+        const escapedUserId = escapeUserIdRegex(userId);
+            
+        user = await User.findOne({
+            $or: [
+                // busca o termo em QUALQUER lugar do nome
+                { userName: { $regex: escapedUserId, $options: 'i' } },
+
+                // busca exata pelo email
+                { email: userId },
+
+                // busca pelo nome completo
+                { name: { $regex: escapedUserId, $options: 'i' } }
+            ]
+        }, "-password");
+    }
+        
     if (!user) {
         return { status: 404, message: "Usuário não encontrado" };
     }
