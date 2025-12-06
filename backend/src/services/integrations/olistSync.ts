@@ -150,6 +150,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 
     // Garante data atual em UTC-3
     const currentDateBr = parseDataBr(dataInicial);
+    console.log("Data atual em UTC-3:", currentDateBr.toISOString());
 
     logger.info("Chamando endpoint pedidos.pesquisa.php", { dataInicial, dataFinal, situacao });
     
