@@ -1621,9 +1621,12 @@ export default function AdminHome() {
                                 {order.userName || "Cliente"}
                               </span>
                               
-                              {/* Nome do cliente (extraído da descrição do pedido) */}
-                              <div className="text-xs text-slate-500">
-                                {order.name.match(/em nome de (.*?),/)?.[1] || "N/A"}
+                              {/* Informações originais do cliente */}
+                              <div className="text-sm font-semibold text-slate-900 max-w-[150px] truncate">
+                                {order.name}
+                              </div>
+                              <div className="text-xs text-slate-500 font-mono">
+                                {order.userId}
                               </div>
                             </div>
                           </td>
