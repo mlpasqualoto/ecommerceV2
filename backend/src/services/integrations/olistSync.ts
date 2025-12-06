@@ -24,8 +24,10 @@ async function getOrCreateUser(userName: string): Promise<{ userId: mongoose.Typ
       logger.info("Criando usuário genérico Olist");
       user = await User.create({
         userName: userName,
+        password: "Olist@123", // senha padrão
         name: "Cliente Olist",
         email: "olist@sistema.com",
+        number: 0,
         // adicione outros campos obrigatórios do seu User model
       });
     }
