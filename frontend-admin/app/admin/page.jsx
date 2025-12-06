@@ -1616,11 +1616,22 @@ export default function AdminHome() {
 
                           <td className="px-6 py-5">
                             <div className="flex flex-col gap-2">
-                              {/* Nome do E-commerce (userName) com visual similar ao status */}
-                              <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 max-w-fit">
+                              {/* Nome do E-commerce com cor dinâmica baseada na fonte */}
+                              <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full max-w-fit ${
+                                order.source?.toLowerCase().includes('shopee') 
+                                  ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                  : order.source?.toLowerCase().includes('mercado') || order.source?.toLowerCase().includes('livre')
+                                  ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                                  : order.source?.toLowerCase().includes('amazon')
+                                  ? 'bg-slate-50 text-slate-700 border border-slate-200'
+                                  : order.source?.toLowerCase().includes('magalu') || order.source?.toLowerCase().includes('magazine')
+                                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                  : order.source?.toLowerCase().includes('americanas') || order.source?.toLowerCase().includes('b2w')
+                                  ? 'bg-red-50 text-red-700 border border-red-200'
+                                  : 'bg-indigo-50 text-indigo-700 border border-indigo-200' // Cor padrão
+                                }`}>
                                 {order.source || "Cliente"}
-                              </span>
-                              
+                              </span>                              
                               {/* Informações originais do cliente */}
                               <div className="text-sm font-semibold text-slate-900 max-w-[150px] truncate">
                                 {order.name}
