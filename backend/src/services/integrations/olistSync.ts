@@ -211,8 +211,8 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
         logger.info("Detalhe do pedido obtido", { externalId });
 
         //busca ou cria o usuário
-        console.log("Buscando ou criando usuário Olist...", detail.ecommerce.nomeEcommerce || "olist_user");
-        const olistUserId = await getOrCreateUser(detail.ecommerce.nomeEcommerce || "olist_user");
+        const olistUser = await getOrCreateUser(detail.ecommerce.nomeEcommerce || "olist_user");
+        console.log("Olist User ID:", olistUser);
 
         // Verifica se o pedido já existe
         const existing = await Order.findOne({ externalId }).lean();
@@ -294,9 +294,9 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 
           const mappedOrder = {
             externalId,
-            userId: olistUserId.userId,
+            userId: olistUser.userId,
             userName: detail.nome || detail.cliente?.nome || "Cliente Olist",
-            name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, Ecommerce - ${olistUserId.userName} - nº ${detail.numero_ecommerce ?? ''}`,
+            name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, Ecommerce - ${olistUser.userName} - nº ${detail.numero_ecommerce ?? ''}`,
             shippingAddress: endereco_entrega,
             buyerPhone: detail.cliente?.fone ?? "",
             items,
@@ -305,7 +305,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             paymentMethod: detail.meio_pagamento || "unknown",
             totalQuantity,
             status: mapStatus(detail.situacao ?? ""),
-            source: olistUserId.userName || "olist",
+            source: olistUser.userName || "olist",
             createdAt: currentDateBr,
           };
 
@@ -393,16 +393,16 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             { externalId },
             { 
               $set: {
-                userId: olistUserId.userId,
+                userId: olistUser.userId,
                 userName: detail.nome || detail.cliente?.nome || "Cliente Olist",
-                name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, Ecommerce - ${olistUserId.userName} - nº ${detail.numero_ecommerce ?? ''}`,
+                name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, Ecommerce - ${olistUser.userName} - nº ${detail.numero_ecommerce ?? ''}`,
                 shippingAddress: endereco_entrega,
                 buyerPhone: detail.cliente?.fone ?? "",
                 items,
                 totalAmount,
                 totalQuantity,
                 status: mapStatus(detail.situacao ?? ""),
-                source: olistUserId.userName || "olist",
+                source: olistUser.userName || "olist",
                 createdAt: currentDateBr,
               }
             }
