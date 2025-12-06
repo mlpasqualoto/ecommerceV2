@@ -211,6 +211,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
         logger.info("Detalhe do pedido obtido", { externalId });
 
         //busca ou cria o usuário
+        console.log("Buscando ou criando usuário Olist...", detail.ecommerce.nomeEcommerce || "olist_user");
         const olistUserId = await getOrCreateUser(detail.ecommerce.nomeEcommerce || "olist_user");
 
         // Verifica se o pedido já existe
@@ -294,7 +295,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
           const mappedOrder = {
             externalId,
             userId: olistUserId.userId,
-            userName: olistUserId.userName,
+            userName: detail.nome || detail.cliente?.nome || "Cliente Olist",
             name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, Ecommerce - ${olistUserId.userName} - nº ${detail.numero_ecommerce ?? ''}`,
             shippingAddress: endereco_entrega,
             buyerPhone: detail.cliente?.fone ?? "",
@@ -304,7 +305,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             paymentMethod: detail.meio_pagamento || "unknown",
             totalQuantity,
             status: mapStatus(detail.situacao ?? ""),
-            source: "olist" as const,
+            source: olistUserId.userName || "olist",
             createdAt: currentDateBr,
           };
 
@@ -393,7 +394,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             { 
               $set: {
                 userId: olistUserId.userId,
-                userName: olistUserId.userName,
+                userName: detail.nome || detail.cliente?.nome || "Cliente Olist",
                 name: `Pedido Olist nº ${detail.numero ?? ''}, em nome de ${detail.cliente?.nome || detail.nome || "Cliente Olist"}, Ecommerce - ${olistUserId.userName} - nº ${detail.numero_ecommerce ?? ''}`,
                 shippingAddress: endereco_entrega,
                 buyerPhone: detail.cliente?.fone ?? "",
@@ -401,6 +402,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
                 totalAmount,
                 totalQuantity,
                 status: mapStatus(detail.situacao ?? ""),
+                source: olistUserId.userName || "olist",
                 createdAt: currentDateBr,
               }
             }
