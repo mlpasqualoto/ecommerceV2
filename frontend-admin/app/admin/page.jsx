@@ -1618,7 +1618,7 @@ export default function AdminHome() {
                             <div className="flex flex-col gap-2">
                               {/* Nome do E-commerce (userName) com visual similar ao status */}
                               <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 max-w-fit">
-                                {order.userName || "Cliente"}
+                                {order.source || "Cliente"}
                               </span>
                               
                               {/* Informações originais do cliente */}

@@ -109,7 +109,6 @@ const orderSchema = new Schema<IOrder>({
     source: {
         type: String,
         required: true,
-        enum: ["olist", "ecommerce"],
         default: "ecommerce"
     },
 }, {
