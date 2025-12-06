@@ -212,6 +212,7 @@ export default function AdminHome() {
 
         return {
           Qte: ++count,
+          "Vendedor": order.source || "",
           ID: order._id,
           "ID Ecommerce": ecommerceId || "",
           "ID Olist": olistId || "",
