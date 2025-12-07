@@ -64,7 +64,7 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
       return next(error);
     }
 
-    return res.status(userResult.status ?? 200).json({ message: userResult.message, user: userResult.user ?? null });
+    return res.status(userResult.status ?? 200).json({ message: userResult.message, user: userResult.user ?? null, users: userResult.users ?? null });
   } catch (error) {
     return next(error);
   }
