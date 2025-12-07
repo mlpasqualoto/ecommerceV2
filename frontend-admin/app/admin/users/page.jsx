@@ -98,19 +98,31 @@ export default function UsersPage() {
     const userId = e.target.userId.value;
     if (!userId) return;
 
-    const data = await fetchUserById(userId);
-    if (
-      data?.message?.toLowerCase().includes("não autenticado") ||
-      data?.error === "Unauthorized"
-    ) {
-      router.push("/login");
-      return;
-    }
+    try {
+      const data = await fetchUserById(userId);
+      
+      if (
+        data?.message?.toLowerCase().includes("não autenticado") ||
+        data?.error === "Unauthorized"
+      ) {
+        router.push("/login");
+        return;
+      }
 
-    if (!data.user) {
+      // verifica se retornou um único usuário ou array de usuários
+      if (data.user) {
+        // Caso 1: Retornou um único usuário (busca por ObjectId)
+        setUsers([data.user]);
+      } else if (data.users && data.users.length > 0) {
+        // Caso 2: Retornou múltiplos usuários (busca por userName/email/name)
+        setUsers(data.users);
+      } else {
+        // Caso 3: Nenhum usuário encontrado
+        setUsers([]);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar usuário:", err);
       setUsers([]);
-    } else {
-      setUsers([data.user]);
     }
   };
 

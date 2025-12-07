@@ -66,7 +66,7 @@ export async function getUserByIdService(userId: string): Promise<UserServiceRes
         return { status: 404, message: "Usuário não encontrado" };
     }
 
-    return { status: 200, message: `${users.length} usuário(s) encontrado(s)`, user: users };
+    return { status: 200, message: `${users.length} usuário(s) encontrado(s)`, users: users };
 }
 
 export async function getUserByRoleService(userRole: string): Promise<UserServiceResult> {
