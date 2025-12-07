@@ -112,18 +112,15 @@ export default function UsersPage() {
         return;
       }
 
-      // ✅ Suporta ambos os formatos de retorno
+      // suporta ambos os formatos de retorno
       if (data.user) {
         // Caso 1: Retornou usuário único (busca por ObjectId)
-        console.log("✅ Usuário encontrado (singular):", data.user);
         setUsers([data.user]);
       } else if (data.users && data.users.length > 0) {
         // Caso 2: Retornou array de usuários (busca por userName/email/name)
-        console.log(`✅ ${data.users.length} usuário(s) encontrado(s):`, data.users);
         setUsers(data.users);
       } else {
         // Caso 3: Nenhum usuário encontrado
-        console.log("❌ Nenhum usuário encontrado");
         setUsers([]);
       }
     } catch (err) {
