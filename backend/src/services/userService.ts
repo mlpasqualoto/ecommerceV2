@@ -57,6 +57,8 @@ export async function getUserByIdService(userId: string): Promise<UserServiceRes
             { name: { $regex: escapedUserId, $options: 'i' } }
         ]
     }, "-password");
+
+    console.log("Users found:", users);
         
     if (!users || users.length === 0) {
         return { status: 404, message: "Usuário não encontrado" };
