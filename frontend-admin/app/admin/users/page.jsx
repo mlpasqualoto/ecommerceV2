@@ -98,9 +98,12 @@ export default function UsersPage() {
     const userId = e.target.userId.value;
     if (!userId) return;
 
+    setLoading(true);
     try {
       const data = await fetchUserById(userId);
       
+      console.log("Dados retornados da API:", data);
+
       if (
         data?.message?.toLowerCase().includes("não autenticado") ||
         data?.error === "Unauthorized"
@@ -112,17 +115,22 @@ export default function UsersPage() {
       // verifica se retornou um único usuário ou array de usuários
       if (data.user) {
         // Caso 1: Retornou um único usuário (busca por ObjectId)
+        console.log("Usuário encontrado:", data.user);
         setUsers([data.user]);
       } else if (data.users && data.users.length > 0) {
         // Caso 2: Retornou múltiplos usuários (busca por userName/email/name)
+        console.log("Usuários encontrados:", data.users);
         setUsers(data.users);
       } else {
         // Caso 3: Nenhum usuário encontrado
+        console.log("Nenhum usuário encontrado com o ID fornecido.");
         setUsers([]);
       }
     } catch (err) {
       console.error("Erro ao buscar usuário:", err);
       setUsers([]);
+    } finally {
+      setLoading(false);
     }
   };
 
