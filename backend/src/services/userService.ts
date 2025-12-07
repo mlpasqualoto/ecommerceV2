@@ -38,36 +38,35 @@ export async function getUserProfileService(userId: string): Promise<UserService
 }
 
 export async function getUserByIdService(userId: string): Promise<UserServiceResult> {
-    let user;
-    
     // 1. Tenta pelo ID interno do MongoDB
     if (isValidObjectId(userId)) {
-        user = await User.findById(userId, "-password");
+        const user = await User.findById(userId, "-password");
+        if (user) {
+            return { status: 200, message: "Usuário encontrado com sucesso", user: user };
+        }
     }
     
-    // 2. Se não achou, busca flexível
-    if (!user) {
-        const escapedUserId = escapeUserIdRegex(userId);
-            
-        user = await User.findOne({
-            $or: [
-                // busca o termo em QUALQUER lugar do nome
-                { userName: { $regex: escapedUserId, $options: 'i' } },
-
-                // busca exata pelo email
-                { email: userId },
-
-                // busca pelo nome completo
-                { name: { $regex: escapedUserId, $options: 'i' } }
-            ]
-        }, "-password");
-    }
+    // 2. Se não achou, busca flexível por múltiplos critérios
+    const escapedUserId = escapeUserIdRegex(userId);
         
-    if (!user) {
+    const users = await User.find({
+        $or: [
+            // busca o termo em QUALQUER lugar do userName
+            { userName: { $regex: escapedUserId, $options: 'i' } },
+
+            // busca exata pelo email
+            { email: userId },
+
+            // busca pelo nome completo
+            { name: { $regex: escapedUserId, $options: 'i' } }
+        ]
+    }, "-password");
+        
+    if (!users || users.length === 0) {
         return { status: 404, message: "Usuário não encontrado" };
     }
 
-    return { status: 200, message: "Usuário encontrado com sucesso", user: user };
+    return { status: 200, message: `${users.length} usuário(s) encontrado(s)`, user: users };
 }
 
 export async function getUserByRoleService(userRole: string): Promise<UserServiceResult> {
