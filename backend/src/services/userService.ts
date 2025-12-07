@@ -38,26 +38,22 @@ export async function getUserProfileService(userId: string): Promise<UserService
 }
 
 export async function getUserByIdService(userId: string): Promise<UserServiceResult> {
-    // 1. Tenta pelo ID interno do MongoDB
+    // 1. Tenta buscar por ObjectId (se for válido)
     if (isValidObjectId(userId)) {
         const user = await User.findById(userId, "-password");
         if (user) {
+            // ✅ Encontrou por ObjectId, retorna imediatamente
             return { status: 200, message: "Usuário encontrado com sucesso", user: user };
         }
     }
     
-    // 2. Se não achou, busca flexível por múltiplos critérios
+    // 2. Busca flexível por userName, email ou name
     const escapedUserId = escapeUserIdRegex(userId);
         
     const users = await User.find({
         $or: [
-            // busca o termo em QUALQUER lugar do userName
             { userName: { $regex: escapedUserId, $options: 'i' } },
-
-            // busca exata pelo email
             { email: userId },
-
-            // busca pelo nome completo
             { name: { $regex: escapedUserId, $options: 'i' } }
         ]
     }, "-password");
