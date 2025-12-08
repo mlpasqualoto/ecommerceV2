@@ -663,7 +663,11 @@ export default function AdminHome() {
           }
         }
       } else {
-        filteredOrders = data.orders;
+        for (const order of data.orders) {
+          if (order.source === sellerUserName) {
+            filteredOrders.push(order);
+          }
+        }
       }
       setOrders(filteredOrders);
       toggleOrderDetails();
