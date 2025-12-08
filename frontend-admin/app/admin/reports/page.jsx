@@ -1,5 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+// ✅ Importe as funções do seu arquivo de API
+import { 
+  fetchWeeklyReport, 
+  fetchMonthlyReport, 
+  exportReportCSV, 
+  downloadCSV 
+} from "../../lib/api"; 
 
 export default function Reports() {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
@@ -26,34 +33,26 @@ export default function Reports() {
   const loadReportData = async () => {
     setLoading(true);
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const period = reportType === "weekly" ? selectedWeek : selectedMonth;
-      const endpoint = reportType === "weekly" 
-        ? `${API_BASE_URL}/reports/weekly/${period}`
-        : `${API_BASE_URL}/reports/monthly/${period}`;
+      let data;
 
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar relatório: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.status === 200 && data.report) {
-        setReportData(data.report);
+      // ✅ Usa as funções do api.js (que já tratam auth e erros)
+      if (reportType === "weekly") {
+        data = await fetchWeeklyReport(period);
       } else {
-        throw new Error(data.message || 'Erro ao carregar relatório');
+        data = await fetchMonthlyReport(period);
       }
+
+      // O handleResponse do api.js retorna objetos com 'error' ou 'ok: false' se falhar
+      if (data?.error || data?.ok === false) {
+        // O Toast de erro já é disparado pelo api.js, não precisa fazer nada aqui
+        setReportData(null);
+        return;
+      }
+
+      setReportData(data);
     } catch (error) {
-      console.error("Erro ao carregar relatório:", error);
-      // Em caso de erro, mantém dados vazios ou exibe mensagem
-      alert("Erro ao carregar relatório. Por favor, tente novamente.");
+      console.error("Erro ao carregar dados:", error);
     } finally {
       setLoading(false);
     }
@@ -103,31 +102,22 @@ export default function Reports() {
 
   const downloadReport = async () => {
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const period = reportType === "weekly" ? selectedWeek : selectedMonth;
-      const endpoint = reportType === "weekly" 
-        ? `${API_BASE_URL}/reports/weekly/${period}/export`
-        : `${API_BASE_URL}/reports/monthly/${period}/export`;
-
-      const response = await fetch(endpoint);
       
-      if (!response.ok) {
-        throw new Error('Erro ao exportar relatório');
+      // ✅ Chama a função de exportação do api.js
+      const result = await exportReportCSV(reportType, period);
+
+      // Verifica se retornou erro (objeto JSON) em vez do Blob
+      if (result?.error || result?.ok === false) {
+        return; // Erro já tratado pelo api.js
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `relatorio-${reportType}-${period}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // ✅ Se chegou aqui, é um Blob. Usa a função auxiliar para baixar.
+      const filename = `relatorio-${reportType}-${period}.csv`;
+      downloadCSV(result, filename);
+
     } catch (error) {
-      console.error('Erro ao baixar relatório:', error);
-      alert('Erro ao exportar relatório. Por favor, tente novamente.');
+      console.error("Erro no download:", error);
     }
   };
 

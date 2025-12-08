@@ -228,7 +228,7 @@ export async function fetchDashboardStats(startDate, endDate) {
  * @returns {Promise<Object>}
  */
 export async function fetchWeeklyReport(weekYear) {
-  const res = await fetch(`${API_URL}/reports/weekly/${weekYear}`, {
+  const res = await fetch(`${API_URL}/api/analytics/weekly/${weekYear}`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -244,7 +244,7 @@ export async function fetchWeeklyReport(weekYear) {
  * @returns {Promise<Object>}
  */
 export async function fetchMonthlyReport(monthYear) {
-  const res = await fetch(`${API_URL}/reports/monthly/${monthYear}`, {
+  const res = await fetch(`${API_URL}/api/analytics/monthly/${monthYear}`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -270,7 +270,7 @@ export async function compareReportPeriods(period1Start, period1End, period2Star
     period2End,
   });
 
-  const res = await fetch(`${API_URL}/reports/compare?${params}`, {
+  const res = await fetch(`${API_URL}/api/analytics/compare?${params}`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -288,8 +288,8 @@ export async function compareReportPeriods(period1Start, period1End, period2Star
  */
 export async function exportReportCSV(reportType, period) {
   const endpoint = reportType === 'weekly'
-    ? `${API_URL}/reports/weekly/${period}/export`
-    : `${API_URL}/reports/monthly/${period}/export`;
+    ? `${API_URL}/api/analytics/weekly/${period}/export`
+    : `${API_URL}/api/analytics/monthly/${period}/export`;
 
   const res = await fetch(endpoint, {
     method: 'GET',
