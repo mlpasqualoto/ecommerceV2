@@ -1492,11 +1492,13 @@ export default function AdminHome() {
                   value={formatBR(orderDate)}
                   readOnly
                   placeholder="Selecione a data"
-                  style={{ pointerEvents: 'none' }}
-                  className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                  // ✅ 1. Removemos pointerEvents: 'none'
+                  // ✅ 2. Adicionamos onClick para abrir o calendário programaticamente
+                  onClick={() => hiddenDateRef.current?.showPicker()}
+                  className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300 w-full"
                 />
                 
-                {/* Input date SOBREPOSTO (invisível mas clicável) */}
+                {/* ✅ 3. Input date agora fica totalmente oculto (sr-only), mas acessível via ref */}
                 <input
                   type="date"
                   ref={hiddenDateRef}
@@ -1505,12 +1507,12 @@ export default function AdminHome() {
                     setOrderDate(e.target.value);
                     handleFilterByDate(e.target.value);
                   }}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  style={{ WebkitAppearance: 'none' }}
+                  className="sr-only" // Classe do Tailwind para esconder visualmente
+                  tabIndex={-1}
                 />
               </div>
             </div>
-
+            
             {/* Botão Novo Pedido */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
