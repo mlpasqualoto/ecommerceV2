@@ -1,11 +1,19 @@
-import { getDashBoardsStatsService } from "../services/analyticsService";
+import { 
+    comparePeriodsService,
+    exportReportToCSV,
+    getDashBoardsStatsService,
+    getMonthlyReportService,
+    getWeeklyReportService,
+
+ } from "../services/analyticsService";
 import { NextFunction, Request, Response } from "express";
 
+// Rota para obter estatísticas do dashboard (admin)
 export const dashBoardsStats = async (req: Request, res: Response, next: NextFunction) => {
     const {startDate, endDate} = req.query;
 
     if (!startDate || !endDate) {
-        const error = new Error("Start date and end date are required.");
+        const error = new Error("Parâmetros startDate e endDate não informados.");
         (error as any).statusCode = 400;
         return next(error);
     }
@@ -17,7 +25,191 @@ export const dashBoardsStats = async (req: Request, res: Response, next: NextFun
             return next(error);
         }
 
-        res.status(stats.status ?? 200).json({ message: stats.message, stats: stats.stats ?? null });
+        return res.status(stats.status ?? 200).json({ message: stats.message, stats: stats.stats ?? null });
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// Rota para obter relatório semanal (admin)
+export const getWeeklyReport = async (req: Request, res: Response, next: NextFunction) => {
+    const { weekYear } = req.params;
+
+    if (!weekYear) {
+        const error = new Error("Parâmetro weekYear não informado.");
+        (error as any).statusCode = 400;
+        return next(error);
+    }
+    try {     
+        // Valida formato
+        if (!weekYear.match(/^\d{4}-W\d{1,2}$/)) {
+        return res.status(400).json({
+            status: 400,
+            message: 'Formato inválido. Use YYYY-WNN (ex: 2024-W50)'
+        });
+        }
+
+        const result = await getWeeklyReportService(weekYear);
+        if (!result) {
+            const error = new Error("Erro ao gerar relatório semanal.");
+            (error as any).statusCode = 500;
+            return next(error);
+        }
+        
+        return res.status(result.status ?? 200).json(result);
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// Rota para obter relatório mensal (admin)
+export const getMonthlyReport = async (req: Request, res: Response, next: NextFunction) => {
+    const { monthYear } = req.params;
+    
+    if (!monthYear) {
+        const error = new Error("Parâmetro monthYear não informado.");
+        (error as any).statusCode = 400;
+        return next(error);
+    }
+    try {     
+        // Valida formato
+        if (!monthYear.match(/^\d{4}-\d{2}$/)) {
+        return res.status(400).json({
+            status: 400,
+            message: 'Formato inválido. Use YYYY-MM (ex: 2024-12)'
+        });
+        }
+
+        const result = await getMonthlyReportService(monthYear);
+        if (!result) {
+            const error = new Error("Erro ao gerar relatório mensal.");
+            (error as any).statusCode = 500;
+            return next(error);
+        }
+        
+        return res.status(result.status ?? 200).json(result);
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// Rota para comparar dois períodos (admin)
+export const comparePeriods = async (req: Request, res: Response, next: NextFunction) => {
+    const { period1Start, period1End, period2Start, period2End } = req.query;
+
+    if (!period1Start || !period1End || !period2Start || !period2End) {
+        const error = new Error("Parâmetros obrigatórios: period1Start, period1End, period2Start, period2End.");
+        (error as any).statusCode = 400;
+        return next(error);
+    }
+    
+    try {
+        const result = await comparePeriodsService(
+            period1Start as string,
+            period1End as string,
+            period2Start as string,
+            period2End as string
+        );
+        if (!result) {
+            const error = new Error("Erro ao comparar períodos.");
+            (error as any).statusCode = 500;
+            return next(error);
+        }
+        
+        return res.status(result.status ?? 200).json(result);
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// Rota para exportar relatório semanal em CSV (admin)
+export const exportWeeklyReport = async (req: Request, res: Response, next: NextFunction) => {
+    const { weekYear } = req.params;
+
+    if (!weekYear) {
+        return res.status(400).json({
+            status: 400,
+            message: 'Parâmetro weekYear não informado'
+        });
+    } 
+    try {    
+        const result = await getWeeklyReportService(weekYear);
+        if (!result) {
+            const error = new Error("Erro ao gerar relatório semanal.");
+            (error as any).statusCode = 500;
+            throw error;
+        }
+
+        const csv = exportReportToCSV(result.report);
+        if (!csv) {
+            const error = new Error("Erro ao converter relatório para CSV.");
+            (error as any).statusCode = 500;
+            throw error;
+        }
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=relatorio-semanal-${weekYear}.csv`);
+        
+        return res.send(csv);
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// Rota para exportar relatório mensal em CSV (admin)
+export const exportMonthlyReport = async (req: Request, res: Response, next: NextFunction) => {
+    const { monthYear } = req.params;
+    
+    if (!monthYear) {
+        const error = new Error("Parâmetro monthYear não informado.");
+        (error as any).statusCode = 400;
+        return next(error);
+    }
+    try {
+        const result = await getMonthlyReportService(monthYear);
+        if (!result) {
+            const error = new Error("Erro ao gerar relatório mensal.");
+            (error as any).statusCode = 500;
+            throw error;
+        }
+
+        const csv = exportReportToCSV(result.report);
+        if (!csv) {
+            const error = new Error("Erro ao converter relatório para CSV.");
+            (error as any).statusCode = 500;
+            throw error;
+        }
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=relatorio-mensal-${monthYear}.csv`);
+        
+        return res.send(csv);
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// Rota para retornar resumo rápido dos principais indicadores
+export const getSummary = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // Período padrão: últimos 30 dias
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+
+        const monthYear = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}`;
+        const result = await getMonthlyReportService(monthYear);
+        if (!result) {
+            const error = new Error("Erro ao gerar relatório mensal.");
+            (error as any).statusCode = 500;
+            throw error;
+        }
+
+        // Retorna apenas o resumo
+        return res.status(200).json({
+          message: 'Resumo recuperado com sucesso',
+          summary: result.report.summary
+        });
     } catch (error) {
         return next(error);
     }

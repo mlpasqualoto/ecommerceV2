@@ -196,14 +196,6 @@ export async function fetchDeleteProduct(productId) {
   return handleResponse(res);
 }
 
-export async function fetchDashboardStats(startDate, endDate) {
-  const res = await fetch(`${API_URL}/api/analytics/dashboard?startDate=${startDate}&endDate=${endDate}`, {
-    method: "GET",
-    credentials: "include",
-  });
-  return handleResponse(res);
-}
-
 // **** SINCRONIZAÇÃO OLIST **** //
 // Sincronizar pedidos da Olist (admin)
 export async function fetchOlistSync(dataInicial, dataFinal) {
@@ -216,4 +208,116 @@ export async function fetchOlistSync(dataInicial, dataFinal) {
     credentials: "include",
   });
   return handleResponse(res);
+}
+
+// **** ANALÍTICOS DO DASHBOARD **** //
+// Buscar estatísticas do dashboard no backend
+export async function fetchDashboardStats(startDate, endDate) {
+  const res = await fetch(`${API_URL}/api/analytics/dashboard?startDate=${startDate}&endDate=${endDate}`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse(res);
+}
+
+// **** RELATÓRIOS **** //
+// Busca relatório semanal e mensal, comparação de períodos e exportação em CSV
+/**
+ * Busca relatório semanal
+ * @param {string} weekYear - Formato: "2024-W50"
+ * @returns {Promise<Object>}
+ */
+export async function fetchWeeklyReport(weekYear) {
+  const res = await fetch(`${API_URL}/reports/weekly/${weekYear}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+  return handleResponse(res);
+}
+
+/**
+ * Busca relatório mensal
+ * @param {string} monthYear - Formato: "2024-12"
+ * @returns {Promise<Object>}
+ */
+export async function fetchMonthlyReport(monthYear) {
+  const res = await fetch(`${API_URL}/reports/monthly/${monthYear}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+  return handleResponse(res);
+}
+
+/**
+ * Compara dois períodos
+ * @param {string} period1Start - Data inicial período 1
+ * @param {string} period1End - Data final período 1
+ * @param {string} period2Start - Data inicial período 2
+ * @param {string} period2End - Data final período 2
+ * @returns {Promise<Object>}
+ */
+export async function compareReportPeriods(period1Start, period1End, period2Start, period2End) {
+  const params = new URLSearchParams({
+    period1Start,
+    period1End,
+    period2Start,
+    period2End,
+  });
+
+  const res = await fetch(`${API_URL}/reports/compare?${params}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+  return handleResponse(res);
+}
+
+/**
+ * Exporta relatório em CSV
+ * @param {string} reportType - "weekly" ou "monthly"
+ * @param {string} period - Período do relatório
+ * @returns {Promise<Blob|Object>}
+ */
+export async function exportReportCSV(reportType, period) {
+  const endpoint = reportType === 'weekly'
+    ? `${API_URL}/reports/weekly/${period}/export`
+    : `${API_URL}/reports/monthly/${period}/export`;
+
+  const res = await fetch(endpoint, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  // Se a requisição falhar (ex: 400, 401, 500), usamos o handleResponse para processar a mensagem de erro JSON e exibir o toast.
+  if (!res.ok) {
+    return handleResponse(res);
+  }
+
+  const blob = await res.blob();
+  return blob;
+}
+
+/**
+ * Baixa arquivo CSV
+ * @param {Blob} blob - Arquivo blob
+ * @param {string} filename - Nome do arquivo
+ */
+export function downloadCSV(blob, filename) {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
 }
