@@ -296,12 +296,12 @@ export default function Reports() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                 </svg>
-                <span>+{reportData.summary.growth}%</span>
+                <span>+{reportData?.summary?.growth || 0}%</span>
               </div>
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-2">Receita Total</h3>
             <div className="text-3xl font-bold text-slate-900 mb-2">
-              {formatCurrency(reportData.summary.totalRevenue)}
+              {formatCurrency(reportData?.summary?.totalRevenue || 0)}
             </div>
             <div className="text-xs text-slate-500">No período selecionado</div>
           </div>
@@ -329,7 +329,7 @@ export default function Reports() {
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-2">Total de Pedidos</h3>
             <div className="text-3xl font-bold text-slate-900 mb-2">
-              {reportData.summary.totalOrders}
+              {reportData?.summary?.totalOrders || 0}
             </div>
             <div className="text-xs text-slate-500">Pedidos processados</div>
           </div>
@@ -357,7 +357,7 @@ export default function Reports() {
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-2">Ticket Médio</h3>
             <div className="text-3xl font-bold text-slate-900 mb-2">
-              {formatCurrency(reportData.summary.avgOrderValue)}
+              {formatCurrency(reportData?.summary?.avgOrderValue || 0)}
             </div>
             <div className="text-xs text-slate-500">Por pedido</div>
           </div>
@@ -385,7 +385,7 @@ export default function Reports() {
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-2">Melhor Dia</h3>
             <div className="text-3xl font-bold text-slate-900 mb-2">
-              {reportData.summary.bestDay}
+              {reportData?.summary?.bestDay || "-"}
             </div>
             <div className="text-xs text-slate-500">Maior volume de vendas</div>
           </div>
@@ -416,8 +416,8 @@ export default function Reports() {
                   />
                 ))}
 
-                {reportData.salesByDay.map((item, idx) => {
-                  const maxRevenue = Math.max(...reportData.salesByDay.map(d => d.revenue));
+                {(reportData?.salesByDay || []).map((item, idx) => {
+                  const maxRevenue = Math.max(...(reportData?.salesByDay || []).map(d => d.revenue), 1); // Evita divisão por zero
                   const barHeight = (item.revenue / maxRevenue) * 140;
                   const x = 70 + idx * 50;
                   
@@ -462,8 +462,8 @@ export default function Reports() {
               Status dos Pedidos
             </h3>
             <div className="space-y-4">
-              {Object.entries(reportData.ordersByStatus).map(([status, count]) => {
-                const total = Object.values(reportData.ordersByStatus).reduce((a, b) => a + b, 0);
+              {Object.entries(reportData?.ordersByStatus || {}).map(([status, count]) => {
+                const total = Object.values(reportData?.ordersByStatus || {}).reduce((a, b) => a + b, 0) || 1; // Evita divisão por zero
                 const percentage = ((count / total) * 100).toFixed(1);
                 const colors = {
                   delivered: { bg: "bg-green-50", text: "text-green-700", bar: "bg-green-500", label: "Entregue" },
@@ -471,7 +471,7 @@ export default function Reports() {
                   processing: { bg: "bg-amber-50", text: "text-amber-700", bar: "bg-amber-500", label: "Processando" },
                   pending: { bg: "bg-orange-50", text: "text-orange-700", bar: "bg-orange-500", label: "Pendente" }
                 };
-                const color = colors[status];
+                const color = colors[status] || { bg: "bg-gray-50", text: "text-gray-700", bar: "bg-gray-500", label: status }; // Fallback para status desconhecido
 
                 return (
                   <div key={status} className={`p-4 rounded-xl ${color.bg} border border-${status === 'delivered' ? 'green' : status === 'shipped' ? 'blue' : status === 'processing' ? 'amber' : 'orange'}-200`}>
@@ -504,7 +504,7 @@ export default function Reports() {
             Top 5 Produtos Mais Vendidos
           </h3>
           <div className="space-y-4">
-            {reportData.topProducts.map((product, idx) => (
+            {(reportData?.topProducts || []).map((product, idx) => (
               <div
                 key={idx}
                 className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
