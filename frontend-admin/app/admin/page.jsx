@@ -1492,8 +1492,6 @@ export default function AdminHome() {
                   value={formatBR(orderDate)}
                   readOnly
                   placeholder="Selecione a data"
-                  // ✅ 1. Removemos pointerEvents: 'none'
-                  // ✅ 2. Adicionamos onClick para abrir o calendário programaticamente
                   onClick={() => hiddenDateRef.current?.showPicker()}
                   className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300 w-full"
                 />
@@ -1512,7 +1510,7 @@ export default function AdminHome() {
                 />
               </div>
             </div>
-            
+
             {/* Botão Novo Pedido */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
@@ -1715,9 +1713,9 @@ export default function AdminHome() {
                             <div className="flex flex-col gap-2">
                               {/* Nome do E-commerce com cor dinâmica baseada na fonte */}
                               <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full max-w-fit ${
-                                order.source?.toLowerCase().includes('shopee') 
+                                order.source?.toLowerCase().includes('shopee - matheus') 
                                   ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                                  : order.source?.toLowerCase().includes('mercado') || order.source?.toLowerCase().includes('livre')
+                                  : order.source?.toLowerCase().includes('shopee - jeferson') || order.source?.toLowerCase().includes('livre')
                                   ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
                                   : order.source?.toLowerCase().includes('amazon')
                                   ? 'bg-slate-50 text-slate-700 border border-slate-200'
