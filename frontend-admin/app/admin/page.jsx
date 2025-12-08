@@ -10,7 +10,8 @@ import {
   fetchShipOrder,
   fetchCancelOrder,
   fetchDeleteOrder,
-  fetchOlistSync
+  fetchOlistSync,
+  fetchUserById
 } from "../lib/api.js";
 import { formatCurrencyBRL } from "../utils/utils.js";
 import { useRouter } from "next/navigation";
@@ -58,6 +59,8 @@ export default function AdminHome() {
   const hiddenDateRef = useRef(null);
   const [orderDate, setOrderDate] = useState(getLocalIsoDate());
   const [systemStatus, setSystemStatus] = useState("loading"); // loading | online | unstable
+  const [sellerFilter, setSellerFilter] = useState("all");
+  const [sellers, setSellers] = useState([]);
   const router = useRouter();
 
   // Atualiza dados periodicamente
@@ -525,6 +528,42 @@ export default function AdminHome() {
     loadOrders();
   }, [statusFilter, router, orderDate]);
 
+  useEffect(() => {
+    const filteredOrdersBySeller = async () => {
+      setLoading(true);
+      try {
+        if (sellerFilter === "all") {
+          await handleFilterByDate(orderDate);
+        } else {
+          await handleFilterBySeller(sellerFilter);
+        }
+      } catch (err) {
+        console.error("Erro ao filtrar pedidos por vendedor:", err);
+      } finally {
+        setLoading(false);
+        toggleOrderDetails();
+      }
+    };
+
+    filteredOrdersBySeller();
+  }, [sellerFilter, orderDate]);
+
+  useEffect(() => {
+    // Busca vendedores apenas na montagem
+    const loadSellers = async () => {
+      try {
+        const data = await fetchUserById(sellerFilter === "all" ? "Shopee - " : sellerFilter); // Busca todos "Shopee - *"
+        if (data.users) {
+          setSellers(data.users); // armazena lista de vendedores
+        }
+      } catch (err) {
+        console.error("Erro ao buscar vendedores:", err);
+      }
+    };
+
+    loadSellers();
+  }, []);
+
   const handleFilterById = async (e) => {
     e.preventDefault();
     const orderId = e.target.elements.orderId.value;
@@ -588,6 +627,38 @@ export default function AdminHome() {
       if (statusFilter !== "all") {
         for (const order of data.orders) {
           if (order.status === statusFilter) {
+            filteredOrders.push(order);
+          }
+        }
+      } else {
+        filteredOrders = data.orders;
+      }
+      setOrders(filteredOrders);
+      toggleOrderDetails();
+    }
+
+    return data;
+  };
+
+  const handleFilterBySeller = async (sellerUserName) => {
+    if (!sellerUserName) return null;
+
+    const data = await fetchOrderByDate(orderDate);
+    if (
+      data?.message?.toLowerCase().includes("não autenticado") ||
+      data?.error === "Unauthorized"
+    ) {
+      router.push("/login");
+      return data;
+    }
+
+    if (!data.orders || data.orders.length === 0) {
+      setOrders([]);
+    } else {
+      let filteredOrders = [];
+      if (statusFilter !== "all") {
+        for (const order of data.orders) {
+          if (order.source === sellerUserName && order.status === statusFilter) {
             filteredOrders.push(order);
           }
         }
@@ -1366,6 +1437,25 @@ export default function AdminHome() {
                 Buscar
               </button>
             </form>
+
+            {/* Vendedor */}
+            <div>
+              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+                Vendedor:
+              </label>
+              <select
+                value={sellerFilter}
+                onChange={(e) => setSellerFilter(e.target.value)}
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm min-w-[150px] cursor-pointer placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+              >
+                <option value="all">Todos</option>
+                {sellers.map((seller) => (
+                  <option key={seller._id} value={seller.userName}>
+                    {seller.userName}
+                  </option>
+                ))}              
+              </select>
+            </div>
 
             {/* Status */}
             <div className="flex items-center gap-2">

@@ -52,7 +52,7 @@ export async function getUserByIdService(userId: string): Promise<UserServiceRes
     const users = await User.find({
         $or: [
             { userName: { $regex: escapedUserId, $options: 'i' } },
-            { email: userId },
+            { email: { $regex: escapedUserId, $options: 'i' } },
             { name: { $regex: escapedUserId, $options: 'i' } }
         ]
     }, "-password");

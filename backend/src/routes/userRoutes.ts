@@ -32,7 +32,7 @@ router.get("/profile", authenticateToken, getUserProfile);
 // Rota para pegar os dados do usuário logado (user)
 router.get("/me", authenticateToken, getCurrentUser);
 
-// Rota protegida para obter um usuário por ID (admin)
+// Rota protegida para obter um usuário por ID/userName/email/name (admin)
 router.get("/:id", authenticateToken, authorizeRole("admin"), adminQueryLimiter, getUserById);
 
 // Rota protegida para obter usuários por role (admin)
