@@ -321,7 +321,7 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
 };
 
 
-// **** RELATÓRIOS DE VENDAS **** //
+// **** EXIBIÇÃO EM TELA DE RELATÓRIOS DE VENDAS **** //
 
 // Gerar relatórios de vendas
 /**
@@ -736,18 +736,6 @@ function getDateOfISOWeek(week: number, year: number): Date {
 }
 
 /**
- * Exporta relatório para CSV
- */
-export function exportReportToCSV(reportData: any): string {
-  const headers = ['Data', 'Pedidos', 'Receita'];
-  const rows = reportData.salesByDay.map((day: any) =>
-    [day.date, day.orders, day.revenue].join(',')
-  );
-
-  return [headers.join(','), ...rows].join('\n');
-}
-
-/**
  * Compara dois períodos
  */
 export async function comparePeriodsService(
@@ -819,4 +807,254 @@ export async function comparePeriodsService(
       }
     }
   };
+}
+
+// **** EXPORTAÇÃO DOS RELATÓRIOS DE VENDAS **** //
+
+/**
+ * Busca pedidos e gera CSV detalhado para relatório SEMANAL
+ */
+export async function exportWeeklyReportService(weekYear: string): Promise<string | null> {
+  try {
+    if (!weekYear || !weekYear.includes('-W')) return null;
+    const [year, weekStr] = weekYear.split("-W");
+    const week = parseInt(weekStr);
+    const yearNum = parseInt(year);
+
+    const startDate = getDateOfISOWeek(week, yearNum);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 6);
+    endDate.setHours(23, 59, 59, 999);
+
+    const orders = await Order.find({
+      createdAt: { $gte: startDate, $lte: endDate }
+    }).sort({ createdAt: 1 }).lean();
+
+    return generateDetailedCSV(orders);
+  } catch (error) {
+    console.error("Erro ao exportar relatório semanal:", error);
+    throw error;
+  }
+}
+
+/**
+ * Busca pedidos e gera CSV detalhado para relatório MENSAL
+ */
+export async function exportMonthlyReportService(monthYear: string): Promise<string | null> {
+  try {
+    if (!monthYear || !monthYear.includes('-')) return null;
+    const [year, month] = monthYear.split("-");
+    const yearNum = parseInt(year);
+    const monthNum = parseInt(month);
+
+    const startDate = new Date(yearNum, monthNum - 1, 1);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(yearNum, monthNum, 0);
+    endDate.setHours(23, 59, 59, 999);
+
+    const orders = await Order.find({
+      createdAt: { $gte: startDate, $lte: endDate }
+    }).sort({ createdAt: 1 }).lean();
+
+    return generateDetailedCSV(orders);
+  } catch (error) {
+    console.error("Erro ao exportar relatório mensal:", error);
+    throw error;
+  }
+}
+
+/**
+ * Lógica central de geração do CSV (Adaptada do Frontend)
+ */
+function generateDetailedCSV(orders: any[]): string {
+  if (!orders || orders.length === 0) {
+    return "";
+  }
+
+  // Configuração para Excel Brasileiro
+  const decimalSeparator = ",";
+  const columnDelimiter = ";";
+  const BOM = "\uFEFF"; // Para Excel reconhecer acentos
+
+  // Helper de formatação
+  const formatNumber = (value: number) => {
+    return (value || 0).toFixed(2).replace(".", decimalSeparator);
+  };
+
+  const getStatusText = (status: string) => {
+    const map: Record<string, string> = {
+      paid: "Pago",
+      shipped: "Enviado",
+      delivered: "Entregue",
+      pending: "Pendente",
+      cancelled: "Cancelado"
+    };
+    return map[status] || status;
+  };
+
+  const escapeCSV = (value: any) => {
+    if (value == null) return '""';
+    const str = String(value);
+    if (
+      str.includes(columnDelimiter) ||
+      str.includes('"') ||
+      str.includes("\n") ||
+      str.includes("\r")
+    ) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return `"${str}"`;
+  };
+
+  let count = 0;
+
+  // 1. Processamento Linha a Linha
+  const exportData = orders.map((order) => {
+    const isConfirmed = ["paid", "shipped", "delivered"].includes(order.status);
+
+    const totalAmount = order.totalAmount || 0;
+    const totalQuantity = order.totalQuantity || 0; // Backend geralmente salva isso, ou calcular via items
+    const totalCost = order.totalCost || 0;
+
+    // Taxa Shopee (20% + R$5 por item)
+    const shopeeTax = isConfirmed 
+      ? (totalAmount * 0.20) + (totalQuantity * 5.0) 
+      : 0;
+
+    const consideredCost = isConfirmed ? totalCost : 0;
+
+    const grossProfit = isConfirmed 
+      ? totalAmount - (shopeeTax + consideredCost) 
+      : 0;
+
+    // Regex Extrações
+    const text = order.name || "";
+    
+    const regexOlistId = /Pedido Olist nº (\d+)/;
+    const matchOlistId = text.match(regexOlistId);
+    const olistId = matchOlistId && matchOlistId[1] ? matchOlistId[1] : "";
+
+    const regexClientName = /em nome de (.*?),/;
+    const matchClientName = text.match(regexClientName);
+    const clientName = matchClientName && matchClientName[1] ? matchClientName[1] : "";
+
+    const regexEcommerceId = /- nº\s+(\S+)/;
+    const matchEcommerceId = text.match(regexEcommerceId);
+    const ecommerceId = matchEcommerceId && matchEcommerceId[1] ? matchEcommerceId[1] : "";
+
+    // Formatação de Itens
+    const itemsString = (order.items || [])
+      .map((item: any) => `${item.name} (${item.quantity}x)`)
+      .join(", ");
+
+    return {
+      Qte: ++count,
+      "Vendedor": order.source || "",
+      ID: order._id,
+      "ID Ecommerce": ecommerceId,
+      "ID Olist": olistId,
+      Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
+      Cliente: clientName,
+      Status: getStatusText(order.status),
+      "Total Recebido": formatNumber(totalAmount),
+      "Taxa Shopee": formatNumber(shopeeTax),
+      "Total Custo": formatNumber(consideredCost),
+      "Lucro Bruto": formatNumber(grossProfit),
+      Produtos: itemsString,
+      "Total de Itens": totalQuantity,
+    };
+  });
+
+  // 2. Cálculos de Totais para o Resumo
+  const confirmedOrders = orders.filter((order) => 
+    ["paid", "shipped", "delivered"].includes(order.status)
+  );
+
+  const totalConfirmed = confirmedOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+  
+  // Custo de Produção Total
+  const totalProductionCost = confirmedOrders.reduce((sum, order) => {
+    if (typeof order.totalCost === "number") {
+      return sum + order.totalCost;
+    }
+    // Fallback se totalCost não estiver salvo no pedido
+    const itemsCost = (order.items || []).reduce((s: number, item: any) => 
+      s + (Number(item.cost || 0) * Number(item.quantity || 0)), 0
+    );
+    return sum + itemsCost;
+  }, 0);
+
+  const commissionShopee = totalConfirmed * 0.2;
+  
+  const quantityProducts = confirmedOrders.reduce((sum, order) => sum + (order.totalQuantity || 0), 0);
+  const shopeeRatePerOrder = quantityProducts * 5.0;
+
+  const totalGrossProfit = totalConfirmed - commissionShopee - shopeeRatePerOrder - totalProductionCost;
+
+  // 3. Construção do CSV
+  const headerRow = Object.keys(exportData[0] || {}).map(escapeCSV).join(columnDelimiter);
+  const dataRows = exportData.map((row) => Object.values(row).map(escapeCSV).join(columnDelimiter));
+
+  const summarySection = [
+    "",
+    "",
+    escapeCSV("═══════════════════════════════════════════════════════════"),
+    escapeCSV("RESUMO FINANCEIRO - ANÁLISE COMPLETA"),
+    escapeCSV("═══════════════════════════════════════════════════════════"),
+    "",
+    [
+      escapeCSV("VOLUME DE PEDIDOS"),
+      escapeCSV("RECEITAS"),
+      escapeCSV("CUSTOS OPERACIONAIS"),
+      escapeCSV("RESULTADO FINAL"),
+      escapeCSV("MÉDIAS E INDICADORES"),
+    ].join(columnDelimiter),
+    "",
+    // Linha 1
+    [
+      escapeCSV("Total de Pedidos Confirmados: " + confirmedOrders.length),
+      escapeCSV("Receita Bruta Total: " + formatNumber(totalConfirmed)),
+      escapeCSV("Taxa Shopee (20%): " + formatNumber(commissionShopee)),
+      escapeCSV("LUCRO BRUTO: " + formatNumber(totalGrossProfit)),
+      escapeCSV("Ticket Médio: " + formatNumber(totalConfirmed / (confirmedOrders.length || 1))),
+    ].join(columnDelimiter),
+    // Linha 2
+    [
+      escapeCSV("└─ Status: Pago + Enviado + Entregue"),
+      escapeCSV("└─ Soma de todos os pedidos confirmados"),
+      escapeCSV("Taxa Shopee Fixa (R$5,00/item): " + formatNumber(shopeeRatePerOrder)),
+      escapeCSV("└─ (Receita - Taxas - Custos)"),
+      escapeCSV("└─ (Receita Total / Qtd Pedidos)"),
+    ].join(columnDelimiter),
+    // Linha 3
+    [
+      escapeCSV(""),
+      escapeCSV(""),
+      escapeCSV("Subtotal Taxas Shopee: " + formatNumber(commissionShopee + shopeeRatePerOrder)),
+      escapeCSV("Margem de Lucro: " + formatNumber((totalGrossProfit / (totalConfirmed || 1)) * 100) + "%"),
+      escapeCSV("Lucro Médio por Pedido: " + formatNumber(totalGrossProfit / (confirmedOrders.length || 1))),
+    ].join(columnDelimiter),
+    // Linha 4
+    [
+      escapeCSV(""),
+      escapeCSV(""),
+      escapeCSV("Custo de Produtos (Estoque): " + formatNumber(totalProductionCost)),
+      escapeCSV(""),
+      escapeCSV("└─ (Lucro Bruto / Qtd Pedidos)"),
+    ].join(columnDelimiter),
+    // Linha 5
+    [
+      escapeCSV(""),
+      escapeCSV(""),
+      escapeCSV("TOTAL DE CUSTOS: " + formatNumber(commissionShopee + shopeeRatePerOrder + totalProductionCost)),
+      escapeCSV(""),
+      escapeCSV("Custo Médio por Pedido: " + formatNumber((commissionShopee + shopeeRatePerOrder + totalProductionCost) / (confirmedOrders.length || 1))),
+    ].join(columnDelimiter),
+    "",
+    escapeCSV("═══════════════════════════════════════════════════════════"),
+    escapeCSV("Relatório gerado em: " + new Date().toLocaleString("pt-BR", { timeZone: 'America/Sao_Paulo' })),
+    escapeCSV("═══════════════════════════════════════════════════════════"),
+  ];
+
+  return BOM + [headerRow, ...dataRows, ...summarySection].join("\n");
 }

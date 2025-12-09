@@ -1,10 +1,10 @@
 import { 
     comparePeriodsService,
-    exportReportToCSV,
     getDashBoardsStatsService,
     getMonthlyReportService,
     getWeeklyReportService,
-
+    exportWeeklyReportService,
+    exportMonthlyReportService
  } from "../services/analyticsService";
 import { NextFunction, Request, Response } from "express";
 
@@ -137,21 +137,17 @@ export const exportWeeklyReport = async (req: Request, res: Response, next: Next
         });
     } 
     try {    
-        const result = await getWeeklyReportService(weekYear);
-        if (!result) {
-            const error = new Error("Erro ao gerar relatório semanal.");
-            (error as any).statusCode = 500;
-            throw error;
-        }
-
-        const csv = exportReportToCSV(result.report);
+        const csv = await exportWeeklyReportService(weekYear);
+        
         if (!csv) {
-            const error = new Error("Erro ao converter relatório para CSV.");
-            (error as any).statusCode = 500;
-            throw error;
+            // Se retornou null ou string vazia, pode ser que não haja dados ou formato inválido
+            return res.status(404).json({ 
+                message: "Nenhum dado encontrado para este período ou formato inválido." 
+            });
         }
         
-        res.setHeader('Content-Type', 'text/csv');
+        // Adicionado charset=utf-8 para garantir que o BOM funcione
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename=relatorio-semanal-${weekYear}.csv`);
         
         return res.send(csv);
@@ -170,21 +166,17 @@ export const exportMonthlyReport = async (req: Request, res: Response, next: Nex
         return next(error);
     }
     try {
-        const result = await getMonthlyReportService(monthYear);
-        if (!result) {
-            const error = new Error("Erro ao gerar relatório mensal.");
-            (error as any).statusCode = 500;
-            throw error;
-        }
+        // ✅ Alterado para usar o novo serviço detalhado
+        const csv = await exportMonthlyReportService(monthYear);
 
-        const csv = exportReportToCSV(result.report);
         if (!csv) {
-            const error = new Error("Erro ao converter relatório para CSV.");
-            (error as any).statusCode = 500;
-            throw error;
+            return res.status(404).json({ 
+                message: "Nenhum dado encontrado para este período ou formato inválido." 
+            });
         }
         
-        res.setHeader('Content-Type', 'text/csv');
+        // Adicionado charset=utf-8 para garantir que o BOM funcione
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename=relatorio-mensal-${monthYear}.csv`);
         
         return res.send(csv);
