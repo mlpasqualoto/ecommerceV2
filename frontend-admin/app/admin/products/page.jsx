@@ -1471,7 +1471,7 @@ export default function ProductsPage() {
                                         <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                                           External ID
                                         </label>
-                                        <p className="text-sm font-mono text-slate-900">
+                                        <p className="text-sm text-slate-900 font-medium">
                                           {product.externalId || "N/A"}
                                         </p>
                                       </div>
