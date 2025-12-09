@@ -8,6 +8,8 @@ import {
  } from "../services/analyticsService";
 import { NextFunction, Request, Response } from "express";
 
+// **** ESTATÍSTICAS DO DASHBOARD **** //
+
 // Rota para obter estatísticas do dashboard (admin)
 export const dashBoardsStats = async (req: Request, res: Response, next: NextFunction) => {
     const {startDate, endDate} = req.query;
@@ -30,6 +32,8 @@ export const dashBoardsStats = async (req: Request, res: Response, next: NextFun
         return next(error);
     }
 };
+
+// **** RELATÓRIOS DE VENDAS **** //
 
 // Rota para obter relatório semanal (admin)
 export const getWeeklyReport = async (req: Request, res: Response, next: NextFunction) => {
@@ -199,13 +203,12 @@ export const getSummary = async (req: Request, res: Response, next: NextFunction
 
         const monthYear = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}`;
         const result = await getMonthlyReportService(monthYear);
-        if (!result) {
+        if (!result || !result.report) {
             const error = new Error("Erro ao gerar relatório mensal.");
             (error as any).statusCode = 500;
             throw error;
         }
 
-        // Retorna apenas o resumo
         return res.status(200).json({
           message: 'Resumo recuperado com sucesso',
           summary: result.report.summary

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 // ✅ Importe as funções do seu arquivo de API
 import { 
   fetchWeeklyReport, 
@@ -30,7 +30,7 @@ export default function Reports() {
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
 
-  const loadReportData = async () => {
+  const loadReportData = useCallback(async () => {
     setLoading(true);
     try {
       const period = reportType === "weekly" ? selectedWeek : selectedMonth;
@@ -43,20 +43,20 @@ export default function Reports() {
         data = await fetchMonthlyReport(period);
       }
 
-      // O handleResponse do api.js retorna objetos com 'error' ou 'ok: false' se falhar
-      if (data?.error || data?.ok === false) {
-        // O Toast de erro já é disparado pelo api.js, não precisa fazer nada aqui
+      if (!data || data.status !== 200 || !data.report) {
+        console.error("Erro ao carregar relatório:", data?.message);
         setReportData(null);
         return;
       }
 
-      setReportData(data);
+      setReportData(data.report);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
+      setReportData(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [reportType, selectedWeek, selectedMonth]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsPageLoaded(true), 100);
@@ -65,7 +65,7 @@ export default function Reports() {
 
   useEffect(() => {
     loadReportData();
-  }, [reportType, selectedWeek, selectedMonth]);
+  }, [loadReportData]);
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -103,19 +103,16 @@ export default function Reports() {
   const downloadReport = async () => {
     try {
       const period = reportType === "weekly" ? selectedWeek : selectedMonth;
-      
-      // ✅ Chama a função de exportação do api.js
       const result = await exportReportCSV(reportType, period);
 
-      // Verifica se retornou erro (objeto JSON) em vez do Blob
-      if (result?.error || result?.ok === false) {
-        return; // Erro já tratado pelo api.js
+      // ✅ CORREÇÃO: Valida se é Blob
+      if (!(result instanceof Blob)) {
+        console.error("Erro ao exportar:", result);
+        return;
       }
 
-      // ✅ Se chegou aqui, é um Blob. Usa a função auxiliar para baixar.
       const filename = `relatorio-${reportType}-${period}.csv`;
       downloadCSV(result, filename);
-
     } catch (error) {
       console.error("Erro no download:", error);
     }
@@ -278,18 +275,8 @@ export default function Reports() {
           <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-xl">
-                <svg
-                  className="w-6 h-6 text-emerald-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
+                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div className="flex items-center space-x-1 text-xs font-semibold text-emerald-600">
@@ -312,18 +299,8 @@ export default function Reports() {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl">
-                <svg
-                  className="w-6 h-6 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                  />
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               </div>
             </div>
@@ -340,18 +317,8 @@ export default function Reports() {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-xl">
-                <svg
-                  className="w-6 h-6 text-purple-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
             </div>
@@ -368,26 +335,20 @@ export default function Reports() {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-xl">
-                <svg
-                  className="w-6 h-6 text-amber-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                  />
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
               </div>
             </div>
             <h3 className="text-sm font-medium text-slate-600 mb-2">Melhor Dia</h3>
             <div className="text-3xl font-bold text-slate-900 mb-2">
-              {reportData?.summary?.bestDay || "-"}
+              {reportData?.bestDay?.day || "-"}
             </div>
-            <div className="text-xs text-slate-500">Maior volume de vendas</div>
+            <div className="text-xs text-slate-500">
+              {reportData?.bestDay?.revenue 
+                ? formatCurrency(reportData.bestDay.revenue) 
+                : "Sem dados"}
+            </div>
           </div>
         </div>
 
@@ -399,60 +360,42 @@ export default function Reports() {
               Vendas por Dia
             </h3>
             <div className="relative h-64">
-              <svg viewBox="0 0 400 200" className="w-full h-full">
-                <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="1.5" />
-                <line x1="40" y1="0" x2="40" y2="160" stroke="#cbd5e1" strokeWidth="1.5" />
+              {reportData?.salesByDay && reportData.salesByDay.length > 0 ? (
+                <svg viewBox="0 0 400 200" className="w-full h-full">
+                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="1.5" />
+                  <line x1="40" y1="0" x2="40" y2="160" stroke="#cbd5e1" strokeWidth="1.5" />
 
-                {[0, 40, 80, 120, 160].map((y, idx) => (
-                  <line
-                    key={idx}
-                    x1="40"
-                    y1={y}
-                    x2="400"
-                    y2={y}
-                    stroke="#f1f5f9"
-                    strokeWidth="1"
-                    strokeDasharray="2,2"
-                  />
-                ))}
+                  {[0, 40, 80, 120, 160].map((y, idx) => (
+                    <line key={idx} x1="40" y1={y} x2="400" y2={y} stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2" />
+                  ))}
 
-                {(reportData?.salesByDay || []).map((item, idx) => {
-                  const maxRevenue = Math.max(...(reportData?.salesByDay || []).map(d => d.revenue), 1); // Evita divisão por zero
-                  const barHeight = (item.revenue / maxRevenue) * 140;
-                  const x = 70 + idx * 50;
-                  
-                  return (
-                    <g key={idx}>
-                      <rect
-                        x={x - 15}
-                        y={160 - barHeight}
-                        width="30"
-                        height={barHeight}
-                        fill="url(#blueGradient)"
-                        rx="4"
-                        className="cursor-pointer transition-opacity hover:opacity-80"
-                      />
-                      <text
-                        x={x}
-                        y="180"
-                        fontSize="11"
-                        fill="#64748b"
-                        textAnchor="middle"
-                        fontWeight="500"
-                      >
-                        {item.day}
-                      </text>
-                    </g>
-                  );
-                })}
+                  {reportData.salesByDay.map((item, idx) => {
+                    const maxRevenue = Math.max(...reportData.salesByDay.map(d => d.revenue));
+                    const barHeight = maxRevenue > 0 ? (item.revenue / maxRevenue) * 140 : 0;
+                    const x = 70 + idx * 50;
+                    
+                    return (
+                      <g key={idx}>
+                        <rect x={x - 15} y={160 - barHeight} width="30" height={barHeight} fill="url(#blueGradient)" rx="4" className="cursor-pointer transition-opacity hover:opacity-80" />
+                        <text x={x} y="180" fontSize="11" fill="#64748b" textAnchor="middle" fontWeight="500">
+                          {item.day}
+                        </text>
+                      </g>
+                    );
+                  })}
 
-                <defs>
-                  <linearGradient id="blueGradient" x1="0%" y1="100%" x2="0%" y2="0%">
-                    <stop offset="0%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#6366f1" />
-                  </linearGradient>
-                </defs>
-              </svg>
+                  <defs>
+                    <linearGradient id="blueGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#6366f1" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              ) : (
+                <div className="flex items-center justify-center h-full text-slate-400">
+                  Sem dados para exibir
+                </div>
+              )}
             </div>
           </div>
 
@@ -462,23 +405,62 @@ export default function Reports() {
               Status dos Pedidos
             </h3>
             <div className="space-y-4">
-              {Object.entries(reportData?.ordersByStatus || {}).map(([status, count]) => {
-                const total = Object.values(reportData?.ordersByStatus || {}).reduce((a, b) => a + b, 0) || 1; // Evita divisão por zero
-                const percentage = ((count / total) * 100).toFixed(1);
-                const colors = {
-                  delivered: { bg: "bg-green-50", text: "text-green-700", bar: "bg-green-500", label: "Entregue" },
-                  shipped: { bg: "bg-blue-50", text: "text-blue-700", bar: "bg-blue-500", label: "Enviado" },
-                  processing: { bg: "bg-amber-50", text: "text-amber-700", bar: "bg-amber-500", label: "Processando" },
-                  pending: { bg: "bg-orange-50", text: "text-orange-700", bar: "bg-orange-500", label: "Pendente" }
+              {reportData?.ordersByStatus && Object.entries(reportData.ordersByStatus).map(([status, count]) => {
+                const total = Object.values(reportData.ordersByStatus).reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                
+                const statusConfig = {
+                  delivered: { 
+                    bg: "bg-green-50", 
+                    text: "text-green-700", 
+                    bar: "bg-green-500", 
+                    border: "border-green-200",
+                    label: "Entregue" 
+                  },
+                  shipped: { 
+                    bg: "bg-blue-50", 
+                    text: "text-blue-700", 
+                    bar: "bg-blue-500", 
+                    border: "border-blue-200",
+                    label: "Enviado" 
+                  },
+                  paid: { 
+                    bg: "bg-emerald-50", 
+                    text: "text-emerald-700", 
+                    bar: "bg-emerald-500", 
+                    border: "border-emerald-200",
+                    label: "Pago" 
+                  },
+                  pending: { 
+                    bg: "bg-orange-50", 
+                    text: "text-orange-700", 
+                    bar: "bg-orange-500", 
+                    border: "border-orange-200",
+                    label: "Pendente" 
+                  },
+                  cancelled: { 
+                    bg: "bg-red-50", 
+                    text: "text-red-700", 
+                    bar: "bg-red-500", 
+                    border: "border-red-200",
+                    label: "Cancelado" 
+                  }
                 };
-                const color = colors[status] || { bg: "bg-gray-50", text: "text-gray-700", bar: "bg-gray-500", label: status }; // Fallback para status desconhecido
+                
+                const config = statusConfig[status] || { 
+                  bg: "bg-gray-50", 
+                  text: "text-gray-700", 
+                  bar: "bg-gray-500", 
+                  border: "border-gray-200",
+                  label: status 
+                };
 
                 return (
-                  <div key={status} className={`p-4 rounded-xl ${color.bg} border border-${status === 'delivered' ? 'green' : status === 'shipped' ? 'blue' : status === 'processing' ? 'amber' : 'orange'}-200`}>
+                  <div key={status} className={`p-4 rounded-xl ${config.bg} border ${config.border}`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${color.bar}`}></div>
-                        <span className={`text-sm font-medium ${color.text}`}>{color.label}</span>
+                        <div className={`w-3 h-3 rounded-full ${config.bar}`}></div>
+                        <span className={`text-sm font-medium ${config.text}`}>{config.label}</span>
                       </div>
                       <div className="text-right">
                         <span className="text-lg font-bold text-slate-900">{count}</span>
@@ -486,10 +468,7 @@ export default function Reports() {
                       </div>
                     </div>
                     <div className="w-full bg-white rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-full ${color.bar} transition-all duration-500`}
-                        style={{ width: `${percentage}%` }}
-                      ></div>
+                      <div className={`h-full ${config.bar} transition-all duration-500`} style={{ width: `${percentage}%` }}></div>
                     </div>
                   </div>
                 );
@@ -504,25 +483,28 @@ export default function Reports() {
             Top 5 Produtos Mais Vendidos
           </h3>
           <div className="space-y-4">
-            {(reportData?.topProducts || []).map((product, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-              >
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg text-white font-bold text-sm">
-                    {idx + 1}
+            {reportData?.topProducts && reportData.topProducts.length > 0 ? (
+              reportData.topProducts.map((product, idx) => (
+                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg text-white font-bold text-sm">
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-slate-900">{product.name}</div>
+                      <div className="text-xs text-slate-500">{product.quantity} unidades vendidas</div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-slate-900">{product.name}</div>
-                    <div className="text-xs text-slate-500">{product.quantity} unidades vendidas</div>
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-slate-900">{formatCurrency(product.revenue)}</div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-slate-900">{formatCurrency(product.revenue)}</div>
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-slate-400">
+                Nenhum produto vendido no período
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

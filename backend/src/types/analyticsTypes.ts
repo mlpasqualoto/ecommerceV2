@@ -43,3 +43,9 @@ export interface AnalyticsServiceResult {
     message: string;
     stats?: DashboardStats;
 }
+
+export interface ReportServiceResult {
+  status: number;
+  message: string;
+  report?: any;
+}

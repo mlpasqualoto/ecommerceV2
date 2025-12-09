@@ -2,14 +2,9 @@ import Order from "../models/Order";
 import User from "../models/User";
 import Product from "../models/Product";
 import {
-  AnalyticsServiceResult
+  AnalyticsServiceResult,
+  ReportServiceResult
 } from "../types/analyticsTypes";
-
-interface ReportServiceResult {
-  status: number;
-  message: string;
-  report?: any;
-}
 
 // **** ESTATÍSTICAS DO DASHBOARD **** //
 
@@ -81,7 +76,11 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
     {
       $group: {
         _id: {
-          $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+          $dateToString: { 
+            format: '%Y-%m-%d', 
+            date: '$createdAt',
+            timezone: 'America/Sao_Paulo' // ✅ Horário de São Paulo
+          }
         },
         orders: { $sum: 1 },
         revenue: { $sum: '$totalAmount' }
@@ -331,21 +330,47 @@ export async function getDashBoardsStatsService(startDate: string, endDate: stri
  */
 export async function getWeeklyReportService(weekYear: string): Promise<ReportServiceResult> {
   try {
-    // Parse do formato semana (ex: "2024-W50")
-    const [year, weekStr] = weekYear.split("-W");
-    const week = parseInt(weekStr);
+    if (!weekYear || !weekYear.includes('-W')) {
+      return {
+        status: 400,
+        message: "Formato de semana inválido. Use formato YYYY-WNN (ex: 2024-W50)",
+        report: undefined
+      };
+    }
 
-    // Calcula data de início e fim da semana
-    const startDate = getDateOfISOWeek(week, parseInt(year));
+    const [year, weekStr] = weekYear.split("-W");
+    
+    if (!year || !weekStr) {
+      return {
+        status: 400,
+        message: "Formato de semana inválido",
+        report: undefined
+      };
+    }
+
+    const week = parseInt(weekStr);
+    const yearNum = parseInt(year);
+
+    if (isNaN(week) || isNaN(yearNum) || week < 1 || week > 53) {
+      return {
+        status: 400,
+        message: "Semana deve estar entre 1 e 53",
+        report: undefined
+      };
+    }
+
+    // const startDate = getDateOfISOWeek(week, parseInt(year));
+    const startDate = getDateOfISOWeek(week, yearNum);
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + 6);
     endDate.setHours(23, 59, 59, 999);
 
     return await generateReport(startDate, endDate, "weekly", weekYear);
   } catch (error) {
+    console.error("Erro em getWeeklyReportService:", error);
     return {
       status: 400,
-      message: "Formato de semana inválido. Use formato YYYY-WNN (ex: 2024-W50)",
+      message: error instanceof Error ? error.message : "Erro ao gerar relatório semanal",
       report: undefined
     };
   }
@@ -357,21 +382,49 @@ export async function getWeeklyReportService(weekYear: string): Promise<ReportSe
  */
 export async function getMonthlyReportService(monthYear: string): Promise<ReportServiceResult> {
   try {
+    if (!monthYear || !monthYear.includes('-')) {
+      return {
+        status: 400,
+        message: "Formato de mês inválido. Use formato YYYY-MM (ex: 2024-12)",
+        report: undefined
+      };
+    }
+
     const [year, month] = monthYear.split("-");
+    
+    if (!year || !month) {
+      return {
+        status: 400,
+        message: "Formato de mês inválido",
+        report: undefined
+      };
+    }
+ 
+    const yearNum = parseInt(year);
+    const monthNum = parseInt(month);
+ 
+    if (isNaN(yearNum) || isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+      return {
+        status: 400,
+        message: "Mês deve estar entre 1 e 12",
+        report: undefined
+      };
+    }
 
     // Primeiro dia do mês
-    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const startDate = new Date(yearNum, monthNum - 1, 1);
     startDate.setHours(0, 0, 0, 0);
 
     // Último dia do mês
-    const endDate = new Date(parseInt(year), parseInt(month), 0);
+    const endDate = new Date(yearNum, monthNum, 0);
     endDate.setHours(23, 59, 59, 999);
 
     return await generateReport(startDate, endDate, "monthly", monthYear);
   } catch (error) {
+    console.error("Erro em getMonthlyReportService:", error);
     return {
       status: 400,
-      message: "Formato de mês inválido. Use formato YYYY-MM (ex: 2024-12)",
+      message: error instanceof Error ? error.message : "Erro ao gerar relatório mensal",
       report: undefined
     };
   }
@@ -386,6 +439,14 @@ async function generateReport(
   type: "weekly" | "monthly",
   period: string
 ): Promise<ReportServiceResult> {
+
+  console.log(`📊 Gerando relatório ${type}:`, {
+    period,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    startDateLocal: startDate.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+    endDateLocal: endDate.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+  });
 
   // 1. Resumo Financeiro e de Pedidos
   const summary = await Order.aggregate([
@@ -411,6 +472,8 @@ async function generateReport(
     avgOrderValue: 0
   };
 
+  console.log(`📈 Resumo encontrado:`, summaryData);
+
   // 2. Vendas por Dia (dentro do período)
   const salesByDay = await Order.aggregate([
     {
@@ -422,7 +485,11 @@ async function generateReport(
     {
       $group: {
         _id: {
-          $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+          $dateToString: { 
+            format: '%Y-%m-%d', 
+            date: '$createdAt',
+            timezone: 'America/Sao_Paulo'
+          }
         },
         orders: { $sum: 1 },
         revenue: { $sum: '$totalAmount' }
@@ -431,9 +498,11 @@ async function generateReport(
     { $sort: { _id: 1 } }
   ]);
 
+  console.log(`📅 Vendas por dia encontradas:`, salesByDay.length);
+
   // Formata para incluir nome do dia da semana
   const salesByDayFormatted = salesByDay.map((day: any) => {
-    const date = new Date(day._id);
+    const date = new Date(day._id + 'T00:00:00-03:00');
     const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     return {
       date: day._id,
@@ -445,8 +514,11 @@ async function generateReport(
 
   // 3. Melhor dia de vendas
   const bestDay = salesByDayFormatted.reduce((best: any, current: any) => {
+    if (!current || typeof current.revenue !== 'number') return best;
     return current.revenue > (best?.revenue || 0) ? current : best;
   }, null);
+
+  console.log(`🏆 Melhor dia:`, bestDay);
 
   // 4. Top Produtos Mais Vendidos
   const topProducts = await Order.aggregate([
@@ -472,6 +544,8 @@ async function generateReport(
     { $sort: { quantity: -1 } },
     { $limit: 5 }
   ]);
+
+  console.log(`🏆 Top produtos encontrados:`, topProducts.length);
 
   // 5. Pedidos por Status
   const ordersByStatus = await Order.aggregate([
@@ -561,7 +635,11 @@ async function generateReport(
     {
       $group: {
         _id: {
-          $dateToString: { format: '%H', date: '$createdAt' }
+          $dateToString: { 
+            format: '%H', 
+            date: '$createdAt',
+            timezone: 'America/Sao_Paulo' 
+          }
         },
         orders: { $sum: 1 },
         revenue: { $sum: '$totalAmount' }
@@ -639,21 +717,22 @@ async function generateReport(
 }
 
 /**
- * Função auxiliar para obter data do início da semana ISO
+ * Função auxiliar CORRIGIDA para obter data do início da semana ISO
  */
 function getDateOfISOWeek(week: number, year: number): Date {
-  const simple = new Date(year, 0, 1 + (week - 1) * 7);
-  const dow = simple.getDay();
-  const ISOweekStart = simple;
-
-  if (dow <= 4) {
-    ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
-  } else {
-    ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
-  }
-
-  ISOweekStart.setHours(0, 0, 0, 0);
-  return ISOweekStart;
+  // 4 de janeiro sempre está na semana 1 ISO
+  const jan4 = new Date(year, 0, 4);
+  const jan4Day = jan4.getDay() || 7; // Domingo = 7 (ISO)
+  
+  // Calcula segunda-feira da semana 1
+  const weekStart = new Date(jan4);
+  weekStart.setDate(jan4.getDate() - jan4Day + 1);
+  
+  // Adiciona semanas
+  weekStart.setDate(weekStart.getDate() + (week - 1) * 7);
+  weekStart.setHours(0, 0, 0, 0);
+  
+  return weekStart;
 }
 
 /**
