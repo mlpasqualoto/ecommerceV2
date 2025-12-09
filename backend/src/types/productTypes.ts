@@ -33,6 +33,7 @@ export interface ProductServiceResult {
 
 export interface UpdateProductDTO {
     name?: string;
+    externalId?: string;
     cost?: number;
     price?: number;
     description?: string;

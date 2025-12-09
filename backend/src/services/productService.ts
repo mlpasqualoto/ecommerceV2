@@ -126,6 +126,7 @@ export async function updateProductService(productId: string, body: UpdateProduc
     // Pega os campos do body
     const {
         name,
+        externalId,
         cost,
         price,
         description,
@@ -170,6 +171,7 @@ export async function updateProductService(productId: string, body: UpdateProduc
     // Monta os campos atualizados
     const updateData = {
         name,
+        externalId,
         price,
         cost,
         description,

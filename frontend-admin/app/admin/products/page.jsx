@@ -17,6 +17,7 @@ export default function ProductsPage() {
   const [editProduct, setEditProduct] = useState(null);
   const [editForm, setEditForm] = useState({
     name: "",
+    externalId: "",
     price: "",
     cost: "",
     description: "",
@@ -29,6 +30,7 @@ export default function ProductsPage() {
   });
   const [newProduct, setNewProduct] = useState({
     name: "",
+    externalId: "",
     price: "",
     cost: "",
     images: [],
@@ -137,6 +139,7 @@ export default function ProductsPage() {
     setEditProduct(product);
     setEditForm({
       name: product.name,
+      externalId: product.externalId || "",
       price: product.price,
       cost: product.cost,
       images: product.images || [],
@@ -154,6 +157,7 @@ export default function ProductsPage() {
     setEditProduct(null);
     setEditForm({
       name: "",
+      externalId: "",
       price: "",
       cost: "",
       images: [],
@@ -185,6 +189,7 @@ export default function ProductsPage() {
 
     const formData = new FormData();
     formData.append("name", editForm.name || "");
+    formData.append("externalId", editForm.externalId || "");
     formData.append("price", Number(editForm.price) || 0);
     formData.append("cost", Number(editForm.cost) || 0);
     formData.append("description", editForm.description || "");
@@ -616,6 +621,22 @@ export default function ProductsPage() {
                     onChange={handleEditFormChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                     min="1"
+                  />
+                </div>
+
+                <div
+                  className="space-y-2 animate-slideInUp"
+                  style={{ animationDelay: "0.1s" }}
+                >
+                  <label className="block text-sm font-semibold text-slate-700">
+                    External ID
+                  </label>
+                  <input
+                    name="externalId"
+                    type="text"
+                    value={editForm.externalId || ""}
+                    onChange={handleEditFormChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
                   />
                 </div>
 
