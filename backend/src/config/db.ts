@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import logger from "../utils/logger";
 import "../models/User";
 import "../models/Order";
 import "../models/Product";
@@ -6,9 +7,9 @@ import "../models/Product";
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI as string);
-    console.log("✅ Conectado ao MongoDB com sucesso");
+    logger.info("📊 Conectado ao MongoDB com sucesso");
   } catch (error) {
-    console.error("❌ Erro ao conectar ao MongoDB:", error);
+    logger.error("❌ Erro ao conectar ao MongoDB:", error);
     process.exit(1); // Encerra o processo se a conexão falhar
   }
 }

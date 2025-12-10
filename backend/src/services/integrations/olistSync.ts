@@ -134,9 +134,8 @@ async function fetchOlistOrderDetails(orderId: string) {
 }
 
 export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: string, situacao: string) {
-  // Log de teste
-  console.log("🔵 [CONSOLE.LOG] Iniciando sincronização...");
-  logger.info("🟢 [LOGGER.INFO] Iniciando sincronização de pedidos", { dataInicial, dataFinal, situacao });
+  // Log de início
+  logger.info("🔵 Iniciando sincronização de pedidos", { dataInicial, dataFinal, situacao });
 
   try {
     // Limpa caches no início para refletir mudanças manuais
@@ -150,7 +149,6 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
 
     // Garante data atual em UTC-3
     const currentDateBr = parseDataBr(dataInicial);
-    console.log("Data atual em UTC-3:", currentDateBr.toISOString());
 
     logger.info("Chamando endpoint pedidos.pesquisa.php", { dataInicial, dataFinal, situacao });
     
@@ -407,7 +405,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
       }
     }
 
-    logger.info("Pedidos sincronizados da Olist", { count: orders.length });
+    logger.info("🟢 Pedidos sincronizados da Olist", { count: orders.length });
   } catch (error) {
     logger.error("Erro ao sincronizar pedidos da Olist", { error });
     throw error;

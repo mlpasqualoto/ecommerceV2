@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { syncOlistShopeeOrders } from "./olistSync";
+import logger from "../../utils/logger";
 
 export function startSchedulers() {
   // Executa a cada 2 minutos
@@ -14,14 +15,14 @@ export function startSchedulers() {
         year: "numeric"
       }); // Retorna: "07/12/2024"
 
-      console.log("⏱️ Iniciando sincronização da Olist...", currentDateBr);
+      logger.info("⏱️ Iniciando sincronização da Olist...", currentDateBr);
       
       // Usa a data atual para sincronizar
       await syncOlistShopeeOrders(currentDateBr, currentDateBr, "");
       
-      console.log("✅ Sincronização da Olist finalizada", currentDateBr);
+      logger.info("✅ Sincronização da Olist finalizada", currentDateBr);
     } catch (error) {
-      console.error("❌ Erro na sincronização da Olist:", error);
+      logger.error("❌ Erro na sincronização da Olist:", error);
     }
   });
 }
