@@ -37,6 +37,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/server.js",
+    "start:dev": "NODE_ENV=development ts-node src/server.ts",
     "dev": "nodemon --watch src --ext ts,js --exec \"ts-node -r tsconfig-paths/register --transpile-only server.ts\"",
     "script:clean-products": "ts-node scripts/cleanDuplicateProducts.ts",
     "script:delete-olist-products": "ts-node scripts/deleteOlistProducts.ts"

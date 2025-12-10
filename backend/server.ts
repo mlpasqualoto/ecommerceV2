@@ -16,6 +16,12 @@ import { startSchedulers } from "./src/services/integrations/scheduler";
 
 dotenv.config();
 
+// log de inicialização
+logger.info("🚀 Iniciando servidor...", {
+  nodeEnv: process.env.NODE_ENV || "development",
+  port: process.env.PORT || 5000,
+});
+
 const app = express();
 
 // para apps atrás de um proxy (ex: Render.com)
@@ -96,8 +102,21 @@ app.get("/", (req: express.Request, res: express.Response) => {
 // porta
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  logger.info("✅ Servidor rodando", {
+    port: PORT,
+    ambiente: process.env.NODE_ENV || "development",
+  });
 
   // Inicia os agendadores
   startSchedulers();
+});
+
+// Captura erros não tratados
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('❌ Unhandled Rejection', { reason, promise });
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error('❌ Uncaught Exception', { error: error.message, stack: error.stack });
+  process.exit(1);
 });

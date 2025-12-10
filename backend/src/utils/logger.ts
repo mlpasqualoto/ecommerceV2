@@ -1,7 +1,8 @@
 import winston from "winston";
-import DailyRotateFile from "winston-daily-rotate-file";
 import path from "path";
 import fs from "fs";
+
+const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 
 // Caminho base do projeto e pasta de logs
 const appRoot = process.cwd();
@@ -12,52 +13,77 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
-// Formato personalizado do log
-const logFormat = winston.format.combine(
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  winston.format.printf(
-    ({ level, message, timestamp }: winston.Logform.TransformableInfo) =>
-      `[${timestamp}] ${level.toUpperCase()}: ${message}`
-  )
+// Formato customizado para console (legível)
+const consoleFormat = printf(
+  ({ level, message, timestamp, stack, ...metadata }) => {
+    let msg = `${timestamp} | ${level} | ${message}`;
+
+    // Adiciona metadados se existirem
+    if (Object.keys(metadata).length > 0) {
+      msg += ` ${JSON.stringify(metadata)}`;
+    }
+
+    // Adiciona stack trace se for erro
+    if (stack) {
+      msg += `\n${stack}`;
+    }
+
+    return msg;
+  }
 );
 
 // Configuração dos transportes (destinos dos logs)
 const transports: winston.transport[] = [
-  new DailyRotateFile({
-    filename: path.join(logDir, "error-%DATE%.log"),
-    datePattern: "YYYY-MM-DD",
+  new winston.transports.File({
+    filename: path.join(logDir, "error.log"),
     level: "error",
-    maxSize: "10m",
-    maxFiles: "14d", // mantém logs de até 14 dias
+    maxsize: 10485760, // 10MB em bytes
+    maxFiles: 14, // mantém últimos 14 arquivos
     zippedArchive: true, // compacta logs antigos
   }),
-  new DailyRotateFile({
-    filename: path.join(logDir, "combined-%DATE%.log"),
-    datePattern: "YYYY-MM-DD",
-    maxSize: "20m",
-    maxFiles: "14d",
+  new winston.transports.File({
+    filename: path.join(logDir, "combined.log"),
+    maxsize: 20971520, // 20MB em bytes
+    maxFiles: 14, // mantém últimos 14 arquivos
     zippedArchive: true,
   }),
 ];
 
-// Em ambiente de desenvolvimento, também mostra no console
-if (process.env.NODE_ENV !== "production") {
-  transports.push(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-    })
-  );
-}
-
-// Cria o logger principal
+// Cria logger com transporte de console explícito
 const logger = winston.createLogger({
   level: (process.env.LOG_LEVEL as string) || "info",
-  format: logFormat,
-  transports,
+  format: combine(
+    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    errors({ stack: true }), // Captura stack trace de erros
+    json() // Formato JSON para outros transportes
+  ),
+  transports: [
+    // Console transport - SEMPRE ativo
+    new winston.transports.Console({
+      format: combine(
+        colorize({ all: true }), // Colorir no desenvolvimento
+        timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        consoleFormat
+      ),
+      // CRÍTICO: Força saída para stdout
+      stderrLevels: [], // Não usar stderr (Render pode não capturar)
+      consoleWarnLevels: [], // Não usar console.warn
+    }),
+  ],
+  // Em caso de erro no logger, joga no console nativo
+  exceptionHandlers: [
+    new winston.transports.Console({
+      format: combine(colorize(), timestamp(), consoleFormat),
+    }),
+  ],
+  rejectionHandlers: [
+    new winston.transports.Console({
+      format: combine(colorize(), timestamp(), consoleFormat),
+    }),
+  ],
 });
+
+logger.info("✅ Logger inicializado com sucesso");
 
 // Exporta como default
 export default logger;

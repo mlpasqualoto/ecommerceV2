@@ -9,7 +9,7 @@ import { parseDataBr } from "../../utils/utils";
 
 dotenv.config();
 
-// ✅ Função auxiliar para pausar a execução (Sleep)
+// Função auxiliar para pausar a execução (Sleep)
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Cache para evitar queries repetidas DURANTE A MESMA EXECUÇÃO
@@ -54,7 +54,7 @@ async function getOrCreateUser(userName: string): Promise<{ userId: mongoose.Typ
 // Garante que existe um produto ou cria um genérico
 async function getOrCreateProduct(codigo: string, descricao: string, valorUnitario: number, imagemUrl?: string): Promise<{ productId: mongoose.Types.ObjectId; productImage: string; productCost: number }> {
   try {
-    // ⚠️ Sempre busca do banco (não usa cache para verificar produto)
+    // Sempre busca do banco (não usa cache para verificar produto)
     let product = await Product.findOne({ externalId: codigo });
 
     if (!product) {
@@ -87,7 +87,7 @@ async function getOrCreateProduct(codigo: string, descricao: string, valorUnitar
       logger.info("Produto criado com sucesso", { codigo, productId: product._id });
     }
 
-    // ⚠️ Sempre pega a imagem ATUAL do banco (reflete alterações manuais)
+    // Sempre pega a imagem ATUAL do banco (reflete alterações manuais)
     const productImage = product.images?.[0]?.url || "";
 
     // Pega preço de custo atual
@@ -118,24 +118,9 @@ async function fetchOlistOrderDetails(orderId: string) {
     });
 
     logger.info("Resposta detalhe pedido recebida", { orderId, status: resp.status });
-    
-    // ⚠️ LOG DETALHADO: Mostra a estrutura completa da resposta
-    logger.debug("Resposta completa da API de detalhe", { 
-      orderId, 
-      fullResponse: JSON.stringify(resp.data, null, 2) 
-    });
-    
+        
     if (resp.status === 200 && resp.data?.retorno?.pedido) {
       const pedido = resp.data.retorno.pedido;
-      
-      // ⚠️ LOG CRÍTICO: Mostra campos específicos
-      logger.info("Estrutura do pedido detalhado", {
-        orderId,
-        temItens: !!pedido.itens,
-        quantidadeItens: pedido.itens?.length || 0,
-        temCliente: !!pedido.cliente,
-        campos: Object.keys(pedido)
-      });
       
       return pedido;
     }
@@ -149,8 +134,12 @@ async function fetchOlistOrderDetails(orderId: string) {
 }
 
 export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: string, situacao: string) {
+  // Log de teste
+  console.log("🔵 [CONSOLE.LOG] Iniciando sincronização...");
+  logger.info("🟢 [LOGGER.INFO] Iniciando sincronização de pedidos", { dataInicial, dataFinal, situacao });
+
   try {
-    // ⚠️ Limpa caches no início para refletir mudanças manuais
+    // Limpa caches no início para refletir mudanças manuais
     productCache.clear();
 
     // variáveis de controle de Rate Limit
@@ -208,7 +197,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
       const externalId = order.pedido.id ?? "";
       
       try {
-        // ⚠️ CORREÇÃO: Sempre busca detalhes primeiro (independente se existe ou não)
+        // Busca detalhes completos do pedido
         const detail = await fetchOlistOrderDetails(externalId);
         
         // incrementa contador após a requisição de detalhe
@@ -239,17 +228,15 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
           `.trim() : "";
 
           // Processa items criando/buscando produtos
-          // ⚠️ CORREÇÃO: Itens vêm como array de objetos com propriedade "item"
           const items = [];
           for (const itemWrapper of detail.itens || []) {
-            const i = itemWrapper.item; // ⚠️ Acessa o objeto item interno
+            const i = itemWrapper.item;
             
             if (!i) {
               logger.warn("Item sem dados internos, pulando", { externalId, itemWrapper });
               continue;
             }
             
-            // ⚠️ LOG DEBUG: Mostra o que está vindo da API
             logger.debug("Processando item do pedido", {
               externalId,
               codigo: i.codigo,
@@ -259,7 +246,6 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               id_produto: i.id_produto
             });
             
-            // ⚠️ CORREÇÃO: Se código vazio, usa descricao como identificador único
             let productCode = i.codigo?.trim();
             if (!productCode) {
               // Gera código baseado na descrição para manter consistência
@@ -284,7 +270,6 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
               imageUrl: productIdImgCost.productImage || "https://via.placeholder.com/150",
             };
             
-            // ⚠️ LOG DEBUG: Mostra o item processado
             logger.debug("Item processado", { externalId, itemProcessado });
             
             items.push(itemProcessado);
@@ -294,7 +279,6 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
           const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
           const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
           
-          // ⚠️ LOG IMPORTANTE: Mostra totais calculados
           logger.info("Totais calculados", { 
             externalId, 
             itemsCount: items.length,
@@ -338,7 +322,6 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             CEP: ${detail.cliente.cep || ''}
           `.trim() : "";
 
-          // ⚠️ ATUALIZAÇÃO: processar items para criar/buscar produtos
           logger.info("Processando items do pedido para atualização", { 
             externalId, 
             itensRecebidos: detail.itens?.length || 0 
@@ -366,7 +349,7 @@ export async function syncOlistShopeeOrders(dataInicial: string, dataFinal: stri
             if (!productCode) {
               productCode = `OLIST-${i.descricao?.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '-') || 'SEM-DESC'}-${i.id_produto || Date.now()}`;
             }
-            // ⚠️ AQUI: Chama getOrCreateProduct na atualização também
+            
             const productIdImg = await getOrCreateProduct(
               productCode,
               i.descricao || "Produto sem descrição",
