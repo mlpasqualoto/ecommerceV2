@@ -7,25 +7,42 @@ export default function AdminLayout({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   const router = useRouter();
   const pathname = usePathname();
 
-  // Lista de rotas públicas
   const publicRoutes = ["/login", "/register", "/forgot-password"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
+  // Carregar preferência de tema ao montar
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  // Alternar tema
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+    if (!isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
   const checkAuth = useCallback(async (isBackgroundCheck = false) => {
-    // 1. Evita loop se já estiver no login
     if (isPublicRoute) {
       setIsLoading(false);
       return;
     }
 
     try {
-      // TÉCNICA CACHE BUSTER:
-      // Adicionamos ?t=timestamp para garantir que a requisição seja sempre única.
-      // Isso evita cache SEM precisar enviar headers que quebram o CORS.
       const timestamp = new Date().getTime();
       
       const res = await fetch(`https://ecommercev2-rg6c.onrender.com/api/users/me?t=${timestamp}`, {
@@ -33,7 +50,6 @@ export default function AdminLayout({ children }) {
         credentials: "include",
       });
 
-      // Se der 401/403 e não estivermos no login, redireciona
       if (res.status === 401 || res.status === 403) {
         if (!isPublicRoute) {
           console.warn("Sessão expirada. Redirecionando...");
@@ -43,7 +59,6 @@ export default function AdminLayout({ children }) {
       }
 
       if (!res.ok) {
-        // Se for outro erro, lançamos para cair no catch, mas sem forçar logout imediato se for erro de servidor
         throw new Error(`Erro na API: ${res.status}`);
       }
 
@@ -56,14 +71,6 @@ export default function AdminLayout({ children }) {
 
     } catch (error) {
       console.error("Erro ao verificar autenticação:", error);
-      
-      // Lógica de segurança: Se falhar o fetch (ex: rede off) não desloga imediatamente
-      // a menos que seja explicitamente um erro de auth tratado acima.
-      // Mas para garantir segurança, se o usuário tentar navegar e der erro,
-      // você pode optar por redirecionar ou mostrar um aviso.
-      
-      // Neste caso, se for erro de rede, mantemos o usuário na tela, 
-      // mas se a resposta foi processada acima como 401, ele já foi redirecionado.
     } finally {
       if (!isBackgroundCheck) {
         setIsLoading(false);
@@ -77,15 +84,12 @@ export default function AdminLayout({ children }) {
       return;
     }
 
-    // Verificação inicial
     checkAuth(false);
 
-    // Polling a cada 60s
     const intervalId = setInterval(() => {
       checkAuth(true);
     }, 60000); 
 
-    // Verificação ao focar na janela
     const handleFocus = () => checkAuth(true);
     window.addEventListener("focus", handleFocus);
 
@@ -171,17 +175,17 @@ export default function AdminLayout({ children }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-50">
+      <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-900">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-500 font-medium">Verificando acesso...</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Verificando acesso...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -192,13 +196,13 @@ export default function AdminLayout({ children }) {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          w-72 bg-white border-r border-slate-200 
+          w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700
           flex flex-col shadow-lg lg:shadow-sm
-          transform transition-transform duration-300 ease-in-out
+          transform transition-all duration-300 ease-in-out
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        <div className="p-4 sm:p-6 border-b border-slate-200">
+        <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
@@ -207,16 +211,16 @@ export default function AdminLayout({ children }) {
                 </svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Admin Panel</h2>
-                <p className="text-xs text-slate-500">Gerenciamento</p>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Admin Panel</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Gerenciamento</p>
               </div>
             </div>
 
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              className="lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
             >
-              <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -231,7 +235,7 @@ export default function AdminLayout({ children }) {
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer ${
                 pathname === item.path
                   ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               <div className={`transition-transform duration-200 ${
@@ -247,23 +251,56 @@ export default function AdminLayout({ children }) {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-200">
-          <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200">
+        {/* Botão de Dark Mode */}
+        <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+          <button
+            onClick={toggleDarkMode}
+            className="w-full flex items-center justify-between p-4 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-200 group cursor-pointer"
+          >
             <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-emerald-100 rounded-lg">
-                <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 dark:from-indigo-500 dark:to-purple-600 rounded-lg transition-all duration-300">
+                {isDarkMode ? (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                )}
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {isDarkMode ? "Modo Escuro" : "Modo Claro"}
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  Tema do sistema
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-center w-12 h-6 bg-slate-300 dark:bg-slate-500 rounded-full relative transition-colors duration-300">
+              <div className={`absolute w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${isDarkMode ? 'translate-x-3' : '-translate-x-3'}`}></div>
+            </div>
+          </button>
+        </div>
+
+        <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-10 h-10 bg-emerald-100 dark:bg-emerald-800 rounded-lg">
+                <div className="w-2.5 h-2.5 bg-emerald-500 dark:bg-emerald-400 rounded-full animate-pulse"></div>
               </div>
               <div className="flex-1">
-                <div className="text-xs font-medium text-emerald-600 uppercase tracking-wide">
+                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
                   Sistema
                 </div>
-                <div className="text-sm font-semibold text-slate-900">Online</div>
+                <div className="text-sm font-semibold text-slate-900 dark:text-white">Online</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="p-4 border-t border-slate-200">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-700">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
@@ -289,12 +326,12 @@ export default function AdminLayout({ children }) {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between sticky top-0 z-30 transition-colors duration-300">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
-            <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -305,10 +342,23 @@ export default function AdminLayout({ children }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <span className="text-sm font-bold text-slate-900">Admin Panel</span>
+            <span className="text-sm font-bold text-slate-900 dark:text-white">Admin Panel</span>
           </div>
 
-          <div className="w-10"></div>
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            {isDarkMode ? (
+              <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            )}
+          </button>
         </header>
 
         <main className="flex-1 overflow-y-auto">
