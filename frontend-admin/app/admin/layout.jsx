@@ -27,15 +27,25 @@ export default function AdminLayout({ children }) {
   // Alternar tema
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;
+    console.log("Alternando tema:", { atual: isDarkMode, novo: newDarkMode });
+    
     setIsDarkMode(newDarkMode);
     
     if (newDarkMode) {
+      console.log("Ativando dark mode");
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
+      console.log("Desativando dark mode");
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
+    
+    // Verificar após mudança
+    setTimeout(() => {
+      console.log("Classes no HTML:", document.documentElement.className);
+      console.log("Theme no localStorage:", localStorage.getItem("theme"));
+    }, 100);
   };
 
   const checkAuth = useCallback(async (isBackgroundCheck = false) => {
