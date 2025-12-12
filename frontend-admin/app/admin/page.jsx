@@ -445,9 +445,9 @@ export default function AdminHome() {
       document.body.removeChild(link);
 
       const exportButton = document.querySelector("[data-export-btn]");
-      exportButton?.classList.add("bg-green-200", "text-green-700");
+      exportButton?.classList.add("bg-green-200", "text-green-700 dark:text-green-300 dark:text-green-300 dark:text-green-300");
       setTimeout(() => {
-        exportButton?.classList.remove("bg-green-200", "text-green-700");
+        exportButton?.classList.remove("bg-green-200", "text-green-700 dark:text-green-300 dark:text-green-300 dark:text-green-300");
       }, 2000);
     } catch (error) {
       console.error("Erro ao exportar dados:", error);
@@ -814,14 +814,14 @@ export default function AdminHome() {
 
   const getStatusColor = (status) => {
     const colors = {
-      paid: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-      pending: "bg-amber-50 text-amber-700 border border-amber-200",
-      shipped: "bg-blue-50 text-blue-700 border border-blue-200",
-      delivered: "bg-green-50 text-green-700 border border-green-200",
-      cancelled: "bg-red-50 text-red-700 border border-red-200",
+      paid: "bg-emerald-50 dark:bg-emerald-900/20 dark:bg-emerald-900/20 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 dark:text-emerald-300 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 dark:border-emerald-800 dark:border-emerald-800 dark:border-emerald-800 dark:border-emerald-800 dark:border-emerald-800",
+      pending: "bg-amber-50 dark:bg-amber-900/20 dark:bg-amber-900/20 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 dark:text-amber-300 dark:text-amber-300 border border-amber-200 dark:border-amber-800 dark:border-amber-800 dark:border-amber-800",
+      shipped: "bg-blue-50 dark:bg-blue-900/20 dark:bg-blue-900/20 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 dark:text-blue-300 dark:text-blue-300 border border-blue-200 dark:border-blue-800 dark:border-blue-800 dark:border-blue-800",
+      delivered: "bg-green-50 dark:bg-green-900/20 dark:bg-green-900/20 dark:bg-green-900/20 text-green-700 dark:text-green-300 dark:text-green-300 dark:text-green-300 border border-green-200 dark:border-green-800 dark:border-green-800 dark:border-green-800",
+      cancelled: "bg-red-50 dark:bg-red-900/20 dark:bg-red-900/20 dark:bg-red-900/20 text-red-700 dark:text-red-300 dark:text-red-300 dark:text-red-300 border border-red-200 dark:border-red-800 dark:border-red-800 dark:border-red-800",
     };
     return (
-      colors[status] || "bg-slate-50 text-slate-700 border border-slate-200"
+      colors[status] || "bg-slate-50 dark:bg-slate-900 dark:bg-slate-900 dark:bg-slate-900 text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700"
     );
   };
 
@@ -849,10 +849,10 @@ export default function AdminHome() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 dark:bg-slate-900 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Carregando pedidos...</p>
+          <p className="text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400">Carregando pedidos...</p>
         </div>
       </div>
     );
@@ -861,7 +861,7 @@ export default function AdminHome() {
   const renderSystemStatus = () => {
     if (systemStatus === "loading") {
       return (
-        <div className="flex items-center space-x-2 text-sm text-slate-500">
+        <div className="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
           <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
           <span>Verificando...</span>
         </div>
@@ -869,14 +869,14 @@ export default function AdminHome() {
     }
     if (systemStatus === "online") {
       return (
-        <div className="flex items-center space-x-2 text-sm text-slate-500">
+        <div className="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
           <span>Sistema Online</span>
         </div>
       );
     }
     return (
-      <div className="flex items-center space-x-2 text-sm text-slate-500">
+      <div className="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
         <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
         <span>Instabilidade detectada</span>
       </div>
@@ -885,13 +885,13 @@ export default function AdminHome() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
+      className={`min-h-screen bg-slate-50 dark:bg-slate-900 dark:bg-slate-900 dark:bg-slate-900 transition-opacity duration-700 ${
         isPageLoaded ? "opacity-100" : "opacity-0"
       }`}
     >
       {/* Header Principal - RESPONSIVO */}
       <div
-        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
+        className={`bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 shadow-sm transform transition-transform duration-500 ${
           isPageLoaded ? "translate-y-0" : "-translate-y-4"
         }`}
       >
@@ -916,19 +916,19 @@ export default function AdminHome() {
                     />
                   </svg>
                 </div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 tracking-tight">
                   Gerenciamento de Pedidos
                 </h1>
               </div>
 
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed hidden sm:block">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 leading-relaxed hidden sm:block">
                 Controle completo sobre todos os pedidos do seu e-commerce
               </p>
 
               {/* Status do sistema - Mobile compacto */}
               <div className="flex items-center space-x-4 mt-3 text-xs sm:text-sm">
                 {renderSystemStatus()}
-                <div className="flex items-center space-x-1 text-slate-500">
+                <div className="flex items-center space-x-1 text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
                   <svg
                     className="w-3 h-3 sm:w-4 sm:h-4"
                     fill="none"
@@ -953,11 +953,11 @@ export default function AdminHome() {
             {/* Cards de estatísticas - Grid responsivo */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:flex lg:items-center lg:space-x-4 animate-fadeInRight">
               {/* Card Total de Pedidos */}
-              <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="bg-gradient-to-r from-slate-50 dark:from-slate-800 dark:from-slate-800 dark:from-slate-800 to-blue-50 dark:to-slate-900 dark:to-slate-900 dark:to-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center space-x-4">
-                  <div className="flex items-center justify-center w-14 h-14 bg-blue-100 rounded-xl">
+                  <div className="flex items-center justify-center w-14 h-14 bg-blue-100 dark:bg-blue-900/40 dark:bg-blue-900/40 dark:bg-blue-900/40 rounded-xl">
                     <svg
-                      className="w-7 h-7 text-blue-600"
+                      className="w-7 h-7 text-blue-600 dark:text-blue-400 dark:text-blue-400 dark:text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -972,10 +972,10 @@ export default function AdminHome() {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-slate-900 transition-all duration-300 hover:text-blue-600 leading-none">
+                    <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 transition-all duration-300 hover:text-blue-600 dark:text-blue-400 dark:text-blue-400 dark:text-blue-400 leading-none">
                       {orders.length}
                     </div>
-                    <div className="text-sm text-slate-500 mt-1">
+                    <div className="text-sm text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-1">
                       {orders.length === 1 ? 'pedido listado' : 'pedidos listados'}
                     </div>
                     <div className="flex items-center justify-end space-x-1 mt-2">
@@ -987,11 +987,11 @@ export default function AdminHome() {
               </div>
 
               {/* Card Receita Total */}
-              <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 border border-emerald-200 shadow-sm">
+              <div className="bg-gradient-to-r from-emerald-50 dark:from-emerald-900/20 dark:from-emerald-900/20 dark:from-emerald-900/20 to-green-50 dark:to-green-900/20 dark:to-green-900/20 dark:to-green-900/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 border border-emerald-200 dark:border-emerald-800 dark:border-emerald-800 dark:border-emerald-800 dark:border-emerald-800 dark:border-emerald-800 dark:border-emerald-800 shadow-sm">
                 <div className="flex flex-col sm:flex-row items-center sm:space-x-3">
-                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-0">
+                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-emerald-100 dark:bg-emerald-900/40 dark:bg-emerald-900/40 dark:bg-emerald-900/40 rounded-lg sm:rounded-xl mb-2 sm:mb-0">
                     <svg
-                      className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-emerald-600"
+                      className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-emerald-600 dark:text-emerald-400 dark:text-emerald-400 dark:text-emerald-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1006,7 +1006,7 @@ export default function AdminHome() {
                   </div>
 
                   <div className="flex-1 text-center sm:text-right">
-                    <div className="text-lg sm:text-2xl lg:text-3xl font-bold text-slate-900">
+                    <div className="text-lg sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                       {showRevenue ? (
                         formatCurrencyBRL(
                           orders
@@ -1021,12 +1021,12 @@ export default function AdminHome() {
                         <span className="tracking-wider">R$ ••••</span>
                       )}
                     </div>
-                    <div className="text-sm text-slate-500 mt-1">
+                    <div className="text-sm text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-1">
                       receita confirmada
                     </div>
                     <div className="flex items-center justify-end space-x-1 mt-2">
                       <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-emerald-600 font-medium">
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400 dark:text-emerald-400 dark:text-emerald-400 font-medium">
                         {
                           orders.filter((order) =>
                             ["paid", "shipped", "delivered"].includes(
@@ -1042,12 +1042,12 @@ export default function AdminHome() {
                   {/* Botão do olho */}
                   <button
                     onClick={() => setShowRevenue(!showRevenue)}
-                    className="mt-2 sm:mt-0 w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 hover:bg-emerald-200 rounded-lg sm:rounded-xl transition-all flex items-center justify-center cursor-pointer"
+                    className="mt-2 sm:mt-0 w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 dark:bg-emerald-900/40 dark:bg-emerald-900/40 dark:bg-emerald-900/40 hover:bg-emerald-200 rounded-lg sm:rounded-xl transition-all flex items-center justify-center cursor-pointer"
                     title={showRevenue ? "Ocultar receita" : "Mostrar receita"}
                   >
                     {showRevenue ? (
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600"
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 dark:text-emerald-400 dark:text-emerald-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1067,7 +1067,7 @@ export default function AdminHome() {
                       </svg>
                     ) : (
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600"
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 dark:text-emerald-400 dark:text-emerald-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1089,12 +1089,12 @@ export default function AdminHome() {
                 <button
                   onClick={handleRefreshData}
                   data-refresh-btn
-                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                  className="w-10 h-10 bg-slate-100 dark:bg-slate-700 dark:bg-slate-700 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:hover:bg-slate-600 dark:hover:bg-slate-600 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center cursor-pointer"
                   title="Sincronizar dados"
                   disabled={loading}
                 >
                   <svg
-                    className={`w-5 h-5 text-slate-600 ${
+                    className={`w-5 h-5 text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 ${
                       loading ? "animate-spin" : ""
                     }`}
                     fill="none"
@@ -1113,12 +1113,12 @@ export default function AdminHome() {
                 <button
                   onClick={handleExportData}
                   data-export-btn
-                  className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                  className="w-10 h-10 bg-slate-100 dark:bg-slate-700 dark:bg-slate-700 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:hover:bg-slate-600 dark:hover:bg-slate-600 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center cursor-pointer"
                   title="Exportar relatório (CSV)"
                   disabled={orders.length === 0}
                 >
                   <svg
-                    className="w-5 h-5 text-slate-600"
+                    className="w-5 h-5 text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1141,20 +1141,20 @@ export default function AdminHome() {
         {/* Modal de Edição */}
         {editOrder && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
+            <div className="bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 transform animate-scaleIn">
               {/* Cabeçalho fixo */}
-              <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+              <div className="px-8 py-6 border-b border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900">
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                     Editar Pedido
                   </h2>
-                  <p className="text-sm text-slate-600 mt-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 mt-1">
                     ID: {editForm.productId}
                   </p>
                 </div>
                 <button
                   onClick={closeEditModal}
-                  className="cursor-pointer bg-red-50 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
+                  className="cursor-pointer bg-red-50 dark:bg-red-900/20 dark:bg-red-900/20 dark:bg-red-900/20 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
                   title="Fechar"
                 >
                   ✕
@@ -1166,7 +1166,7 @@ export default function AdminHome() {
                   className="space-y-2 animate-slideInUp"
                   style={{ animationDelay: "0.1s" }}
                 >
-                  <label className="block text-sm font-semibold text-slate-700">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                     Produto ID
                   </label>
                   <input
@@ -1174,7 +1174,7 @@ export default function AdminHome() {
                     type="text"
                     value={editForm.productId}
                     readOnly
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 font-mono text-sm transition-colors duration-200"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 dark:bg-slate-900 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 font-mono text-sm transition-colors duration-200"
                   />
                 </div>
 
@@ -1182,7 +1182,7 @@ export default function AdminHome() {
                   className="space-y-2 animate-slideInUp"
                   style={{ animationDelay: "0.2s" }}
                 >
-                  <label className="block text-sm font-semibold text-slate-700">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                     Quantidade
                   </label>
                   <input
@@ -1190,7 +1190,7 @@ export default function AdminHome() {
                     type="number"
                     value={editForm.quantity}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300"
                     min="1"
                   />
                 </div>
@@ -1199,14 +1199,14 @@ export default function AdminHome() {
                   className="space-y-2 animate-slideInUp"
                   style={{ animationDelay: "0.3s" }}
                 >
-                  <label className="block text-sm font-semibold text-slate-700">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                     Status
                   </label>
                   <select
                     name="status"
                     value={editForm.status}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-slate-900 hover:border-slate-300"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300"
                   >
                     <option value="paid">Pago</option>
                     <option value="pending">Pendente</option>
@@ -1220,7 +1220,7 @@ export default function AdminHome() {
                   className="space-y-2 animate-slideInUp"
                   style={{ animationDelay: "0.4s" }}
                 >
-                  <label className="block text-sm font-semibold text-slate-700">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                     Total Preço de Custo (R$)
                   </label>
                   <input
@@ -1228,7 +1228,7 @@ export default function AdminHome() {
                     name="totalCost"
                     value={editForm.totalCost}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300"
                     min="0"
                     step="0.01"
                   />
@@ -1238,7 +1238,7 @@ export default function AdminHome() {
                   className="space-y-2 animate-slideInUp"
                   style={{ animationDelay: "0.4s" }}
                 >
-                  <label className="block text-sm font-semibold text-slate-700">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                     Total (R$)
                   </label>
                   <input
@@ -1246,7 +1246,7 @@ export default function AdminHome() {
                     name="totalAmount"
                     value={editForm.totalAmount}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300"
                     min="0"
                     step="0.01"
                   />
@@ -1258,7 +1258,7 @@ export default function AdminHome() {
                 >
                   <button
                     type="button"
-                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
+                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 dark:bg-slate-700 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:hover:bg-slate-600 dark:hover:bg-slate-600 rounded-xl transition-all duration-200 transform hover:scale-105"
                     onClick={closeEditModal}
                   >
                     Cancelar
@@ -1278,20 +1278,20 @@ export default function AdminHome() {
         {/* Modal de Criação */}
         {isCreateModalOpen && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-50 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 transform animate-scaleIn">
+            <div className="bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 transform animate-scaleIn">
               {/* Cabeçalho fixo */}
-              <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+              <div className="px-8 py-6 border-b border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900">
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                     Criar Novo Pedido
                   </h2>
-                  <p className="text-sm text-slate-600 mt-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 mt-1">
                     Adicione um novo pedido ao sistema
                   </p>
                 </div>
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="cursor-pointer bg-red-50 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
+                  className="cursor-pointer bg-red-50 dark:bg-red-900/20 dark:bg-red-900/20 dark:bg-red-900/20 text-red-500 p-2 rounded-full shadow-sm hover:bg-red-100 hover:text-red-600 hover:scale-110 transition-all duration-200"
                   aria-label="Fechar"
                 >
                   ✕
@@ -1305,7 +1305,7 @@ export default function AdminHome() {
                       className="flex-1 space-y-2 animate-slideInUp"
                       style={{ animationDelay: "0.1s" }}
                     >
-                      <label className="block text-sm font-semibold text-slate-700">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                         Produto ID
                       </label>
                       <input
@@ -1313,7 +1313,7 @@ export default function AdminHome() {
                         name="productId"
                         value={item.productId}
                         onChange={(e) => handleNewOrderItemChange(idx, e)}
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 placeholder:text-slate-300 text-slate-900"
+                        className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100"
                         placeholder="Digite o ID do produto"
                         required
                       />
@@ -1323,7 +1323,7 @@ export default function AdminHome() {
                       className="w-32 space-y-2 animate-slideInUp"
                       style={{ animationDelay: "0.1s" }}
                     >
-                      <label className="block text-sm font-semibold text-slate-700">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                         Quantidade
                       </label>
                       <input
@@ -1331,7 +1331,7 @@ export default function AdminHome() {
                         name="quantity"
                         value={item.quantity}
                         onChange={(e) => handleNewOrderItemChange(idx, e)}
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-900"
+                        className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100"
                         min="1"
                         required
                       />
@@ -1353,7 +1353,7 @@ export default function AdminHome() {
                 <button
                   type="button"
                   onClick={handleAddItem}
-                  className="cursor-pointer mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 animate-slideInUp"
+                  className="cursor-pointer mt-4 px-4 py-2 bg-slate-100 dark:bg-slate-700 dark:bg-slate-700 dark:bg-slate-700 text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 dark:hover:bg-slate-600 dark:hover:bg-slate-600 animate-slideInUp"
                   style={{ animationDelay: "0.2s" }}
                 >
                   + Adicionar Produto
@@ -1365,7 +1365,7 @@ export default function AdminHome() {
                 >
                   <button
                     type="button"
-                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all duration-200 transform hover:scale-105"
+                    className="cursor-pointer px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 dark:bg-slate-700 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:hover:bg-slate-600 dark:hover:bg-slate-600 rounded-xl transition-all duration-200 transform hover:scale-105"
                     onClick={() => setIsCreateModalOpen(false)}
                   >
                     Cancelar
@@ -1385,11 +1385,11 @@ export default function AdminHome() {
         {/* Modal de Confirmação de Exclusão */}
         {deleteConfirm.open && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full animate-fadeIn">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+            <div className="bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 rounded-xl shadow-2xl p-6 max-w-sm w-full animate-fadeIn">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 mb-4">
                 Confirmar Exclusão
               </h2>
-              <p className="text-slate-600 mb-6">
+              <p className="text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 mb-6">
                 Tem certeza que deseja excluir este pedido? Essa ação não pode
                 ser desfeita.
               </p>
@@ -1398,7 +1398,7 @@ export default function AdminHome() {
                   onClick={() =>
                     setDeleteConfirm({ open: false, orderId: null })
                   }
-                  className="cursor-pointer px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+                  className="cursor-pointer px-4 py-2 bg-slate-100 dark:bg-slate-700 dark:bg-slate-700 dark:bg-slate-700 text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 dark:hover:bg-slate-600 dark:hover:bg-slate-600 transition"
                 >
                   Cancelar
                 </button>
@@ -1417,7 +1417,7 @@ export default function AdminHome() {
         )}
 
         {/* Barra de Controles - RESPONSIVA */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 p-4 sm:p-6 mb-6 sm:mb-8">
           {/* Desktop: Tudo em uma linha */}
           <div className="hidden lg:flex lg:items-center lg:gap-4">
             {/* Busca por ID */}
@@ -1425,13 +1425,13 @@ export default function AdminHome() {
               onSubmit={handleFilterById}
               className="flex items-center gap-2 flex-1"
             >
-              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 whitespace-nowrap">
                 Buscar por ID:
               </label>
               <input
                 type="text"
                 name="orderId"
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                className="flex-1 px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl text-sm font-mono placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300"
                 placeholder="ID do pedido..."
               />
               <button
@@ -1444,13 +1444,13 @@ export default function AdminHome() {
 
             {/* Vendedor */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 whitespace-nowrap">
                 Vendedor:
               </label>
               <select
                 value={sellerFilter}
                 onChange={(e) => setSellerFilter(e.target.value)}
-                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm min-w-[150px] cursor-pointer placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                className="px-4 py-3 bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl text-sm min-w-[150px] cursor-pointer placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300"
               >
                 <option value="all">Todos</option>
                 {sellers.map((seller) => (
@@ -1463,13 +1463,13 @@ export default function AdminHome() {
 
             {/* Status */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 whitespace-nowrap">
                 Status:
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm min-w-[150px] cursor-pointer placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                className="px-4 py-3 bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl text-sm min-w-[150px] cursor-pointer placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300"
               >
                 <option value="all">Todos</option>
                 <option value="paid">Pago</option>
@@ -1482,7 +1482,7 @@ export default function AdminHome() {
 
             {/* Data */}
             <div className="flex items-center gap-2 relative">
-              <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 whitespace-nowrap">
                 Data:
               </label>
               {/* Input visível (formatado) */}
@@ -1493,7 +1493,7 @@ export default function AdminHome() {
                   readOnly
                   placeholder="Selecione a data"
                   onClick={() => hiddenDateRef.current?.showPicker()}
-                  className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300 w-full"
+                  className="px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300 w-full"
                 />
                 
                 {/* ✅ 3. Input date agora fica totalmente oculto (sr-only), mas acessível via ref */}
@@ -1540,14 +1540,14 @@ export default function AdminHome() {
               onSubmit={handleFilterById}
               className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3"
             >
-              <label className="text-xs sm:text-sm font-semibold text-slate-700">
+              <label className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                 Buscar ID:
               </label>
               <div className="flex gap-2 flex-1">
                 <input
                   type="text"
                   name="orderId"
-                  className="flex-1 px-3 py-2 sm:px-4 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl text-sm font-mono"
+                  className="flex-1 px-3 py-2 sm:px-4 sm:py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-lg sm:rounded-xl text-sm font-mono"
                   placeholder="ID do pedido..."
                 />
                 <button
@@ -1563,13 +1563,13 @@ export default function AdminHome() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {/* Status */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs sm:text-sm font-semibold text-slate-700">
+                <label className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                   Status:
                 </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 sm:px-4 sm:py-3 bg-white border border-slate-200 rounded-lg sm:rounded-xl text-sm"
+                  className="px-3 py-2 sm:px-4 sm:py-3 bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-lg sm:rounded-xl text-sm"
                 >
                   <option value="all">Todos</option>
                   <option value="paid">Pago</option>
@@ -1582,7 +1582,7 @@ export default function AdminHome() {
 
               {/* Data */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs sm:text-sm font-semibold text-slate-700">
+                <label className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300">
                   Data:
                 </label>
                 <input
@@ -1593,7 +1593,7 @@ export default function AdminHome() {
                     setOrderDate(e.target.value);
                     handleFilterByDate(e.target.value);
                   }}
-                  className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 text-slate-900 hover:border-slate-300"
+                  className="px-4 py-3 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 rounded-xl text-sm font-mono cursor-pointer min-w-[130px] placeholder:text-slate-300 dark:placeholder:text-slate-600 dark:placeholder:text-slate-600 dark:text-slate-400 dark:placeholder:text-slate-600 dark:text-slate-400 dark:text-slate-400 text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 hover:border-slate-300"
                 />
               </div>
             </div>
@@ -1622,39 +1622,39 @@ export default function AdminHome() {
         </div>
 
         {/* Tabela - MOBILE: Cards, DESKTOP: Table */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 overflow-hidden">
           {/* Desktop: Tabela tradicional */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-900 dark:bg-slate-900 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                     Data & Hora
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                     Produtos
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                     Qtd
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                     Cliente
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                     Ações
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 uppercase tracking-wider">
                     Detalhes
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700 dark:divide-slate-700 dark:divide-slate-700">
                 {orders.length > 0 ? (
                   orders.map((order, idx) =>
                     order ? (
@@ -1662,14 +1662,14 @@ export default function AdminHome() {
                         {/* Linha Principal */}
                         <tr
                           key={order._id || idx}
-                          className="hover:bg-slate-50 transition-all duration-200 group animate-fadeInUp"
+                          className="hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900 dark:hover:bg-slate-700 dark:bg-slate-900 dark:hover:bg-slate-700 dark:bg-slate-900 transition-all duration-200 group animate-fadeInUp"
                           style={{ animationDelay: `${idx * 0.05}s` }}
                         >
                           <td className="px-6 py-5">
-                            <div className="text-sm font-semibold text-slate-900 transition-colors duration-200 group-hover:text-blue-600">
+                            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 transition-colors duration-200 group-hover:text-blue-600 dark:text-blue-400 dark:text-blue-400 dark:text-blue-400">
                               {formatCreatedAtDate(order.createdAt)}
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
                               {new Date(order.createdAt).toLocaleString(
                                 "pt-BR",
                                 {
@@ -1692,10 +1692,10 @@ export default function AdminHome() {
                                   />
                                 )}
                                 <div className="inline-block align-middle">
-                                  <div className="text-sm font-semibold text-slate-900 max-w-[200px] truncate">
+                                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 max-w-[200px] truncate">
                                     {item.name}
                                   </div>
-                                  <div className="text-xs text-slate-500 font-mono">
+                                  <div className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 font-mono">
                                     {item.productId} • Qtd: {item.quantity}
                                   </div>
                                 </div>
@@ -1704,7 +1704,7 @@ export default function AdminHome() {
                           </td>
 
                           <td className="px-6 py-5 text-center">
-                            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 text-sm font-bold rounded-full transition-all duration-200 group-hover:bg-blue-100 group-hover:text-blue-700">
+                            <span className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 dark:bg-slate-700 dark:bg-slate-700 dark:bg-slate-700 text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 text-sm font-bold rounded-full transition-all duration-200 group-hover:bg-blue-100 dark:bg-blue-900/40 dark:bg-blue-900/40 dark:bg-blue-900/40 group-hover:text-blue-700 dark:text-blue-300 dark:text-blue-300 dark:text-blue-300">
                               {order.totalQuantity}
                             </span>
                           </td>
@@ -1714,24 +1714,24 @@ export default function AdminHome() {
                               {/* Nome do E-commerce com cor dinâmica baseada na fonte */}
                               <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full max-w-fit ${
                                 order.source?.toLowerCase().includes('shopee - matheus') 
-                                  ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                  ? 'bg-orange-50 dark:bg-orange-900/20 dark:bg-orange-900/20 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 dark:text-orange-300 dark:text-orange-300 border border-orange-200 dark:border-orange-800 dark:border-orange-800 dark:border-orange-800'
                                   : order.source?.toLowerCase().includes('shopee - jeferson') || order.source?.toLowerCase().includes('livre')
-                                  ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                                  ? 'bg-yellow-50 dark:bg-yellow-900/20 dark:bg-yellow-900/20 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 dark:text-yellow-300 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800 dark:border-yellow-800 dark:border-yellow-800'
                                   : order.source?.toLowerCase().includes('amazon')
-                                  ? 'bg-slate-50 text-slate-700 border border-slate-200'
+                                  ? 'bg-slate-50 dark:bg-slate-900 dark:bg-slate-900 dark:bg-slate-900 text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700'
                                   : order.source?.toLowerCase().includes('magalu') || order.source?.toLowerCase().includes('magazine')
-                                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                  ? 'bg-blue-50 dark:bg-blue-900/20 dark:bg-blue-900/20 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 dark:text-blue-300 dark:text-blue-300 border border-blue-200 dark:border-blue-800 dark:border-blue-800 dark:border-blue-800'
                                   : order.source?.toLowerCase().includes('americanas') || order.source?.toLowerCase().includes('b2w')
-                                  ? 'bg-red-50 text-red-700 border border-red-200'
-                                  : 'bg-indigo-50 text-indigo-700 border border-indigo-200' // Cor padrão
+                                  ? 'bg-red-50 dark:bg-red-900/20 dark:bg-red-900/20 dark:bg-red-900/20 text-red-700 dark:text-red-300 dark:text-red-300 dark:text-red-300 border border-red-200 dark:border-red-800 dark:border-red-800 dark:border-red-800'
+                                  : 'bg-indigo-50 dark:bg-indigo-900/20 dark:bg-indigo-900/20 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 dark:text-indigo-300 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 dark:border-indigo-800 dark:border-indigo-800' // Cor padrão
                                 }`}>
                                 {order.source || "Cliente"}
                               </span>                              
                               {/* Informações originais do cliente */}
-                              <div className="text-sm font-semibold text-slate-900 max-w-[150px] truncate">
+                              <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 max-w-[150px] truncate">
                                 {order.name}
                               </div>
-                              <div className="text-xs text-slate-500 font-mono">
+                              <div className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 font-mono">
                                 {order.userId}
                               </div>
                             </div>
@@ -1748,7 +1748,7 @@ export default function AdminHome() {
                           </td>
 
                           <td className="px-6 py-5 text-right">
-                            <div className="text-sm font-bold text-slate-900 transition-colors duration-200 group-hover:text-emerald-600">
+                            <div className="text-sm font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 transition-colors duration-200 group-hover:text-emerald-600 dark:text-emerald-400 dark:text-emerald-400 dark:text-emerald-400">
                               {formatCurrencyBRL(order.totalAmount)}
                             </div>
                           </td>
@@ -1756,7 +1756,7 @@ export default function AdminHome() {
                           <td className="px-6 py-5">
                             <div className="flex items-center justify-center gap-1">
                               <button
-                                className="cursor-pointer p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200 transform hover:scale-110"
+                                className="cursor-pointer p-2 text-blue-600 dark:text-blue-400 dark:text-blue-400 dark:text-blue-400 hover:text-blue-800 hover:bg-blue-50 dark:bg-blue-900/20 dark:bg-blue-900/20 dark:bg-blue-900/20 rounded-lg transition-all duration-200 transform hover:scale-110"
                                 onClick={() => openEditModal(order)}
                                 title="Editar pedido"
                               >
@@ -1776,7 +1776,7 @@ export default function AdminHome() {
                               </button>
 
                               <button
-                                className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
+                                className="cursor-pointer p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:bg-red-900/20 dark:bg-red-900/20 dark:bg-red-900/20 rounded-lg transition-all duration-200 transform hover:scale-110"
                                 onClick={() =>
                                   setDeleteConfirm({
                                     open: true,
@@ -1804,7 +1804,7 @@ export default function AdminHome() {
 
                           <td className="px-6 py-5 text-center">
                             <button
-                              className="cursor-pointer p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all duration-200 transform hover:scale-110"
+                              className="cursor-pointer p-2 text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 hover:text-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900 dark:hover:bg-slate-700 dark:bg-slate-900 dark:hover:bg-slate-700 dark:bg-slate-900 rounded-lg transition-all duration-200 transform hover:scale-110"
                               onClick={() => toggleOrderDetails(order._id)}
                               title={
                                 expandedOrder === order._id
@@ -1837,46 +1837,46 @@ export default function AdminHome() {
                         {expandedOrder === order._id && (
                           <tr
                             key={`${order._id}-details`}
-                            className="bg-slate-50 animate-slideDown"
+                            className="bg-slate-50 dark:bg-slate-900 dark:bg-slate-900 dark:bg-slate-900 animate-slideDown"
                           >
                             <td colSpan="10" className="px-6 py-6">
-                              <div className="bg-white rounded-xl p-6 border border-slate-200 animate-fadeIn">
+                              <div className="bg-white dark:bg-slate-800 dark:bg-slate-800 dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 animate-fadeIn">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                   {/* Informações do Pedido */}
                                   <div
                                     className="space-y-4 animate-slideInUp"
                                     style={{ animationDelay: "0.1s" }}
                                   >
-                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 text-sm uppercase tracking-wide border-b border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 pb-2">
                                       Informações do Pedido
                                     </h4>
                                     <div className="space-y-3">
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           ID do Pedido
                                         </label>
-                                        <p className="text-sm font-mono text-slate-900">
+                                        <p className="text-sm font-mono text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                                           #{order._id}
                                         </p>
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Descrição do Pedido
                                         </label>
-                                        <p className="text-sm text-slate-900 space-y-1">
+                                        <p className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 space-y-1">
                                           {order.name}
                                         </p>
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Produtos
                                         </label>
-                                        <ul className="text-sm text-slate-900 space-y-1 font-semibold">
+                                        <ul className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 space-y-1 font-semibold">
                                           {order.items.map((item, idx) => (
                                             <li key={idx}>
                                               - {item.name} — {item.quantity}x (
                                               {formatCurrencyBRL(item.price)})
-                                              <span className="bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full text-[11px] ml-1">
+                                              <span className="bg-emerald-100 dark:bg-emerald-900/40 dark:bg-emerald-900/40 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 dark:text-emerald-300 dark:text-emerald-300 font-semibold px-2 py-0.5 rounded-full text-[11px] ml-1">
                                                 -{item.discount}%
                                               </span>
                                             </li>
@@ -1891,39 +1891,39 @@ export default function AdminHome() {
                                     className="space-y-4 animate-slideInUp"
                                     style={{ animationDelay: "0.2s" }}
                                   >
-                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 text-sm uppercase tracking-wide border-b border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 pb-2">
                                       Total, Pagamento e Endereço
                                     </h4>
                                     <div className="space-y-3">
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Total preço de custo
                                         </label>
-                                        <p className="text-sm text-slate-900 font-semibold">
+                                        <p className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 font-semibold">
                                           {formatCurrencyBRL(order.totalCost)}
                                         </p>
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Total a pagar
                                         </label>
-                                        <p className="text-sm text-slate-900 font-semibold">
+                                        <p className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 font-semibold">
                                           {formatCurrencyBRL(order.totalAmount)}
                                         </p>
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Forma de pagamento
                                         </label>
-                                        <p className="text-sm text-slate-900 font-semibold">
+                                        <p className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 font-semibold">
                                           {order.paymentMethod || "N/A"}
                                         </p>
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Endereço de entrega
                                         </label>
-                                        <p className="text-sm text-slate-900 font-semibold">
+                                        <p className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 font-semibold">
                                           {order.shippingAddress}
                                         </p>
                                       </div>
@@ -1935,12 +1935,12 @@ export default function AdminHome() {
                                     className="space-y-4 animate-slideInUp"
                                     style={{ animationDelay: "0.3s" }}
                                   >
-                                    <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide border-b border-slate-200 pb-2">
+                                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 text-sm uppercase tracking-wide border-b border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 pb-2">
                                       Status e Datas
                                     </h4>
                                     <div className="space-y-3">
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Status Atual
                                         </label>
                                         <div className="mt-1">
@@ -1954,10 +1954,10 @@ export default function AdminHome() {
                                         </div>
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Criado em
                                         </label>
-                                        <p className="text-sm text-slate-900">
+                                        <p className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                                           {new Date(
                                             order.createdAt
                                           ).toLocaleDateString("pt-BR", {
@@ -1971,10 +1971,10 @@ export default function AdminHome() {
                                         </p>
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wide">
                                           Pago em
                                         </label>
-                                        <p className="text-sm text-slate-900">
+                                        <p className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                                           {new Date({
                                             /* data de pagamento */
                                           }).toLocaleDateString("pt-BR", {
@@ -1991,13 +1991,13 @@ export default function AdminHome() {
                                 </div>
 
                                 {/* Ações Rápidas */}
-                                <div className="mt-6 pt-6 border-t border-slate-200">
-                                  <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide mb-4">
+                                <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700">
+                                  <h4 className="font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 text-sm uppercase tracking-wide mb-4">
                                     Ações Rápidas de Status
                                   </h4>
                                   <div className="flex flex-wrap gap-2">
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
+                                      className="cursor-pointer px-4 py-2 bg-emerald-100 dark:bg-emerald-900/40 dark:bg-emerald-900/40 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 dark:text-emerald-300 dark:text-emerald-300 hover:bg-emerald-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() => handlePayOrder(order._id)}
                                       title="Marcar como pago"
                                     >
@@ -2016,7 +2016,7 @@ export default function AdminHome() {
                                     </button>
 
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
+                                      className="cursor-pointer px-4 py-2 bg-blue-100 dark:bg-blue-900/40 dark:bg-blue-900/40 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 dark:text-blue-300 dark:text-blue-300 hover:bg-blue-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() => handleShipOrder(order._id)}
                                       title="Enviar pedido"
                                     >
@@ -2034,7 +2034,7 @@ export default function AdminHome() {
                                     </button>
 
                                     <button
-                                      className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
+                                      className="cursor-pointer px-4 py-2 bg-amber-100 text-amber-700 dark:text-amber-300 dark:text-amber-300 dark:text-amber-300 hover:bg-amber-200 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 transform hover:scale-105"
                                       onClick={() =>
                                         handleCancelOrder(order._id)
                                       }
@@ -2085,7 +2085,7 @@ export default function AdminHome() {
                           <div className="absolute inset-0 bg-slate-300/30 rounded-full animate-ping"></div>
                         </div>
                         <div
-                          className="text-slate-500 animate-slideInUp"
+                          className="text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 animate-slideInUp"
                           style={{ animationDelay: "0.2s" }}
                         >
                           <div className="text-lg font-semibold mb-2">
@@ -2106,21 +2106,21 @@ export default function AdminHome() {
           </div>
 
           {/* Mobile: Cards */}
-          <div className="lg:hidden divide-y divide-slate-100">
+          <div className="lg:hidden divide-y divide-slate-100 dark:divide-slate-700 dark:divide-slate-700 dark:divide-slate-700">
             {orders.length > 0 ? (
               orders.map((order, idx) =>
                 order ? (
                   <div
                     key={order._id || idx}
-                    className="p-4 hover:bg-slate-50 transition-colors"
+                    className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900 dark:hover:bg-slate-700 dark:bg-slate-900 dark:hover:bg-slate-700 dark:bg-slate-900 transition-colors"
                   >
                     {/* Cabeçalho do card */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <div className="text-sm font-semibold text-slate-900">
+                        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                           {formatCreatedAtDate(order.createdAt)}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
                           {new Date(order.createdAt).toLocaleTimeString(
                             "pt-BR",
                             {
@@ -2152,10 +2152,10 @@ export default function AdminHome() {
                             />
                           )}
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-slate-900 truncate">
+                            <div className="text-sm font-medium text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100 truncate">
                               {item.name}
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
                               Qtd: {item.quantity}
                             </div>
                           </div>
@@ -2164,11 +2164,11 @@ export default function AdminHome() {
                     </div>
 
                     {/* Cliente e Total */}
-                    <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
-                      <div className="text-sm text-slate-600 truncate flex-1">
+                    <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700">
+                      <div className="text-sm text-slate-600 dark:text-slate-400 dark:text-slate-400 dark:text-slate-400 truncate flex-1">
                         {order.name}
                       </div>
-                      <div className="text-sm font-bold text-slate-900">
+                      <div className="text-sm font-bold text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                         {formatCurrencyBRL(order.totalAmount)}
                       </div>
                     </div>
@@ -2178,7 +2178,7 @@ export default function AdminHome() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => openEditModal(order)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          className="p-2 text-blue-600 dark:text-blue-400 dark:text-blue-400 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-900/20 dark:bg-blue-900/20 dark:bg-blue-900/20 rounded-lg transition-all"
                         >
                           <svg
                             className="w-4 h-4"
@@ -2198,7 +2198,7 @@ export default function AdminHome() {
                           onClick={() =>
                             setDeleteConfirm({ open: true, orderId: order._id })
                           }
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          className="p-2 text-red-600 hover:bg-red-50 dark:bg-red-900/20 dark:bg-red-900/20 dark:bg-red-900/20 rounded-lg transition-all"
                         >
                           <svg
                             className="w-4 h-4"
@@ -2217,7 +2217,7 @@ export default function AdminHome() {
                       </div>
                       <button
                         onClick={() => toggleOrderDetails(order._id)}
-                        className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all"
+                        className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-slate-300 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 dark:bg-slate-700 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:hover:bg-slate-600 dark:hover:bg-slate-600 rounded-lg transition-all"
                       >
                         {expandedOrder === order._id ? "Ocultar" : "Detalhes"}
                       </button>
@@ -2225,47 +2225,47 @@ export default function AdminHome() {
 
                     {/* Detalhes expandidos */}
                     {expandedOrder === order._id && (
-                      <div className="mt-4 pt-4 border-t border-slate-200 space-y-3 animate-slideDown">
+                      <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 dark:border-slate-700 dark:border-slate-700 space-y-3 animate-slideDown">
                         <div>
-                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">
+                          <div className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase mb-1">
                             ID do Pedido
                           </div>
-                          <div className="text-sm font-mono text-slate-900">
+                          <div className="text-sm font-mono text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                             #{order._id}
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">
+                          <div className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase mb-1">
                             Endereço
                           </div>
-                          <div className="text-sm text-slate-900">
+                          <div className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                             {order.shippingAddress}
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-slate-500 uppercase mb-1">
+                          <div className="text-xs font-medium text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase mb-1">
                             Pagamento
                           </div>
-                          <div className="text-sm text-slate-900">
+                          <div className="text-sm text-slate-900 dark:text-slate-100 dark:text-slate-100 dark:text-slate-100">
                             {order.paymentMethod || "N/A"}
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2 pt-2">
                           <button
                             onClick={() => handlePayOrder(order._id)}
-                            className="flex-1 px-3 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-medium"
+                            className="flex-1 px-3 py-2 bg-emerald-100 dark:bg-emerald-900/40 dark:bg-emerald-900/40 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 dark:text-emerald-300 dark:text-emerald-300 hover:bg-emerald-200 rounded-lg text-sm font-medium"
                           >
                             Pagar
                           </button>
                           <button
                             onClick={() => handleShipOrder(order._id)}
-                            className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-medium"
+                            className="flex-1 px-3 py-2 bg-blue-100 dark:bg-blue-900/40 dark:bg-blue-900/40 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 dark:text-blue-300 dark:text-blue-300 hover:bg-blue-200 rounded-lg text-sm font-medium"
                           >
                             Enviar
                           </button>
                           <button
                             onClick={() => handleCancelOrder(order._id)}
-                            className="flex-1 px-3 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-medium"
+                            className="flex-1 px-3 py-2 bg-amber-100 text-amber-700 dark:text-amber-300 dark:text-amber-300 dark:text-amber-300 hover:bg-amber-200 rounded-lg text-sm font-medium"
                           >
                             Cancelar
                           </button>
@@ -2290,7 +2290,7 @@ export default function AdminHome() {
                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
                 </svg>
-                <div className="text-slate-500">
+                <div className="text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
                   <div className="font-semibold mb-1">
                     Nenhum pedido encontrado
                   </div>
@@ -2304,7 +2304,7 @@ export default function AdminHome() {
         </div>
 
         {/* Footer */}
-        <div className="mt-6 text-center text-xs sm:text-sm text-slate-500">
+        <div className="mt-6 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-500">
           <p>Painel de Administração • Total de {orders.length} pedidos listados</p>
         </div>
       </div>
