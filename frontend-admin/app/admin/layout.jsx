@@ -296,22 +296,7 @@ export default function AdminLayout({ children }) {
           </button>
         </div>
 
-        <div className="p-4 border-t border-slate-200 dark:border-slate-700">
-          <div className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-emerald-100 dark:bg-emerald-800 rounded-lg">
-                <div className="w-2.5 h-2.5 bg-emerald-500 dark:bg-emerald-400 rounded-full animate-pulse"></div>
-              </div>
-              <div className="flex-1">
-                <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
-                  Sistema
-                </div>
-                <div className="text-sm font-semibold text-slate-900 dark:text-white">Online</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        {/* Botão de Logout */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-700">
           <button
             onClick={handleLogout}
