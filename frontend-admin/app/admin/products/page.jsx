@@ -1805,6 +1805,7 @@ export default function ProductsPage() {
           </p>
         </div>
       </div>
+      </div>
 
       <style jsx global>{`
         @keyframes fadeIn {
