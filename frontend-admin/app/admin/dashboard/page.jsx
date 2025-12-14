@@ -577,50 +577,38 @@ export default function Dashboard() {
                     strokeWidth="1.5"
                   />
 
-                  <text
-                    x="30"
-                    y="10"
-                    fontSize="10"
-                    className="fill-slate-400 dark:fill-slate-500"
-                    textAnchor="end"
-                  >
-                    60
-                  </text>
-                  <text
-                    x="30"
-                    y="50"
-                    fontSize="10"
-                    className="fill-slate-400 dark:fill-slate-500"
-                    textAnchor="end"
-                  >
-                    40
-                  </text>
-                  <text
-                    x="30"
-                    y="90"
-                    fontSize="10"
-                    className="fill-slate-400 dark:fill-slate-500"
-                    textAnchor="end"
-                  >
-                    20
-                  </text>
-                  <text
-                    x="30"
-                    y="130"
-                    fontSize="10"
-                    className="fill-slate-400 dark:fill-slate-500"
-                    textAnchor="end"
-                  >
-                    0
-                  </text>
+                  {/* Labels dinâmicos do eixo Y */}
+                  {(() => {
+                    const maxOrders = Math.max(
+                      ...ordersByDay.map((d) => d.orders)
+                    );
+                    const yScale = maxOrders > 0 ? Math.ceil(maxOrders * 1.1) : 10;
+                    return [0, 0.25, 0.5, 0.75, 1].map((factor, idx) => (
+                      <text
+                        key={idx}
+                        x="30"
+                        y={160 - factor * 140 + 5}
+                        fontSize="10"
+                        className="fill-slate-400 dark:fill-slate-500"
+                        textAnchor="end"
+                      >
+                        {Math.round(yScale * factor)}
+                      </text>
+                    ));
+                  })()}
 
                   <path
                     d={ordersByDay
                       .map(
-                        (data, idx) =>
-                          `${idx === 0 ? "M" : "L"} ${60 + idx * 50},${
-                            160 - (data.orders / 60) * 140
-                          }`
+                        (data, idx) => {
+                          const maxOrders = Math.max(
+                            ...ordersByDay.map((d) => d.orders)
+                          );
+                          const yScale = maxOrders > 0 ? Math.ceil(maxOrders * 1.1) : 10;
+                          return `${idx === 0 ? "M" : "L"} ${60 + idx * 50},${
+                            160 - (data.orders / yScale) * 140
+                          }`;
+                        }
                       )
                       .join(" ")}
                     fill="none"
@@ -634,58 +622,69 @@ export default function Dashboard() {
                   <path
                     d={`${ordersByDay
                       .map(
-                        (data, idx) =>
-                          `${idx === 0 ? "M" : "L"} ${60 + idx * 50},${
-                            160 - (data.orders / 60) * 140
-                          }`
+                        (data, idx) => {
+                          const maxOrders = Math.max(
+                            ...ordersByDay.map((d) => d.orders)
+                          );
+                          const yScale = maxOrders > 0 ? Math.ceil(maxOrders * 1.1) : 10;
+                          return `${idx === 0 ? "M" : "L"} ${60 + idx * 50},${
+                            160 - (data.orders / yScale) * 140
+                          }`;
+                        }
                       )
                       .join(" ")} L 360,160 L 60,160 Z`}
                     fill="url(#blueGradientArea)"
                     opacity="0.2"
                   />
 
-                  {ordersByDay.map((data, idx) => (
-                    <g key={idx}>
-                      <circle
-                        cx={60 + idx * 50}
-                        cy={160 - (data.orders / 60) * 140}
-                        r="5"
-                        fill="#3b82f6"
-                        stroke="#ffffff"
-                        strokeWidth="2"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setTooltipDay(idx)}
-                        onMouseLeave={() => setTooltipDay(null)}
-                        filter="url(#shadow)"
-                      />
-                      <circle
-                        cx={60 + idx * 50}
-                        cy={160 - (data.orders / 60) * 140}
-                        r="15"
-                        fill="transparent"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setTooltipDay(idx)}
-                        onMouseLeave={() => setTooltipDay(null)}
-                      />
-                      <text
-                        x={60 + idx * 50}
-                        y="180"
-                        fontSize="11"
-                        className="fill-slate-500 dark:fill-slate-400"
-                        textAnchor="middle"
-                        fontWeight="500"
-                      >
-                        {(() => {
-                          const [year, month, day] = data._id.split("-");
-                          return new Date(
-                            year,
-                            month - 1,
-                            day
-                          ).toLocaleDateString("pt-BR", { weekday: "short" });
-                        })()}
-                      </text>
-                    </g>
-                  ))}
+                  {ordersByDay.map((data, idx) => {
+                    const maxOrders = Math.max(
+                      ...ordersByDay.map((d) => d.orders)
+                    );
+                    const yScale = maxOrders > 0 ? Math.ceil(maxOrders * 1.1) : 10;
+                    return (
+                      <g key={idx}>
+                        <circle
+                          cx={60 + idx * 50}
+                          cy={160 - (data.orders / yScale) * 140}
+                          r="5"
+                          fill="#3b82f6"
+                          stroke="#ffffff"
+                          strokeWidth="2"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setTooltipDay(idx)}
+                          onMouseLeave={() => setTooltipDay(null)}
+                          filter="url(#shadow)"
+                        />
+                        <circle
+                          cx={60 + idx * 50}
+                          cy={160 - (data.orders / yScale) * 140}
+                          r="15"
+                          fill="transparent"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setTooltipDay(idx)}
+                          onMouseLeave={() => setTooltipDay(null)}
+                        />
+                        <text
+                          x={60 + idx * 50}
+                          y="180"
+                          fontSize="11"
+                          className="fill-slate-500 dark:fill-slate-400"
+                          textAnchor="middle"
+                          fontWeight="500"
+                        >
+                          {(() => {
+                            const [year, month, day] = data._id.split("-");
+                            return new Date(
+                              year,
+                              month - 1,
+                              day
+                            ).toLocaleDateString("pt-BR", { weekday: "short" });
+                          })()}
+                        </text>
+                      </g>
+                    );
+                  })}
 
                   <defs>
                     <linearGradient
@@ -734,12 +733,16 @@ export default function Dashboard() {
                     className="absolute bg-slate-900 dark:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
                     style={{
                       left: `${((60 + tooltipDay * 50) / 400) * 100}%`,
-                      top: `${
-                        ((160 - (ordersByDay[tooltipDay].orders / 60) * 140) /
+                      top: `${(() => {
+                        const maxOrders = Math.max(
+                          ...ordersByDay.map((d) => d.orders)
+                        );
+                        const yScale = maxOrders > 0 ? Math.ceil(maxOrders * 1.1) : 10;
+                        return ((160 - (ordersByDay[tooltipDay].orders / yScale) * 140) /
                           200) *
                           100 -
-                        25
-                      }%`,
+                        25;
+                      })()}%`,
                       transform: "translate(-50%, -100%)",
                       pointerEvents: "none",
                       zIndex: 10,
