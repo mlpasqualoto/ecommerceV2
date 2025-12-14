@@ -871,9 +871,12 @@ function generateDetailedCSV(orders: any[]): string {
     return "";
   }
 
-  // Configuração para Excel Brasileiro
-  const decimalSeparator = ",";
-  const columnDelimiter = ";";
+  const testNumber = (234.56).toLocaleString();
+  const usesComma = testNumber.includes(",");
+
+  // Define separadores baseado no formato detectado
+  const decimalSeparator = usesComma ? "," : ".";
+  const columnDelimiter = usesComma ? ";" : ",";
   const BOM = "\uFEFF"; // Para Excel reconhecer acentos
 
   // Helper de formatação
