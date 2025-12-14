@@ -94,14 +94,14 @@ export default function Dashboard() {
 
   const getStatusColor = (status) => {
     const colors = {
-      delivered: "bg-green-50 text-green-700 border border-green-200",
-      shipped: "bg-blue-50 text-blue-700 border border-blue-200",
-      processing: "bg-amber-50 text-amber-700 border border-amber-200",
-      pending: "bg-orange-50 text-orange-700 border border-orange-200",
-      paid: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+      delivered: "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800",
+      shipped: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
+      processing: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
+      pending: "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800",
+      paid: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800",
     };
     return (
-      colors[status] || "bg-slate-50 text-slate-700 border border-slate-200"
+      colors[status] || "bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
     );
   };
 
@@ -120,10 +120,10 @@ export default function Dashboard() {
   // Loading state
   if (loading || !dashboardData) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Carregando dashboard...</p>
+          <p className="text-slate-600 dark:text-slate-400">Carregando dashboard...</p>
         </div>
       </div>
     );
@@ -171,13 +171,13 @@ export default function Dashboard() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
+      className={`min-h-screen bg-slate-50 dark:bg-slate-900 transition-opacity duration-700 ${
         isPageLoaded ? "opacity-100" : "opacity-0"
       }`}
     >
       {/* Header */}
       <div
-        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
+        className={`bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm transform transition-transform duration-500 ${
           isPageLoaded ? "translate-y-0" : "-translate-y-4"
         }`}
       >
@@ -200,11 +200,11 @@ export default function Dashboard() {
                     />
                   </svg>
                 </div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                   Dashboard Executivo
                 </h1>
               </div>
-              <p className="text-slate-600 max-w-2xl leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
                 Visão completa do desempenho do seu e-commerce em tempo real
               </p>
             </div>
@@ -213,7 +213,7 @@ export default function Dashboard() {
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm font-medium"
+                className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm font-medium text-slate-900 dark:text-white"
               >
                 <option value="today">Hoje</option>
                 <option value="week">Esta Semana</option>
@@ -223,10 +223,10 @@ export default function Dashboard() {
 
               <button
                 onClick={loadDashboardData}
-                className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200"
+                className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors duration-200"
               >
                 <svg
-                  className="w-5 h-5 text-slate-600"
+                  className="w-5 h-5 text-slate-600 dark:text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -248,11 +248,11 @@ export default function Dashboard() {
         {/* Cards de Métricas Principais */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Card Receita */}
-          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp">
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-800 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-xl">
+              <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl">
                 <svg
-                  className="w-6 h-6 text-emerald-600"
+                  className="w-6 h-6 text-emerald-600 dark:text-emerald-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -267,11 +267,11 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={() => setShowRevenue(!showRevenue)}
-                className="p-2 hover:bg-emerald-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-lg transition-colors"
               >
                 {showRevenue ? (
                   <svg
-                    className="w-5 h-5 text-emerald-600"
+                    className="w-5 h-5 text-emerald-600 dark:text-emerald-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -291,7 +291,7 @@ export default function Dashboard() {
                   </svg>
                 ) : (
                   <svg
-                    className="w-5 h-5 text-emerald-600"
+                    className="w-5 h-5 text-emerald-600 dark:text-emerald-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -306,26 +306,26 @@ export default function Dashboard() {
                 )}
               </button>
             </div>
-            <h3 className="text-sm font-medium text-slate-600 mb-2">
+            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
               Receita Total
             </h3>
-            <div className="text-3xl font-bold text-slate-900 mb-2">
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               {showRevenue ? formatCurrency(revenue.today) : "R$ ••••••"}
             </div>
             <div className="flex items-center text-sm">
-              <span className="text-slate-500">Período selecionado</span>
+              <span className="text-slate-500 dark:text-slate-400">Período selecionado</span>
             </div>
           </div>
 
           {/* Card Pedidos */}
           <div
-            className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
+            className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
             style={{ animationDelay: "0.1s" }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-xl">
                 <svg
-                  className="w-6 h-6 text-blue-600"
+                  className="w-6 h-6 text-blue-600 dark:text-blue-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -339,26 +339,26 @@ export default function Dashboard() {
                 </svg>
               </div>
             </div>
-            <h3 className="text-sm font-medium text-slate-600 mb-2">
+            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
               Total de Pedidos
             </h3>
-            <div className="text-3xl font-bold text-slate-900 mb-2">
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               {orders.today}
             </div>
             <div className="flex items-center text-sm">
-              <span className="text-slate-500">Período selecionado</span>
+              <span className="text-slate-500 dark:text-slate-400">Período selecionado</span>
             </div>
           </div>
 
           {/* Card Clientes */}
           <div
-            className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
+            className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
             style={{ animationDelay: "0.2s" }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-xl">
+              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/40 rounded-xl">
                 <svg
-                  className="w-6 h-6 text-purple-600"
+                  className="w-6 h-6 text-purple-600 dark:text-purple-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -372,29 +372,29 @@ export default function Dashboard() {
                 </svg>
               </div>
             </div>
-            <h3 className="text-sm font-medium text-slate-600 mb-2">
+            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
               Clientes Ativos
             </h3>
-            <div className="text-3xl font-bold text-slate-900 mb-2">
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               {customers.active}
             </div>
             <div className="flex items-center text-sm">
-              <span className="text-purple-600 font-semibold">
+              <span className="text-purple-600 dark:text-purple-400 font-semibold">
                 +{customers.new} novos
               </span>
-              <span className="text-slate-500 ml-2">hoje</span>
+              <span className="text-slate-500 dark:text-slate-400 ml-2">hoje</span>
             </div>
           </div>
 
           {/* Card Produtos */}
           <div
-            className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
+            className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-800 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
             style={{ animationDelay: "0.3s" }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-xl">
+              <div className="flex items-center justify-center w-12 h-12 bg-orange-100 dark:bg-orange-900/40 rounded-xl">
                 <svg
-                  className="w-6 h-6 text-orange-600"
+                  className="w-6 h-6 text-orange-600 dark:text-orange-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -408,17 +408,17 @@ export default function Dashboard() {
                 </svg>
               </div>
             </div>
-            <h3 className="text-sm font-medium text-slate-600 mb-2">
+            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
               Produtos Cadastrados
             </h3>
-            <div className="text-3xl font-bold text-slate-900 mb-2">
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               {products.total}
             </div>
             <div className="flex items-center text-sm">
-              <span className="text-orange-600 font-semibold">
+              <span className="text-orange-600 dark:text-orange-400 font-semibold">
                 {products.lowStock} em baixa
               </span>
-              <span className="text-slate-500 ml-2">estoque</span>
+              <span className="text-slate-500 dark:text-slate-400 ml-2">estoque</span>
             </div>
           </div>
         </div>
@@ -426,8 +426,8 @@ export default function Dashboard() {
         {/* Grid de Gráficos e Tabelas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Status dos Pedidos */}
-          <div className="lg:col-span-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
-            <h3 className="text-lg font-semibold text-slate-900 mb-6">
+          <div className="lg:col-span-1 bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
               Status dos Pedidos
             </h3>
             <div className="space-y-4">
@@ -452,11 +452,11 @@ export default function Dashboard() {
                           : "bg-orange-500"
                       }`}
                     ></div>
-                    <span className="text-sm font-medium text-slate-700">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       {getStatusText(status)}
                     </span>
                   </div>
-                  <span className="text-lg font-bold text-slate-900">
+                  <span className="text-lg font-bold text-slate-900 dark:text-white">
                     {count}
                   </span>
                 </div>
@@ -465,31 +465,31 @@ export default function Dashboard() {
           </div>
 
           {/* Produtos Mais Vendidos */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
-            <h3 className="text-lg font-semibold text-slate-900 mb-6">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
               Top 5 Produtos Mais Vendidos
             </h3>
             <div className="space-y-4">
               {(topProducts || []).slice(0, 5).map((product, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+                  className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <div className="flex items-center space-x-4 flex-1">
                     <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg text-white font-bold text-sm">
                       {idx + 1}
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-slate-900">
+                      <div className="text-sm font-semibold text-slate-900 dark:text-white">
                         {product.name}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
                         {product.totalSales} vendas
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold text-slate-900">
+                    <div className="text-sm font-bold text-slate-900 dark:text-white">
                       {formatCurrency(product.totalRevenue)}
                     </div>
                   </div>
@@ -502,12 +502,12 @@ export default function Dashboard() {
         {/* GRID DE GRÁFICOS - 2 COLUNAS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Gráfico 1: Pedidos por Dia (Última Semana) - JÁ EXISTE */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Pedidos por Dia (Última Semana)
               </h3>
-              <div className="flex items-center space-x-2 text-xs text-slate-500">
+              <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 <span>Pedidos</span>
               </div>
@@ -522,7 +522,7 @@ export default function Dashboard() {
                     y1="40"
                     x2="400"
                     y2="40"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -531,7 +531,7 @@ export default function Dashboard() {
                     y1="80"
                     x2="400"
                     y2="80"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -540,7 +540,7 @@ export default function Dashboard() {
                     y1="120"
                     x2="400"
                     y2="120"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -549,7 +549,7 @@ export default function Dashboard() {
                     y1="160"
                     x2="400"
                     y2="160"
-                    stroke="#e2e8f0"
+                    className="stroke-slate-200 dark:stroke-slate-600"
                     strokeWidth="1.5"
                   />
 
@@ -561,7 +561,7 @@ export default function Dashboard() {
                       y1="0"
                       x2={60 + idx * 50}
                       y2="160"
-                      stroke="#f1f5f9"
+                      className="stroke-slate-100 dark:stroke-slate-700"
                       strokeWidth="1"
                       strokeDasharray="2,2"
                     />
@@ -573,7 +573,7 @@ export default function Dashboard() {
                     y1="0"
                     x2="40"
                     y2="160"
-                    stroke="#cbd5e1"
+                    className="stroke-slate-300 dark:stroke-slate-500"
                     strokeWidth="1.5"
                   />
 
@@ -581,7 +581,7 @@ export default function Dashboard() {
                     x="30"
                     y="10"
                     fontSize="10"
-                    fill="#94a3b8"
+                    className="fill-slate-400 dark:fill-slate-500"
                     textAnchor="end"
                   >
                     60
@@ -590,7 +590,7 @@ export default function Dashboard() {
                     x="30"
                     y="50"
                     fontSize="10"
-                    fill="#94a3b8"
+                    className="fill-slate-400 dark:fill-slate-500"
                     textAnchor="end"
                   >
                     40
@@ -599,7 +599,7 @@ export default function Dashboard() {
                     x="30"
                     y="90"
                     fontSize="10"
-                    fill="#94a3b8"
+                    className="fill-slate-400 dark:fill-slate-500"
                     textAnchor="end"
                   >
                     20
@@ -608,7 +608,7 @@ export default function Dashboard() {
                     x="30"
                     y="130"
                     fontSize="10"
-                    fill="#94a3b8"
+                    className="fill-slate-400 dark:fill-slate-500"
                     textAnchor="end"
                   >
                     0
@@ -671,7 +671,7 @@ export default function Dashboard() {
                         x={60 + idx * 50}
                         y="180"
                         fontSize="11"
-                        fill="#64748b"
+                        className="fill-slate-500 dark:fill-slate-400"
                         textAnchor="middle"
                         fontWeight="500"
                       >
@@ -731,7 +731,7 @@ export default function Dashboard() {
                 {/* Tooltip Pedidos por Dia */}
                 {tooltipDay !== null && ordersByDay[tooltipDay] && (
                   <div
-                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
+                    className="absolute bg-slate-900 dark:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg"
                     style={{
                       left: `${((60 + tooltipDay * 50) / 400) * 100}%`,
                       top: `${
@@ -774,7 +774,7 @@ export default function Dashboard() {
                         height: 0,
                         borderLeft: "6px solid transparent",
                         borderRight: "6px solid transparent",
-                        borderTop: "6px solid #0f172a",
+                        borderTop: "6px solid #0f172a", // This is slate-900. Need to handle this too?
                       }}
                     />
                   </div>
@@ -782,10 +782,10 @@ export default function Dashboard() {
               </div>
             )}
 
-            <div className="mt-4 pt-4 border-t border-slate-100">
+            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Média diária:</span>
-                <span className="font-semibold text-slate-900">
+                <span className="text-slate-600 dark:text-slate-400">Média diária:</span>
+                <span className="font-semibold text-slate-900 dark:text-white">
                   {ordersByDay.length > 0
                     ? Math.round(
                         ordersByDay.reduce((acc, d) => acc + d.orders, 0) /
@@ -799,12 +799,12 @@ export default function Dashboard() {
           </div>
 
           {/* Gráfico 2: Pedidos por Mês - JÁ EXISTE */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Pedidos por Mês (Últimos 6 Meses)
               </h3>
-              <div className="flex items-center space-x-2 text-xs text-slate-500">
+              <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
                 <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                 <span>Pedidos</span>
               </div>
@@ -819,7 +819,7 @@ export default function Dashboard() {
                     y1="40"
                     x2="400"
                     y2="40"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -828,7 +828,7 @@ export default function Dashboard() {
                     y1="80"
                     x2="400"
                     y2="80"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -837,7 +837,7 @@ export default function Dashboard() {
                     y1="120"
                     x2="400"
                     y2="120"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -846,7 +846,7 @@ export default function Dashboard() {
                     y1="160"
                     x2="400"
                     y2="160"
-                    stroke="#e2e8f0"
+                    className="stroke-slate-200 dark:stroke-slate-600"
                     strokeWidth="1.5"
                   />
 
@@ -858,7 +858,7 @@ export default function Dashboard() {
                       y1="0"
                       x2={70 + idx * 60}
                       y2="160"
-                      stroke="#f1f5f9"
+                      className="stroke-slate-100 dark:stroke-slate-700"
                       strokeWidth="1"
                       strokeDasharray="2,2"
                     />
@@ -870,7 +870,7 @@ export default function Dashboard() {
                     y1="0"
                     x2="40"
                     y2="160"
-                    stroke="#cbd5e1"
+                    className="stroke-slate-300 dark:stroke-slate-500"
                     strokeWidth="1.5"
                   />
 
@@ -878,7 +878,7 @@ export default function Dashboard() {
                     x="30"
                     y="10"
                     fontSize="10"
-                    fill="#94a3b8"
+                    className="fill-slate-400 dark:fill-slate-500"
                     textAnchor="end"
                   >
                     1000
@@ -887,7 +887,7 @@ export default function Dashboard() {
                     x="30"
                     y="50"
                     fontSize="10"
-                    fill="#94a3b8"
+                    className="fill-slate-400 dark:fill-slate-500"
                     textAnchor="end"
                   >
                     750
@@ -896,7 +896,7 @@ export default function Dashboard() {
                     x="30"
                     y="90"
                     fontSize="10"
-                    fill="#94a3b8"
+                    className="fill-slate-400 dark:fill-slate-500"
                     textAnchor="end"
                   >
                     500
@@ -905,7 +905,7 @@ export default function Dashboard() {
                     x="30"
                     y="130"
                     fontSize="10"
-                    fill="#94a3b8"
+                    className="fill-slate-400 dark:fill-slate-500"
                     textAnchor="end"
                   >
                     250
@@ -968,7 +968,7 @@ export default function Dashboard() {
                         x={70 + idx * 60}
                         y="180"
                         fontSize="11"
-                        fill="#64748b"
+                        className="fill-slate-500 dark:fill-slate-400"
                         textAnchor="middle"
                         fontWeight="500"
                       >
@@ -1032,7 +1032,7 @@ export default function Dashboard() {
                 {/* Tooltip Pedidos por Mês */}
                 {tooltipMonth !== null && ordersByMonth[tooltipMonth] && (
                   <div
-                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
+                    className="absolute bg-slate-900 dark:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
                     style={{
                       left: `${((70 + tooltipMonth * 60) / 400) * 100}%`,
                       top: `${
@@ -1070,24 +1070,17 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div
-                      className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
-                      style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: "6px solid transparent",
-                        borderRight: "6px solid transparent",
-                        borderTop: "6px solid #0f172a",
-                      }}
+                      className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900 dark:border-t-slate-700"
                     />
                   </div>
                 )}
               </div>
             )}
 
-            <div className="mt-4 pt-4 border-t border-slate-100">
+            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Média mensal:</span>
-                <span className="font-semibold text-slate-900">
+                <span className="text-slate-600 dark:text-slate-400">Média mensal:</span>
+                <span className="font-semibold text-slate-900 dark:text-white">
                   {ordersByMonth.length > 0
                     ? Math.round(
                         ordersByMonth.reduce((acc, d) => acc + d.orders, 0) /
@@ -1104,16 +1097,16 @@ export default function Dashboard() {
         {/* NOVO GRID DE GRÁFICOS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Gráfico 3: Pedidos por Dia do Mês */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Pedidos por Dia do Mês
               </h3>
               <div className="flex items-center space-x-3">
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="px-3 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                 >
                   {getAvailableMonths().map((month) => (
                     <option key={month.value} value={month.value}>
@@ -1121,7 +1114,7 @@ export default function Dashboard() {
                     </option>
                   ))}
                 </select>
-                <div className="flex items-center space-x-2 text-xs text-slate-500">
+                <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                   <span>Pedidos</span>
                 </div>
@@ -1140,7 +1133,7 @@ export default function Dashboard() {
                     y1="40"
                     x2="800"
                     y2="40"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -1149,7 +1142,7 @@ export default function Dashboard() {
                     y1="80"
                     x2="800"
                     y2="80"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -1158,7 +1151,7 @@ export default function Dashboard() {
                     y1="120"
                     x2="800"
                     y2="120"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -1167,7 +1160,7 @@ export default function Dashboard() {
                     y1="160"
                     x2="800"
                     y2="160"
-                    stroke="#e2e8f0"
+                    className="stroke-slate-200 dark:stroke-slate-600"
                     strokeWidth="1.5"
                   />
 
@@ -1179,7 +1172,7 @@ export default function Dashboard() {
                       y1="0"
                       x2={60 + idx * 25}
                       y2="160"
-                      stroke="#f1f5f9"
+                      className="stroke-slate-100 dark:stroke-slate-700"
                       strokeWidth="1"
                       strokeDasharray="2,2"
                     />
@@ -1190,7 +1183,7 @@ export default function Dashboard() {
                     y1="0"
                     x2="40"
                     y2="160"
-                    stroke="#cbd5e1"
+                    className="stroke-slate-300 dark:stroke-slate-500"
                     strokeWidth="1.5"
                   />
 
@@ -1206,7 +1199,7 @@ export default function Dashboard() {
                         x="30"
                         y={160 - factor * 140 + 5}
                         fontSize="10"
-                        fill="#94a3b8"
+                        className="fill-slate-400 dark:fill-slate-500"
                         textAnchor="end"
                       >
                         {Math.round(yScale * factor)}
@@ -1285,7 +1278,7 @@ export default function Dashboard() {
                             x={60 + idx * 25}
                             y="180"
                             fontSize="9"
-                            fill="#64748b"
+                            className="fill-slate-500 dark:fill-slate-400"
                             textAnchor="middle"
                           >
                             {data._id.split("-")[2]}
@@ -1340,7 +1333,7 @@ export default function Dashboard() {
                 {tooltipDayOfMonth !== null &&
                   filteredOrdersByDayOfMonth[tooltipDayOfMonth] && (
                     <div
-                      className="fixed bg-slate-900/95 backdrop-blur-sm text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl pointer-events-none z-[9999]"
+                      className="fixed bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-sm text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl pointer-events-none z-[9999]"
                       style={{
                         left: `${(() => {
                           const svgContainer = document.querySelector(
@@ -1381,7 +1374,7 @@ export default function Dashboard() {
                       }}
                     >
                       <div className="text-center">
-                        <div className="font-bold text-emerald-300 text-sm">
+                        <div className="font-bold text-emerald-300">
                           {(() => {
                             const [year, month, day] =
                               filteredOrdersByDayOfMonth[tooltipDayOfMonth]._id.split(
@@ -1411,8 +1404,8 @@ export default function Dashboard() {
                       <div
                         className={`absolute left-1/2 -translate-x-1/2 w-0 h-0 border-x-[8px] border-x-transparent ${
                           ((filteredOrdersByDayOfMonth[tooltipDayOfMonth].orders / Math.ceil(Math.max(...filteredOrdersByDayOfMonth.map((d) => d.orders)) * 1.1)) * 100) > 70
-                            ? 'top-0 -translate-y-full border-b-[8px] border-b-slate-900/95'
-                            : 'bottom-0 translate-y-full border-t-[8px] border-t-slate-900/95'
+                            ? 'top-0 -translate-y-full border-b-[8px] border-b-slate-900/95 dark:border-b-slate-800/95'
+                            : 'bottom-0 translate-y-full border-t-[8px] border-t-slate-900/95 dark:border-t-slate-800/95'
                         }`}
                       />
                     </div>
@@ -1441,10 +1434,10 @@ export default function Dashboard() {
               </div>
             )}
 
-            <div className="mt-4 pt-4 border-t border-slate-100">
+            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Total no mês:</span>
-                <span className="font-semibold text-slate-900">
+                <span className="text-slate-600 dark:text-slate-400">Total no mês:</span>
+                <span className="font-semibold text-slate-900 dark:text-white">
                   {filteredOrdersByDayOfMonth.reduce((acc, d) => acc + d.orders, 0)}{" "}
                   pedidos
                 </span>
@@ -1453,12 +1446,12 @@ export default function Dashboard() {
           </div>
 
           {/* Gráfico 4: Receita por Dia */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Receita por Dia (Última Semana)
               </h3>
-              <div className="flex items-center space-x-2 text-xs text-slate-500">
+              <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
                 <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
                 <span>Receita</span>
               </div>
@@ -1475,7 +1468,7 @@ export default function Dashboard() {
                       y1="0"
                       x2={60 + idx * 50}
                       y2="160"
-                      stroke="#f1f5f9"
+                      className="stroke-slate-100 dark:stroke-slate-700"
                       strokeWidth="1"
                       strokeDasharray="2,2"
                     />
@@ -1486,7 +1479,7 @@ export default function Dashboard() {
                     y1="40"
                     x2="400"
                     y2="40"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -1495,7 +1488,7 @@ export default function Dashboard() {
                     y1="80"
                     x2="400"
                     y2="80"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -1504,7 +1497,7 @@ export default function Dashboard() {
                     y1="120"
                     x2="400"
                     y2="120"
-                    stroke="#f1f5f9"
+                    className="stroke-slate-100 dark:stroke-slate-700"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
@@ -1513,7 +1506,7 @@ export default function Dashboard() {
                     y1="160"
                     x2="400"
                     y2="160"
-                    stroke="#e2e8f0"
+                    className="stroke-slate-200 dark:stroke-slate-600"
                     strokeWidth="1.5"
                   />
 
@@ -1522,7 +1515,7 @@ export default function Dashboard() {
                     y1="0"
                     x2="40"
                     y2="160"
-                    stroke="#cbd5e1"
+                    className="stroke-slate-300 dark:stroke-slate-500"
                     strokeWidth="1.5"
                   />
 
@@ -1537,7 +1530,7 @@ export default function Dashboard() {
                         x="30"
                         y={160 - factor * 140 + 5}
                         fontSize="10"
-                        fill="#94a3b8"
+                        className="fill-slate-400 dark:fill-slate-500"
                         textAnchor="end"
                       >
                         {formatCurrency(maxRevenue * factor)
@@ -1587,7 +1580,7 @@ export default function Dashboard() {
                       x={60 + idx * 50}
                       y="180"
                       fontSize="11"
-                      fill="#64748b"
+                      className="fill-slate-500 dark:fill-slate-400"
                       textAnchor="middle"
                       fontWeight="500"
                     >
@@ -1636,7 +1629,7 @@ export default function Dashboard() {
                 {/* Tooltip Receita por Dia */}
                 {tooltipRevenue !== null && revenueByDay[tooltipRevenue] && (
                   <div
-                    className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
+                    className="absolute bg-slate-900 dark:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-semibold shadow-lg animate-fadeIn"
                     style={{
                       left: `${((60 + tooltipRevenue * 50) / 400) * 100}%`,
                       top: `${(() => {
@@ -1673,24 +1666,17 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div
-                      className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full"
-                      style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: "6px solid transparent",
-                        borderRight: "6px solid transparent",
-                        borderTop: "6px solid #0f172a",
-                      }}
+                      className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900 dark:border-t-slate-700"
                     />
                   </div>
                 )}
               </div>
             )}
 
-            <div className="mt-4 pt-4 border-t border-slate-100">
+            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Receita média/dia:</span>
-                <span className="font-semibold text-slate-900">
+                <span className="text-slate-600 dark:text-slate-400">Receita média/dia:</span>
+                <span className="font-semibold text-slate-900 dark:text-white">
                   {formatCurrency(
                     revenueByDay.reduce((acc, d) => acc + d.revenue, 0) /
                       revenueByDay.length || 0
@@ -1702,51 +1688,51 @@ export default function Dashboard() {
         </div>
 
         {/* Pedidos Recentes */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300">
-          <div className="px-6 py-5 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all duration-300">
+          <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
               Pedidos Recentes
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     ID do Pedido
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     Cliente
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     Data
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                 {(recentOrders || []).map((order, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="text-sm font-mono font-semibold text-slate-900">
+                      <span className="text-sm font-mono font-semibold text-slate-900 dark:text-white">
                         #{order._id?.slice(-8)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-900">
+                      <span className="text-sm text-slate-900 dark:text-white">
                         {order.userId?.name || order.name || "N/A"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">
                         {new Date(order.createdAt).toLocaleDateString("pt-BR")}
                       </span>
                     </td>
@@ -1760,14 +1746,14 @@ export default function Dashboard() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-sm font-bold text-slate-900">
+                      <span className="text-sm font-bold text-slate-900 dark:text-white">
                         {formatCurrency(order.totalAmount)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                           title="Ver detalhes"
                         >
                           <svg
