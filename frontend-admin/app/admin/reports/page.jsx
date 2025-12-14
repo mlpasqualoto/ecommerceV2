@@ -124,10 +124,10 @@ export default function Reports() {
 
   if (loading || !reportData) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Gerando relatório...</p>
+          <p className="text-slate-600 dark:text-slate-400">Gerando relatório...</p>
         </div>
       </div>
     );
@@ -135,13 +135,13 @@ export default function Reports() {
 
   return (
     <div
-      className={`min-h-screen bg-slate-50 transition-opacity duration-700 ${
+      className={`min-h-screen bg-slate-50 dark:bg-slate-900 transition-opacity duration-700 ${
         isPageLoaded ? "opacity-100" : "opacity-0"
       }`}
     >
       {/* Header */}
       <div
-        className={`bg-white border-b border-slate-200 shadow-sm transform transition-transform duration-500 ${
+        className={`bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm transform transition-transform duration-500 ${
           isPageLoaded ? "translate-y-0" : "-translate-y-4"
         }`}
       >
@@ -164,23 +164,23 @@ export default function Reports() {
                     />
                   </svg>
                 </div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                   Relatórios de Vendas
                 </h1>
               </div>
-              <p className="text-slate-600 max-w-2xl leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
                 Análise detalhada de desempenho e métricas do seu e-commerce
               </p>
             </div>
 
             <div className="flex items-center space-x-4 animate-fadeInRight">
-              <div className="flex items-center space-x-2 bg-slate-100 rounded-xl p-1">
+              <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-700 rounded-xl p-1">
                 <button
                   onClick={() => setReportType("weekly")}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     reportType === "weekly"
-                      ? "bg-white text-purple-600 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-white dark:bg-slate-600 text-purple-600 dark:text-purple-400 shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Semanal
@@ -189,8 +189,8 @@ export default function Reports() {
                   onClick={() => setReportType("monthly")}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     reportType === "monthly"
-                      ? "bg-white text-purple-600 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-white dark:bg-slate-600 text-purple-600 dark:text-purple-400 shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Mensal
@@ -201,7 +201,7 @@ export default function Reports() {
                 <select
                   value={selectedWeek}
                   onChange={(e) => setSelectedWeek(e.target.value)}
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm font-medium"
+                  className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm font-medium text-slate-900 dark:text-white"
                 >
                   {getAvailableWeeks().map((week) => (
                     <option key={week.value} value={week.value}>
@@ -215,7 +215,7 @@ export default function Reports() {
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm font-medium"
+                  className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm font-medium text-slate-900 dark:text-white"
                 >
                   {getAvailableMonths().map((month) => (
                     <option key={month.value} value={month.value}>
@@ -227,11 +227,11 @@ export default function Reports() {
 
               <button
                 onClick={printReport}
-                className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-200"
+                className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors duration-200"
                 title="Imprimir"
               >
                 <svg
-                  className="w-5 h-5 text-slate-600"
+                  className="w-5 h-5 text-slate-600 dark:text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -272,79 +272,79 @@ export default function Reports() {
       <div className="max-w-[1400px] mx-auto px-8 py-8">
         {/* Cards de Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp">
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-800/30 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-xl">
-                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+                <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="flex items-center space-x-1 text-xs font-semibold text-emerald-600">
+              <div className="flex items-center space-x-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                 </svg>
                 <span>+{reportData?.summary?.growth || 0}%</span>
               </div>
             </div>
-            <h3 className="text-sm font-medium text-slate-600 mb-2">Receita Total</h3>
-            <div className="text-3xl font-bold text-slate-900 mb-2">
+            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Receita Total</h3>
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               {formatCurrency(reportData?.summary?.totalRevenue || 0)}
             </div>
-            <div className="text-xs text-slate-500">No período selecionado</div>
+            <div className="text-xs text-slate-500 dark:text-slate-500">No período selecionado</div>
           </div>
 
           <div
-            className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
+            className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800/30 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
             style={{ animationDelay: "0.1s" }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               </div>
             </div>
-            <h3 className="text-sm font-medium text-slate-600 mb-2">Total de Pedidos</h3>
-            <div className="text-3xl font-bold text-slate-900 mb-2">
+            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Total de Pedidos</h3>
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               {reportData?.summary?.totalOrders || 0}
             </div>
-            <div className="text-xs text-slate-500">Pedidos processados</div>
+            <div className="text-xs text-slate-500 dark:text-slate-500">Pedidos processados</div>
           </div>
 
           <div
-            className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
+            className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800/30 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
             style={{ animationDelay: "0.2s" }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-xl">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+                <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
             </div>
-            <h3 className="text-sm font-medium text-slate-600 mb-2">Ticket Médio</h3>
-            <div className="text-3xl font-bold text-slate-900 mb-2">
+            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Ticket Médio</h3>
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               {formatCurrency(reportData?.summary?.avgOrderValue || 0)}
             </div>
-            <div className="text-xs text-slate-500">Por pedido</div>
+            <div className="text-xs text-slate-500 dark:text-slate-500">Por pedido</div>
           </div>
 
           <div
-            className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
+            className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-800/30 shadow-sm hover:shadow-md transition-all duration-300 animate-fadeInUp"
             style={{ animationDelay: "0.3s" }}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-xl">
-                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center justify-center w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+                <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
               </div>
             </div>
-            <h3 className="text-sm font-medium text-slate-600 mb-2">Melhor Dia</h3>
-            <div className="text-3xl font-bold text-slate-900 mb-2">
+            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Melhor Dia</h3>
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
               {reportData?.bestDay?.day || "-"}
             </div>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-slate-500 dark:text-slate-500">
               {reportData?.bestDay?.revenue 
                 ? formatCurrency(reportData.bestDay.revenue) 
                 : "Sem dados"}
@@ -355,18 +355,18 @@ export default function Reports() {
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Vendas por Dia */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
-            <h3 className="text-lg font-semibold text-slate-900 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
               Vendas por Dia
             </h3>
             <div className="relative h-64">
               {reportData?.salesByDay && reportData.salesByDay.length > 0 ? (
                 <svg viewBox="0 0 400 200" className="w-full h-full">
-                  <line x1="40" y1="160" x2="400" y2="160" stroke="#e2e8f0" strokeWidth="1.5" />
-                  <line x1="40" y1="0" x2="40" y2="160" stroke="#cbd5e1" strokeWidth="1.5" />
+                  <line x1="40" y1="160" x2="400" y2="160" className="stroke-slate-200 dark:stroke-slate-700" strokeWidth="1.5" />
+                  <line x1="40" y1="0" x2="40" y2="160" className="stroke-slate-300 dark:stroke-slate-600" strokeWidth="1.5" />
 
                   {[0, 40, 80, 120, 160].map((y, idx) => (
-                    <line key={idx} x1="40" y1={y} x2="400" y2={y} stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2" />
+                    <line key={idx} x1="40" y1={y} x2="400" y2={y} className="stroke-slate-100 dark:stroke-slate-700/50" strokeWidth="1" strokeDasharray="2,2" />
                   ))}
 
                   {reportData.salesByDay.map((item, idx) => {
@@ -377,7 +377,7 @@ export default function Reports() {
                     return (
                       <g key={idx}>
                         <rect x={x - 15} y={160 - barHeight} width="30" height={barHeight} fill="url(#blueGradient)" rx="4" className="cursor-pointer transition-opacity hover:opacity-80" />
-                        <text x={x} y="180" fontSize="11" fill="#64748b" textAnchor="middle" fontWeight="500">
+                        <text x={x} y="180" fontSize="11" className="fill-slate-500 dark:fill-slate-400" textAnchor="middle" fontWeight="500">
                           {item.day}
                         </text>
                       </g>
@@ -392,7 +392,7 @@ export default function Reports() {
                   </defs>
                 </svg>
               ) : (
-                <div className="flex items-center justify-center h-full text-slate-400">
+                <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500">
                   Sem dados para exibir
                 </div>
               )}
@@ -400,8 +400,8 @@ export default function Reports() {
           </div>
 
           {/* Status dos Pedidos */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
-            <h3 className="text-lg font-semibold text-slate-900 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
               Status dos Pedidos
             </h3>
             <div className="space-y-4">
@@ -411,47 +411,47 @@ export default function Reports() {
                 
                 const statusConfig = {
                   delivered: { 
-                    bg: "bg-green-50", 
-                    text: "text-green-700", 
+                    bg: "bg-green-50 dark:bg-green-900/20", 
+                    text: "text-green-700 dark:text-green-400", 
                     bar: "bg-green-500", 
-                    border: "border-green-200",
+                    border: "border-green-200 dark:border-green-800/30",
                     label: "Entregue" 
                   },
                   shipped: { 
-                    bg: "bg-blue-50", 
-                    text: "text-blue-700", 
+                    bg: "bg-blue-50 dark:bg-blue-900/20", 
+                    text: "text-blue-700 dark:text-blue-400", 
                     bar: "bg-blue-500", 
-                    border: "border-blue-200",
+                    border: "border-blue-200 dark:border-blue-800/30",
                     label: "Enviado" 
                   },
                   paid: { 
-                    bg: "bg-emerald-50", 
-                    text: "text-emerald-700", 
+                    bg: "bg-emerald-50 dark:bg-emerald-900/20", 
+                    text: "text-emerald-700 dark:text-emerald-400", 
                     bar: "bg-emerald-500", 
-                    border: "border-emerald-200",
+                    border: "border-emerald-200 dark:border-emerald-800/30",
                     label: "Pago" 
                   },
                   pending: { 
-                    bg: "bg-orange-50", 
-                    text: "text-orange-700", 
+                    bg: "bg-orange-50 dark:bg-orange-900/20", 
+                    text: "text-orange-700 dark:text-orange-400", 
                     bar: "bg-orange-500", 
-                    border: "border-orange-200",
+                    border: "border-orange-200 dark:border-orange-800/30",
                     label: "Pendente" 
                   },
                   cancelled: { 
-                    bg: "bg-red-50", 
-                    text: "text-red-700", 
+                    bg: "bg-red-50 dark:bg-red-900/20", 
+                    text: "text-red-700 dark:text-red-400", 
                     bar: "bg-red-500", 
-                    border: "border-red-200",
+                    border: "border-red-200 dark:border-red-800/30",
                     label: "Cancelado" 
                   }
                 };
                 
                 const config = statusConfig[status] || { 
-                  bg: "bg-gray-50", 
-                  text: "text-gray-700", 
+                  bg: "bg-gray-50 dark:bg-gray-800", 
+                  text: "text-gray-700 dark:text-gray-400", 
                   bar: "bg-gray-500", 
-                  border: "border-gray-200",
+                  border: "border-gray-200 dark:border-gray-700",
                   label: status 
                 };
 
@@ -463,11 +463,11 @@ export default function Reports() {
                         <span className={`text-sm font-medium ${config.text}`}>{config.label}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-lg font-bold text-slate-900">{count}</span>
-                        <span className="text-xs text-slate-500 ml-2">({percentage}%)</span>
+                        <span className="text-lg font-bold text-slate-900 dark:text-white">{count}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">({percentage}%)</span>
                       </div>
                     </div>
-                    <div className="w-full bg-white rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-white dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                       <div className={`h-full ${config.bar} transition-all duration-500`} style={{ width: `${percentage}%` }}></div>
                     </div>
                   </div>
@@ -478,30 +478,30 @@ export default function Reports() {
         </div>
 
         {/* Top Produtos */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
-          <h3 className="text-lg font-semibold text-slate-900 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">
             Top 5 Produtos Mais Vendidos
           </h3>
           <div className="space-y-4">
             {reportData?.topProducts && reportData.topProducts.length > 0 ? (
               reportData.topProducts.map((product, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                   <div className="flex items-center space-x-4 flex-1">
                     <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg text-white font-bold text-sm">
                       {idx + 1}
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-slate-900">{product.name}</div>
-                      <div className="text-xs text-slate-500">{product.quantity} unidades vendidas</div>
+                      <div className="text-sm font-semibold text-slate-900 dark:text-white">{product.name}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{product.quantity} unidades vendidas</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold text-slate-900">{formatCurrency(product.revenue)}</div>
+                    <div className="text-sm font-bold text-slate-900 dark:text-white">{formatCurrency(product.revenue)}</div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-slate-400">
+              <div className="text-center py-8 text-slate-400 dark:text-slate-500">
                 Nenhum produto vendido no período
               </div>
             )}
