@@ -288,11 +288,13 @@ export async function fetchDailyReportCSV(date) {
   const res = await fetch(`${API_URL}/api/analytics/daily/${date}/export`, {
     method: 'GET',
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
   });
-  return handleResponse(res);
+
+  if (!res.ok) {
+    return handleResponse(res);
+  }
+
+  return res.blob();
 }
 
 /**
