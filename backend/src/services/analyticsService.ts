@@ -814,6 +814,32 @@ export async function comparePeriodsService(
 /**
  * Busca pedidos e gera CSV detalhado para relatório SEMANAL
  */
+export async function exportDailyReportService(dateStr: string): Promise<string | null> {
+  try {
+    if (!dateStr) return null;
+    
+    // Parse a data em horário local (não UTC)
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const startDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+    const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+    const orders = await Order.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }).sort({ createdAt: 1 }).lean();
+
+    return generateDetailedCSV(orders);
+  } catch (error) {
+    console.error("Erro ao exportar relatório diário:", error);
+    throw error;
+  }
+}
+
+/**
+ * Busca pedidos e gera CSV detalhado para relatório SEMANAL
+ */
 export async function exportWeeklyReportService(weekYear: string): Promise<string | null> {
   try {
     if (!weekYear || !weekYear.includes('-W')) return null;

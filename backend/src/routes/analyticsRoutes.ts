@@ -2,6 +2,7 @@ import express from "express";
 import { 
   comparePeriods,
   dashBoardsStats, 
+  exportDailyReport, 
   exportMonthlyReport, 
   exportWeeklyReport, 
   getMonthlyReport, 
@@ -31,6 +32,10 @@ router.get('/summary', authenticateToken, authorizeRole("admin"), adminQueryLimi
 // Rota para comparar dois períodos
 //Exemplo: /api/reports/compare?period1Start=2024-12-01&period1End=2024-12-07&period2Start=2024-11-24&period2End=2024-11-30
 router.get('/compare', authenticateToken, authorizeRole("admin"), adminQueryLimiter, comparePeriods);
+
+// Rota para exportar relatório diário em CSV
+//Exemplo: /api/reports/daily/2024-12-15/export
+router.get('/daily/:date/export', authenticateToken, authorizeRole("admin"), adminQueryLimiter, exportDailyReport);
 
 // Rota para exportar relatório semanal em CSV
 //Exemplo: /api/reports/weekly/2024-W50/export

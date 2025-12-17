@@ -4,7 +4,8 @@ import {
     getMonthlyReportService,
     getWeeklyReportService,
     exportWeeklyReportService,
-    exportMonthlyReportService
+    exportMonthlyReportService,
+    exportDailyReportService
  } from "../services/analyticsService";
 import { NextFunction, Request, Response } from "express";
 
@@ -126,15 +127,42 @@ export const comparePeriods = async (req: Request, res: Response, next: NextFunc
     }
 };
 
+// Rota para exportar relatório diário em CSV (admin)
+export const exportDailyReport = async (req: Request, res: Response, next: NextFunction) => {
+    const { date } = req.params;
+
+    if (!date) {
+        const error = new Error("Parâmetro date não informado.");
+        (error as any).statusCode = 400;
+        return next(error);
+    }
+    try {
+        const csv = await exportDailyReportService(date);
+
+        if (!csv) {
+            return res.status(404).json({ 
+                message: "Nenhum dado encontrado para este período ou formato inválido." 
+            });
+        }
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename=relatorio-diario-${date}.csv`);
+
+        return res.send(csv);
+    } catch (error) {
+        return next(error);
+    }
+};
+
+
 // Rota para exportar relatório semanal em CSV (admin)
 export const exportWeeklyReport = async (req: Request, res: Response, next: NextFunction) => {
     const { weekYear } = req.params;
 
     if (!weekYear) {
-        return res.status(400).json({
-            status: 400,
-            message: 'Parâmetro weekYear não informado'
-        });
+        const error = new Error("Parâmetro weekYear não informado.");
+        (error as any).statusCode = 400;
+        return next(error);
     } 
     try {    
         const csv = await exportWeeklyReportService(weekYear);

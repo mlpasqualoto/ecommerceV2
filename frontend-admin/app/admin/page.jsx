@@ -11,10 +11,13 @@ import {
   fetchCancelOrder,
   fetchDeleteOrder,
   fetchOlistSync,
-  fetchUserById
+  fetchUserById,
+  fetchDailyReportCSV,
+  downloadCSV
 } from "../lib/api.js";
 import { formatCurrencyBRL } from "../utils/utils.js";
 import { useRouter } from "next/navigation";
+import { get } from "http";
 
 export default function AdminHome() {
   const [editOrder, setEditOrder] = useState(null);
@@ -138,320 +141,20 @@ export default function AdminHome() {
   }
 
   // Função para exportar dados
-  const handleExportData = () => {
+  const handleExportData = async () => {
     try {
-      // ⚠️ CORREÇÃO: Detecta formato de número do sistema via Intl
-      const testNumber = (234.56).toLocaleString();
-      const usesComma = testNumber.includes(","); // true = vírgula decimal (BR/EU)
+      const date = getLocalIsoDate();
+      const result = await fetchDailyReportCSV(date);
 
-      // Define separadores baseado no formato detectado
-      const decimalSeparator = usesComma ? "," : ".";
-      const columnDelimiter = usesComma ? ";" : ",";
+      if (!(result instanceof Blob)) {
+        console.error("Erro ao exportar:", result);
+        return;
+      }
 
-      console.log("📊 Separadores finais:", {
-        decimal: decimalSeparator,
-        coluna: columnDelimiter,
-      });
-
-      // Função helper para formatar números
-      const formatNumber = (value) => {
-        return value.toFixed(2).replace(".", decimalSeparator);
-      };
-
-      let count = 0;
-      const exportData = orders.map((order) => {
-        // 1. Verifica se o status conta para custos (apenas pagos/enviados/entregues)
-        const isConfirmed = ["paid", "shipped", "delivered"].includes(order.status);
-
-        // 2. Valores Base
-        const totalAmount = order.totalAmount || 0;
-        const totalQuantity = order.totalQuantity || 0;
-        const totalCost = order.totalCost || 0;
-
-        // 3. Cálculo da Taxa Shopee (20% + R$5 por item)
-        const shopeeTax = isConfirmed 
-          ? (totalAmount * 0.20) + (totalQuantity * 5.0) 
-          : 0
-        ;
-
-        // 4. Custo considerado (apenas se confirmado)
-        const consideredCost = isConfirmed ? totalCost : 0;
-
-        // 5. Cálculo do Lucro Bruto
-        // Fórmula: Total Recebido - (Taxa Shopee + Total Custo)
-        // Se o pedido não estiver confirmado, o lucro é 0 (para não distorcer o relatório)
-        const grossProfit = isConfirmed 
-          ? totalAmount - (shopeeTax + consideredCost) 
-          : 0
-        ;
-
-        // 6. Extração do ID Olist do nome do pedido
-        const text = order.name; // usado para extração de ID Olist e nome cliente
-        const regexOlistId = /Pedido Olist nº (\d+)/;
-        const matchOlistId = text.match(regexOlistId);
-
-        let olistId = "";
-        if (matchOlistId && matchOlistId[1]) {
-          olistId = matchOlistId[1];
-        }
-
-        //7. Extração do nome do cliente
-        const regexClientName = /em nome de (.*?),/;
-        const matchClientName = text.match(regexClientName);
-
-        let clientName = "";
-        if (matchClientName && matchClientName[1]) {
-          clientName = matchClientName[1];
-        }
-
-        // 8. Extração do ID Ecommerce
-        const regexEcommerceId = /- nº\s+(\S+)/; // ✅ Pega qualquer coisa após "- nº "
-        const matchEcommerceId = text.match(regexEcommerceId);
-
-        let ecommerceId = "";
-        if (matchEcommerceId && matchEcommerceId[1]) {
-          ecommerceId = matchEcommerceId[1];
-        }
-
-        return {
-          Qte: ++count,
-          "Vendedor": order.source || "",
-          ID: order._id,
-          "ID Ecommerce": ecommerceId || "",
-          "ID Olist": olistId || "",
-          Data: new Date(order.createdAt).toLocaleDateString("pt-BR"),
-          Cliente: clientName || "",
-          Status: getStatusText(order.status),
-          "Total Recebido": formatNumber(totalAmount),
-          "Taxa Shopee": formatNumber(shopeeTax),
-          "Total Custo": formatNumber(consideredCost),
-          "Lucro Bruto": formatNumber(grossProfit),
-          Produtos: order.items
-            .map((item) => `${item.name} (${item.quantity}x)`)
-            .join(", "),
-          "Total de Itens": totalQuantity,
-        }
-    });
-
-      const totalPaid = orders
-        .filter((order) => order.status === "paid")
-        .reduce((sum, order) => sum + order.totalAmount, 0);
-
-      const totalShipped = orders
-        .filter((order) => order.status === "shipped")
-        .reduce((sum, order) => sum + order.totalAmount, 0);
-
-      const totalDelivered = orders
-        .filter((order) => order.status === "delivered")
-        .reduce((sum, order) => sum + order.totalAmount, 0);
-
-      const totalConfirmed = totalPaid + totalShipped + totalDelivered;
-
-      // Soma custo de produção (usa order.totalCost se já vier do backend; senão calcula pelos itens)
-      const totalProductionCost = orders
-        .filter((order) =>
-          ["paid", "shipped", "delivered"].includes(order.status)
-        )
-        .reduce((sum, order) => {
-          if (typeof order.totalCost === "number") {
-            return sum + order.totalCost;
-          }
-          const orderCost = (order.items || []).reduce(
-            (s, item) =>
-              s + (Number(item.cost) || 0) * (Number(item.quantity) || 0),
-            0
-          );
-          return sum + orderCost;
-        }, 0);
-
-      const escapeCSV = (value) => {
-        if (value == null) return '""';
-        const str = String(value);
-        if (
-          str.includes(columnDelimiter) ||
-          str.includes('"') ||
-          str.includes("\n") ||
-          str.includes("\r")
-        ) {
-          return `"${str.replace(/"/g, '""')}"`;
-        }
-        return `"${str}"`;
-      };
-
-      const commissionShopee = totalConfirmed * 0.2;
-      // Soma a quantidade total de produtos vendidos para calcular a taxa fixa por pedido
-      const quantityProducts = orders
-        .filter((order) =>
-          ["paid", "shipped", "delivered"].includes(order.status)
-        )
-        .reduce((sum, order) => {
-          return sum + (order.totalQuantity || 0);
-        }, 0);
-      const shopeeRatePerOrder = quantityProducts * 5.0;
-
-      // Cálculo do lucro bruto
-      const grossProfit =
-        totalConfirmed -
-        commissionShopee -
-        shopeeRatePerOrder -
-        totalProductionCost;
-
-      const csvContent = [
-        // Cabeçalho da tabela de pedidos
-        Object.keys(exportData[0] || {})
-          .map(escapeCSV)
-          .join(columnDelimiter),
-        ...exportData.map((row) =>
-          Object.values(row).map(escapeCSV).join(columnDelimiter)
-        ),
-        "",
-        "",
-        // ═══════════════════════════════════════════════════════════
-        // RESUMO FINANCEIRO - LAYOUT HORIZONTAL
-        // ═══════════════════════════════════════════════════════════
-        escapeCSV(
-          "═══════════════════════════════════════════════════════════"
-        ),
-        escapeCSV("RESUMO FINANCEIRO - ANÁLISE COMPLETA"),
-        escapeCSV(
-          "═══════════════════════════════════════════════════════════"
-        ),
-        "",
-        // Cabeçalhos das colunas
-        [
-          escapeCSV("VOLUME DE PEDIDOS"),
-          escapeCSV("RECEITAS"),
-          escapeCSV("CUSTOS OPERACIONAIS"),
-          escapeCSV("RESULTADO FINAL"),
-          escapeCSV("MÉDIAS E INDICADORES"),
-        ].join(columnDelimiter),
-        "",
-        // Linha 1
-        [
-          escapeCSV(
-            "Total de Pedidos Confirmados: " +
-              (orders.filter((order) =>
-                ["paid", "shipped", "delivered"].includes(order.status)
-              ).length || 0)
-          ),
-          escapeCSV("Receita Bruta Total: " + formatNumber(totalConfirmed)),
-          escapeCSV("Taxa Shopee (20%): " + formatNumber(commissionShopee)),
-          escapeCSV("LUCRO BRUTO: " + formatNumber(grossProfit)),
-          escapeCSV(
-            "Ticket Médio: " +
-              formatNumber(
-                totalConfirmed /
-                  (orders.filter((order) =>
-                    ["paid", "shipped", "delivered"].includes(order.status)
-                  ).length || 1)
-              )
-          ),
-        ].join(columnDelimiter),
-        // Linha 2
-        [
-          escapeCSV("└─ Status: Pago + Enviado + Entregue"),
-          escapeCSV("└─ Soma de todos os pedidos confirmados"),
-          escapeCSV(
-            "Taxa Shopee Fixa (R$5,00/item): " +
-              formatNumber(shopeeRatePerOrder)
-          ),
-          escapeCSV("└─ (Receita - Taxas - Custos)"),
-          escapeCSV("└─ (Receita Total / Qtd Pedidos)"),
-        ].join(columnDelimiter),
-        // Linha 3
-        [
-          escapeCSV(""),
-          escapeCSV(""),
-          escapeCSV(
-            "Subtotal Taxas Shopee: " +
-              formatNumber(commissionShopee + shopeeRatePerOrder)
-          ),
-          escapeCSV(
-            "Margem de Lucro: " +
-              formatNumber((grossProfit / totalConfirmed) * 100) +
-              "%"
-          ),
-          escapeCSV(
-            "Lucro Médio por Pedido: " +
-              formatNumber(
-                grossProfit /
-                  (orders.filter((order) =>
-                    ["paid", "shipped", "delivered"].includes(order.status)
-                  ).length || 1)
-              )
-          ),
-        ].join(columnDelimiter),
-        // Linha 4
-        [
-          escapeCSV(""),
-          escapeCSV(""),
-          escapeCSV(
-            "Custo de Produtos (Estoque): " + formatNumber(totalProductionCost)
-          ),
-          escapeCSV(""),
-          escapeCSV("└─ (Lucro Bruto / Qtd Pedidos)"),
-        ].join(columnDelimiter),
-        // Linha 5
-        [
-          escapeCSV(""),
-          escapeCSV(""),
-          escapeCSV(
-            "TOTAL DE CUSTOS: " +
-              formatNumber(
-                commissionShopee + shopeeRatePerOrder + totalProductionCost
-              )
-          ),
-          escapeCSV(""),
-          escapeCSV(
-            "Custo Médio por Pedido: " +
-              formatNumber(
-                (commissionShopee + shopeeRatePerOrder + totalProductionCost) /
-                  (orders.filter((order) =>
-                    ["paid", "shipped", "delivered"].includes(order.status)
-                  ).length || 1)
-              )
-          ),
-        ].join(columnDelimiter),
-        "",
-        escapeCSV(
-          "═══════════════════════════════════════════════════════════"
-        ),
-        escapeCSV("Relatório gerado em: " + new Date().toLocaleString("pt-BR")),
-        escapeCSV(
-          "═══════════════════════════════════════════════════════════"
-        ),
-      ].join("\n");
-
-      // ⚠️ Adiciona BOM UTF-8 para Excel reconhecer encoding
-      const BOM = "\uFEFF";
-      const csvWithBOM = BOM + csvContent;
-
-      const blob = new Blob([csvWithBOM], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-
-      // Garante data atual em UTC-3
-      const currentDate = new Date();
-      const currentDateBr = currentDate.setHours(currentDate.getHours() - 3); // Ajusta para o fuso horário de Brasília (UTC-3)
-
-      link.setAttribute(
-        "download",
-        `pedidos_${orders[0].createdAt.split("T")[0]}.csv`
-      );
-      link.style.visibility = "hidden";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      const exportButton = document.querySelector("[data-export-btn]");
-      exportButton?.classList.add("bg-green-200", "text-green-700 dark:text-green-300 dark:text-green-300 dark:text-green-300");
-      setTimeout(() => {
-        exportButton?.classList.remove("bg-green-200", "text-green-700 dark:text-green-300 dark:text-green-300 dark:text-green-300");
-      }, 2000);
+      const filename = `relatorio-diario-${date}.csv`;
+      downloadCSV(result, filename);
     } catch (error) {
       console.error("Erro ao exportar dados:", error);
-      alert("Erro ao exportar dados. Tente novamente.");
     }
   };
 

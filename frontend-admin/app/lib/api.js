@@ -280,6 +280,21 @@ export async function compareReportPeriods(period1Start, period1End, period2Star
   return handleResponse(res);
 }
 
+/** * Exporta relatório diário em CSV
+ * @param {string} date - Data no formato "YYYY-MM-DD"
+ * @returns {Promise<Blob|Object>}
+ */
+export async function fetchDailyReportCSV(date) {
+  const res = await fetch(`${API_URL}/api/analytics/daily/${date}/export`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+  return handleResponse(res);
+}
+
 /**
  * Exporta relatório em CSV
  * @param {string} reportType - "weekly" ou "monthly"
